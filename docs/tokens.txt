@@ -1,0 +1,99 @@
+TOKEN_LEFT_PAREN    (
+TOKEN_RIGHT_PAREN   )
+TOKEN_LEFT_BRACE    {
+TOKEN_RIGHT_BRACE   }
+TOKEN_LEFT_BRACKET  [
+TOKEN_RIGHT_BRACKET ]
+
+TOKEN_COMMA     ,
+TOKEN_DOT       .
+TOKEN_SEMICOLON ;
+TOKEN_DOLLAR    $
+  
+// Operators
+TOKEN_INC     ++
+TOKEN_DEC     --
+TOKEN_MINUS   -
+TOKEN_PLUS    +
+TOKEN_SLASH   /
+TOKEN_STAR    *
+TOKEN_MODULO  %
+
+TOKEN_AND     &&
+TOKEN_BIT_AND &
+TOKEN_OR      ||
+TOKEN_BIT_OR  |
+TOKEN_BIT_XOR ^
+TOKEN_BANG    !
+TOKEN_L_SHIFT <<
+TOKEN_R_SHIFT >>
+
+TOKEN_BANG_EQUAL    !=
+TOKEN_EQUAL         =
+TOKEN_EQUAL_EQUAL   ==
+TOKEN_GREATER       >
+TOKEN_GREATER_EQUAL >=
+TOKEN_LESS          <
+TOKEN_LESS_EQUAL    <=
+TOKEN_COMPARE       <=>
+
+TOKEN_AT          @
+TOKEN_QMARK       ? 
+TOKEN_QMARK_QMARK ?? 
+TOKEN_COLON       :
+TOKEN_COLON_COLON ::
+TOKEN_HASH        #
+
+// Literals
+TOKEN_IDENTIFIER  (_[a-zA-Z0-9_]+) | ([a-zA-Z][a-zA-Z0-9_]*)
+TOKEN_STRING      (" ([^"] | (\")) "
+TOKEN_FLT         [0-9]+ . [0-9]+ (e -? [0-9]+)?
+TOKEN_INT         [0-9]+
+TOKEN_FIX         [0-9]+ ` [0-9]+
+
+// Keywords
+TOKEN_INTERFACE interface
+TOKEN_ABSTRACT  abstract
+TOKEN_CLASS     class
+TOKEN_STRUCT    struct
+TOKEN_ENUM      enum
+
+TOKEN_HEAP      heap
+TOKEN_STACK     stack
+TOKEN_MARK      mark
+TOKEN_DELETE    delete
+
+TOKEN_IF        if
+TOKEN_ELSE      else
+TOKEN_FOR       for
+TOKEN_WHILE     while
+TOKEN_SWITCH    switch
+
+TOKEN_FUN       fun
+TOKEN_VAR       var
+
+TOKEN_TRY       try
+TOKEN_CATCH     catch
+TOKEN_FINALLY   finally
+TOKEN_THROW     throw
+
+TOKEN_BREAK     break
+TOKEN_CONTINUE  continue
+TOKEN_RETURN    return
+
+TOKEN_ASYNC     async
+TOKEN_AWAIT     await
+TOKEN_SYNC      sync
+TOKEN_STATIC    static
+
+TOKEN_NULL      null
+TOKEN_SUPER     super
+TOKEN_THIS      this
+TOKEN_TRUE      true
+TOKEN_FALSE     false
+
+TOKEN_UNDERSCORE _
+
+//Other
+TOKEN_ERROR
+TOKEN_EOF   \0

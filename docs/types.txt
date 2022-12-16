@@ -1,0 +1,61 @@
+Ethylene Types
+
+Primitive
+* Boolean
+  - bool
+* Integer
+  - int8
+  - int16
+  - int32
+  - int64
+* Floating Point
+  - flt8
+  - flt16
+  - flt32
+  - flt64
+* Fixed Point
+  - fix16
+  - fix32
+  - fix64
+* Character
+  - char8
+  - char16
+  - char32
+* Void
+  - void
+
+Derrived
+* Fixed Array
+  - Type[5]
+  - 2 forms:
+    > Primitive Array
+      No marking
+    > Derrived Array
+      Marking through iteration
+* Tuple
+  - (Type1, ...)
+  - 2 field Types 
+    > Primitives
+      No marking
+    > Derrived
+      Marking
+* Pointer
+  - Type*
+  - 2 Forms:
+    > Primitive Pointer
+      No Marking
+    > Derrived Pointer
+      Marking
+* Const
+  - Type$
+  - 2 Forms:
+    > Primitive Const
+      No marking
+    > Derrived Const
+      Marking
+* Struct
+  - struct Type { ... }
+  - Marking marks fields like tuple
+* Class
+  - class Type { ... }
+  - Marking marks fields like tuple or uses mark function
