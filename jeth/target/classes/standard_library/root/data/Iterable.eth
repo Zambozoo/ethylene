@@ -1,0 +1,5 @@
+import root("data/Iterator");
+
+interface Iterable[E] {
+    public abstract fun Iterator[E]() iterator;
+}

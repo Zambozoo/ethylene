@@ -1,0 +1,35 @@
+import root("data/Iterator");
+import root("data/Iterable");
+
+interface List[E] <: [Iterable[E]] {
+    interface Panic {
+        public static fun void(int64) OutOfRange = (index) {
+            panic("index(" + index{str} + ") out of range.");
+        }
+    }
+    public abstract fun void(E) addFirst;
+    public abstract fun void(E) addLast;
+    public abstract fun void(int64, E) addIndex;
+
+    public abstract fun E() removeFirst;
+    public abstract fun E() removeLast;
+    public abstract fun E(int64) removeIndex;
+
+    public abstract fun E(E) setFirst;
+    public abstract fun E(E) setLast;
+    public abstract fun E(int64, E) setIndex;
+
+    public abstract fun E() getFirst;
+    public abstract fun E() getLast;
+    public abstract fun E(int64) getIndex;
+
+    public abstract fun int64(E) firstIndex;
+    public abstract fun int64(E) lastIndex;
+
+    public abstract fun bool(E) contains;
+    public abstract fun int64() size;
+    public abstract fun bool() isEmpty;
+    public abstract fun void() clear;
+    
+    public abstract fun OrderedIterator[E]*() iterator;
+}

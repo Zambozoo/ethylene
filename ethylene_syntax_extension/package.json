@@ -1,0 +1,25 @@
+{
+  "name": "ethylene",
+  "displayName": "Ethylene",
+  "description": "Ethylene Programming Language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "ethylene",
+      "aliases": ["Ethylene Programming Language", "ethylene"],
+      "extensions": [".eth"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "ethylene",
+      "scopeName": "source.eth",
+      "path": "./syntaxes/ethylene.tmLanguage.json"
+    }]
+  }
+}

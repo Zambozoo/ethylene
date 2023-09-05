@@ -1,0 +1,16 @@
+class Flt {
+    var flt64 f;
+
+    public fun Flt*(flt64) new = (f) {
+        this.f = f;
+        return this;
+    }
+
+    public fun flt64() getValue = () {
+        return this.f;
+    }
+
+    public fun void(flt64) setValue = (f) {
+        this.f = f;
+    }
+}

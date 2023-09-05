@@ -1,0 +1,16 @@
+class Bool {
+    var bool b;
+
+    public fun Bool*(bool) new = (b) {
+        this.b = b;
+        return this;
+    }
+
+    public fun bool() getValue = () {
+        return this.b;
+    }
+
+    public fun void(b) setValue = (b) {
+        this.b = b;
+    }
+}

@@ -1,0 +1,5 @@
+//id: This project's UUID
+id(1);
+
+//root: This project's folder
+root("root");

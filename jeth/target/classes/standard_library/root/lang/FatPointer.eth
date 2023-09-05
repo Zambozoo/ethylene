@@ -1,0 +1,32 @@
+struct {E} FatPointer[E] {
+    var bit64 ptr;
+
+    public fun FatPointer[E](bit16, E*) new = (m, p) {
+        this.ptr = (m{bit64} << 48) | (p & 0x0000ffffffffffff{bit64});
+        return this;
+    }
+
+    public fun void(bit16) setMeta = (m) {
+        this.ptr = (ptr & 0x0000ffffffffffff{bit64}) | (m{bit64} << 48);
+    }
+    
+    public fun bit16() getMeta = () {
+        return (ptr >> 48){bit16};
+    }
+
+    public fun void(E*) setPtr = (p) {
+        this.ptr = (p & 0x0000ffffffffffff{bit64}) | (this.ptr & 0xffff000000000000{bit64});
+    }
+    
+    public fun E*() getPtr = () {
+        return (this.ptr & 0x0000ffffffffffff{bit64}){E};
+    }
+
+    public fun void() mark = () {
+        (this.ptr & 0x0000ffffffffffff{bit64}).mark();
+    }
+
+    public fun void() reap = () {
+        (this.ptr & 0x0000ffffffffffff{bit64}).reap();
+    }
+}

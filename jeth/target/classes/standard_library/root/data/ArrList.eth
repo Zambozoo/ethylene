@@ -1,0 +1,182 @@
+import root("data/List");
+import root("data/Iterator");
+
+public class ArrList[E] <: [List[E]] {
+    var E* arr;
+    var int64 length;
+    var int64 capacity;
+
+    public fun void(E) addFirst = (value) {
+        this.addIndex(0, value);
+    }
+
+    public fun void(E) addLast = (value) {
+        this.addIndex(this.length, value);
+    }
+
+    public fun void(int64, E) addIndex = (index, value) {
+        if(index < 0 || this.length < index) {
+            List.Panic.OutOfRange(index);
+        }
+
+        if(this.length + 1 > capacity) {
+            this.capacity = capacity * 2;
+            var E* newArr = heap(E, capacity);
+            for(var int64 i = 0; i < index; i++) {
+                newArr[i] = this.arr[i];
+            }
+            for(var int64 i = index + 1; i <= this.length; i++) {
+                newArr[i] = this.arr[i - 1];
+            }
+            delete(this.arr);
+            this.arr = newArr;
+        } else {
+            for(var int64 i = index + 1; i <= this.length; i++) {
+                this.arr[i] = this.arr[i - 1];
+            }
+        }
+        this.arr[index] = value;
+        this.length++;
+    }
+
+    public fun E() removeFirst = () {
+        return this.removeIndex(0);
+    }
+    
+    public fun E() removeLast = () {
+        return this.removeIndex(length - 1);
+    }
+
+    public fun E(int64) removeIndex = (index) {
+        if(index < 0 || this.length <= index) {
+            List.Panic.OutOfRange(index);
+        }
+        
+        var E e = this.arr[index];
+
+        if(this.length - 1 < capacity / 2) {
+            this.capacity = capacity / 2;
+            var E* newArr = heap(E, capacity);
+            for(var int64 i = 0; i < index; i++) {
+                newArr[i] = this.arr[i];
+            }
+            for(var int64 i = index; i < this.length; i++) {
+                newArr[i] = this.arr[i + 1];
+            }
+            delete(this.arr);
+            this.arr = newArr;
+        } else {
+            for(var int64 i = index; i < this.length; i++) {
+                this.arr[i] = this.arr[i + 1];
+            }
+        }
+
+        this.length--;
+        return e;
+    }
+
+    public fun E(E) setFirst = (value) {
+        return this.setIndex(0, value);
+    }
+
+    public fun E(E) setLast = (value) {
+        return this.setIndex(this.length - 1, value);
+    }
+
+    public fun E(int64, E) setIndex = (index, value) {
+        if(index < 0 || this.length <= index) {
+            List.Panic.OutOfRange(index);
+        }
+
+        var E e = this.arr[index];
+        this.arr[index] = value;
+        return e;
+    }
+
+    public fun E() getFirst = () {
+        return this.getIndex(0);
+    }
+
+    public fun E() getLast = () {
+        return this.getIndex(this.length - 1);
+    }
+    
+    public fun E(int64) getIndex = () {
+        if(index < 0 || this.length <= index) {
+            List.Panic.OutOfRange(index);
+        }
+        return this.arr[index];
+    }
+    
+    public fun int64(E) firstIndex = (value) {
+        for(var int i = 0; i < this.length; i++) {
+            if(this.arr[i] == value)
+                return i;
+        }
+        return -1;
+    }
+
+    public abstract fun int64(E) lastIndex = (value) {
+        for(var int i = this.length - 1; i >= 0; i--) {
+            if(this.arr[i] == value)
+                return i;
+        }
+        return -1;
+    }
+
+    public fun bool(E) contains = (value) {
+        return this.firstIndex(value) != -1;
+    }
+
+    public abstract fun int64() size = () {
+        return this.length;
+    }
+
+    public abstract fun bool() isEmpty = () {
+        return this.length > 0;
+    }
+
+    public abstract fun void() clear = () {
+        delete(arr);
+        this.new();
+    }
+
+    private class Iter[E] <: [OrderedIterator[E]] {
+        var ArrList[E]* list;
+        var int64 index;
+
+        public fun Iter[E]*(ArrList[E]) new = (list) {
+            this.list = list;
+            this.index = 0;
+        }
+
+        public fun E() getNext = () {
+            return this.list.arr[index++];
+        }
+        public fun bool() hasNext = () {
+            return this.list.index < this.list.length;
+        }
+
+        public fun E() getPrev = () {
+            return this.list.arr[--index];
+        }
+
+        public fun bool() hasPrev = () {
+            return this.list.index > 0;
+        }
+    }
+    
+    public fun OrderedIterator[E]*() iterator = () {
+        return heap(Iter[E]).new(this);
+    }
+
+    public fun void() mark = () {
+        for(var int64 i = 0; i < this.length; i++) {
+            this.arr[i].mark();
+        }
+    }
+
+    public fun void() reap = () {
+        this.clear();
+    }
+}

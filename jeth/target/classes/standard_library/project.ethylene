@@ -1,0 +1,5 @@
+//id: Used to define project's unique ID
+id(0);
+
+//root: Used to define project's namespace
+root("root");

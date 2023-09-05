@@ -1,0 +1,8 @@
+import root("data/Iterator");
+
+interface OrderedIterator[E] <: [Iterator[E]] {
+    public abstract fun E() getNext;
+    public abstract fun E() getPrev;
+    public abstract fun bool() hasNext;
+    public abstract fun bool() hasPrev;   
+}

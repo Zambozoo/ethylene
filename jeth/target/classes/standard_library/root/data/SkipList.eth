@@ -1,0 +1,278 @@
+import root("data/List");
+import root("math/Random");
+import root("lang/FatPointer");
+
+public class SkipList[E] <:[List[E]] {
+    private struct Node~[E] {
+        var E value;
+        var Node~[E]* prev;
+        var Next[~] nexts;
+        private struct Next[E] {
+            var FatPointer[Node~[E]] node;
+            var int64 dist;
+        }
+
+        public static fun Node~[E]*(E, int8) new = (e) {
+            var int64 length = (Random.rand(){bit64} | 1{bit64}).firstSetIndex();
+            var Node~[E]* n = heap(Node~[E], length);
+            n.value = e;
+            n.prev = null;
+            n.nexts[0].setMeta(length);
+            for(var int i = 0; i < length; i++) {
+                Node.Next[E] next = n.nexts[i];
+                next.node.new(0{bit16}, null)
+            }
+            return n;
+        }
+
+        public fun void() new = () {
+            this.prev = null;
+            for(var int i = 0; i < this.size(); i++) {
+                this.nexts[i].node.new(0{bit16}, null);
+            }
+        }
+
+        public fun int64() size = () {
+            return this.nexts[0].getMeta(){int64};
+        }
+    }
+
+    private var Node~[E]* head;
+    private var int64 length;
+
+    public fun SkipList[E]*() new = () {
+        this.length = 0;
+        this.head.new();
+    }
+
+    public fun void(E) addFirst = (value) {
+        addIndex(0, value);
+    }
+
+    public abstract fun void(E) addLast = (value) {
+        addIndex(this.length - 1, value);
+    }
+
+    public abstract fun void(int64, E) addIndex = (index, value) {
+        if(index < 0 || this.length < index) {
+            List.Panic.OutOfRange(index);
+        }
+
+        if(this.length == 0) {
+            this.head.value = value;
+        } else if(index == 0) {
+            Node~[E]* n = static(Node~[E]).new(this.head.value);
+            n.prev = this.head;
+            this.head.next.prev = n;
+            this.head.value = value;
+
+            var Node~[E].Next next = this.head.nexts[0];
+            for(var int64 i = 0; i < n.size(); i++) {
+                next = this.head.nexts[i];
+                next.node.new(length{bit16}, n);
+                next.dist = 1;
+            }
+        } else {
+            var Node~[E]* new = static(Node~[E]).new(value)
+            var Node~[E]* n = this.head;
+            var int64 i = 0;
+            var int64 h = 63;
+            while(n != null && h >= 0 && i < index) {
+                Node.Next[E] next = n.nexts[h];
+                if(next.node{Node~[E]*} != null) {
+                    Node.Next[E] newNext = new.nexts[h];
+                    newNext.node.setPtr(next.node{Node~[E]*});
+                    newNext.dist = i + dist - index;
+
+                    next.node.setPtr(new);
+                    next.dist = index - i;
+                    h--;
+                } else if(i + next.dist > index) {
+                    next.node.setPtr(new);
+                    next.dist = index - i;
+                    h--;
+                } else {
+                    i = i + index;
+                    n = next.node.getPtr();
+                }
+            }
+            new.prev = n;
+            new.nexts[0].node.getPtr().prev = new;
+        }
+        this.length++;
+    }
+
+    public fun E() removeFirst = () {
+        if(this.length == 0){
+            List.Panic.OutOfRange(0);
+        } else if(this.length == 1) {
+            this.length = 0;
+            this.head.new();
+            return this.head.value;
+        }
+
+        var int64 h = 63;
+        while(this.head.nexts[h] != 1) {
+            h--;
+        }
+
+        var Node~[E]* n = this.head.nexts[h].node.getPtr();
+        n.prev = head.prev;
+        while(h >= 0) {
+            Node.Next[E] headNext = this.head.nexts[h];
+            Node.Next[E] nNext = n.nexts[h];
+            headNext.node.setPtr(nNext.node{Node~[E]*});
+            headNext.dist = nNext.dist;
+        }
+
+        var E value = this.head.value;
+        this.head.value = n.value;
+
+        delete(n);
+        this.length--;
+        return value;
+    }
+
+    public fun E() removeLast = () {
+        return this.removeIndex(this.length - 1);
+    }
+    public abstract fun E(int64) removeIndex = (index) {
+       if(index < 0 || this.length < index) {
+            List.Panic.OutOfRange(index);
+        } else if(this.length == 1) {
+            this.length = 0;
+            this.head.new();
+            return this.head.value;
+        } else if(index == 0) {
+            return this.removeFirst();
+        }
+
+        var int64 h = 63;
+        var int64 i = 0;
+        var Node~[E]* n = this.head;
+        while(h > 0) {
+            var Node.Next[E] next = n.nexts[h];
+            if(next.dist + i < index) {
+                n = next.node.getPtr();
+                i = i + next.dist;
+                continue;
+            } else if(next.dist + i == index) {
+                Node.Next[E] oldNext = next.node.getPtr().nexts[h];
+                next.dist = next.dist + oldNext.dist - 1;
+                next.node.setPtr(oldNext.node{Node~[E]*});
+            }
+            h--;
+        }
+
+        var Node.Next[E] next = n.nexts[h];
+        Node~[E]* oldNode = next.node.getPtr();
+        next.dist = 1;
+        next.node.setPtr(oldNode.nexts[h].node{Node~[E]*});
+
+        var E value = oldNode.value;
+        delete(oldNode)
+        this.length--;
+        return value;
+    }
+
+    public abstract fun E(E) setFirst = (value) {
+        if(this.length == 0){
+            List.Panic.OutOfRange(0);
+        }
+        
+        var E e = this.head.value;
+        this.head.value = value;
+        return e;
+    }
+
+    public abstract fun E(E) setLast = (value) {
+        return setIndex(this.length - 1, value);
+    }
+
+    public abstract fun E(int64, E) setIndex = (index, value) {
+        if(index < 0 || this.length < index) {
+            List.Panic.OutOfRange(index);
+        } else if(index == 0) {
+            return this.setFirst(value);
+        }
+
+        var int64 h = 63;
+        var int64 i = 0;
+        var Node~[E]* n = this.head;
+        while(true) {
+            var Node.Next[E] next = n.nexts[h];
+            var Node~[E]* nextNode = next.node.getPtr();
+            if(nextNode == null || i + next.dist > index){
+                h--;
+            } else if(i + next.dist == index) {
+                var E e = nextNode.value;
+                nextNode.value = value;
+                return e;
+            } else {
+                n = nextNode;
+                i = i + next.dist;
+            }
+        }
+    }
+
+    public abstract fun E() getFirst = () {
+        if(this.length == 0) {
+            List.Panic.OutOfRange(index);
+        }
+        return this.head.value;
+    }
+
+    public abstract fun E() getLast = () {
+        return this.getIndex(this.length - 1)
+    }
+    
+    public abstract fun E(int64) getIndex = (index) {
+        if(index < 0 || this.length < index) {
+            List.Panic.OutOfRange(index);
+        } else if(index == 0) {
+            return this.getFirst(value);
+        }
+
+        var int64 h = 63;
+        var int64 i = 0;
+        var Node~[E]* n = this.head;
+        while(true) {
+            var Node.Next[E] next = n.nexts[h];
+            var Node~[E]* nextNode = next.node.getPtr();
+            if(nextNode == null || i + next.dist > index){
+                h--;
+            } else if(i + next.dist == index) {
+                return nextNode.value;
+            } else {
+                n = nextNode;
+                i = i + next.dist;
+            }
+        }
+    }
+
+    public abstract fun int64(E) firstIndex = (value) {
+        var Node~[E]* n = this.head;
+        for(var int64 i = 0; i < this.length; i++) {
+            if(n.value == value) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    public abstract fun int64(E) lastIndex = (value) {
+        var Node~[E]* n = this.head;
+        for(var int64 i = this.length - 1; i >= 0 this.length; i++) {
+            if(n.value == value) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public abstract fun bool(E) contains;
+    public abstract fun int64() size;
+    public abstract fun bool() isEmpty;
+    public abstract fun void() clear;
+    
+    public abstract fun OrderedIterator[E]*() iterator;
+}

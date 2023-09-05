@@ -1,1 +1,0 @@
-gcc code/*.c -o main && ./main
