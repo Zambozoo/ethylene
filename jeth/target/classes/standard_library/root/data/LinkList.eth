@@ -1,0 +1,339 @@
+import root("data/List");
+import root("data/Iterator");
+
+class LinkList[E] <: [List[E]] {
+    struct Node[E] {
+        var bit64 xor;
+        var E value;
+
+        public static fun Node[E]*(E) new = (value) {
+            xor = null{bit64};
+            this.value = value;
+        }
+
+        public fun void() mark = () {
+            this.value.mark();
+        }
+    }
+
+    var Node[E]* head;
+    var Node[E]* tail;
+    var int64 length;
+
+    public fun LinkList[E]*() new = () {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+    }
+
+    public fun void(E) addFirst = (value) {
+        var Node[E]* n = Node[E].new(value);
+        if(this.head == null) {
+            this.tail = n;
+        } else {
+            n.xor = this.head{bit64};
+            this.head.xor = this.head.xor ^ n{bit64};
+        }
+        this.head = n;
+        this.length++;
+    }
+
+    public fun void(E) addLast = (value) {
+        var Node[E]* n = Node[E].new(value);
+        if(this.tail == null) {
+            this.head = n;
+        } else {
+            n.xor = this.tail{bit64};
+            this.tail.xor = this.tail.xor ^ n{bit64};
+        }
+        this.tail = n;
+        this.length++;
+    }
+
+    public fun void(int64, E) addIndex = (index, value) {
+        if(index == 0) {
+            this.addFirst(value)
+        } else if(index == this.length) {
+            this.addLast(value)
+        } else if(0 < index || this.length <= index) {
+            List.Panic.OutOfRange(i);
+        } else {
+            var bit64 prev = null{bit64};
+            var int64 i = 0;
+            var Node[E]* n;
+            if(index > (this.length / 2)) {
+                n = this.tail;
+                index = this.length - index;
+            } else {
+                n = this.head;
+            }
+
+            while(i++ < (index + 1)) {
+                var bit64 tempPrev = n{bit64};
+                n = n.xor ^ prev;
+                prev = tempPrev;
+            }
+
+            var Node[E]* new = heap(Node[E]).new(value);
+            var Node[E]* next = (n.xor ^ prev){Node[E]*};
+            new.xor = n{bit64} ^ next{bit64};
+            n.xor = prev ^ new{bit64};
+            next.xor = next.xor ^ n{bit64} ^ new{bit64};
+
+            this.length++;
+        }
+    }
+
+    public fun E() removeFirst = () {
+        if(this.head == null) {
+            List.Panic.OutOfRange(0);
+        }
+
+        var Node[E]* n = this.head;
+        var E value = n.value;
+        this.head = (n.xor){Node[E]*};
+        this.head.xor = n{bit64} ^ this.head.xor;
+        delete(n);
+
+        this.length--;
+        return value;
+    }
+
+    public fun E() removeLast = () {
+        if(this.tail == null) {
+            List.Panic.OutOfRange(0);
+        }
+
+        var Node[E]* n = this.tail;
+        var E value = n.value;
+        this.tail = (n.xor){Node[E]*};
+        this.tail.xor = n{bit64} ^ this.tail.xor;
+
+        delete(n);
+        this.length--;
+        return value;
+    }
+
+    public fun E(int64) removeIndex = (index) {
+         if(index == 0) {
+            return this.removeFirst(value)
+        } else if(index == this.length) {
+            return this.removeLast(value)
+        } else if(0 < index || this.length <= index) {
+            List.Panic.OutOfRange(i);
+        } else {
+            var bit64 prev = null{bit64};
+            var int64 i = 0;
+            var Node[E]* n;
+            if(index > (this.length / 2)) {
+                n = this.tail;
+                index = this.length - index;
+            } else {
+                n = this.head;
+            }
+
+            while(i++ < (index + 1)) {
+                var bit64 tempPrev = n{bit64};
+                n = n.xor ^ prev;
+                prev = tempPrev;
+            }
+
+            var Node[E]* old = (n.xor ^ prev){Node[E]*};
+            var E value = next.value;
+            var Node[E]* next = (old.xor ^ n{bit64}){Node[E]*};
+            n.xor = n.xor ^ old{bit64} ^ next{bit64};
+            next.xor = next.xor ^ old{bit64} ^ n{bit64};
+            delete(old);
+
+            this.length--;
+            return value;
+        }
+    }
+
+    private Node[E]*(int64) getIndexNode = (index) {
+        if(0 < index || this.length <= index) {
+            List.Panic.OutOfRange(i);
+        }
+
+        var bit64 prev = null{bit64};
+        var int64 i = 0;
+        var Node[E]* n;
+        if(index > (this.length / 2)) {
+            n = this.tail;
+            index = this.length - index;
+        } else {
+            n = this.head;
+        }
+
+        while(i++ < index) {
+            var bit64 tempPrev = n{bit64};
+            n = n.xor ^ prev;
+            prev = tempPrev;
+        }
+        return n;
+    }
+
+    public fun E(E) setFirst = (value) {
+        if(this.head == null) {
+            List.Panic.OutOfRange(0);
+        }
+
+        var E oldValue = this.head.value;
+        this.head.value = value;
+        return oldValue;
+    }
+
+    public fun E(E) setLast = (value) {
+        if(this.tail == null) {
+            List.Panic.OutOfRange(0);
+        }
+
+        var E oldValue = this.tail.value;
+        this.tail.value = value;
+        return oldValue;
+    }
+
+    public fun E(int64, E) setIndex = (index, value) {
+        var Node[E]* n = this.getIndexNode(index);
+        var E oldValue = n.value;
+        n.value = value;
+        return oldValue;
+    }
+
+    public fun E() getFirst = () {
+        if(this.head == null) {
+            List.Panic.OutOfRange(0);
+        }
+        return this.head.value;
+    }
+
+    public fun E() getLast = () {
+        if(this.tail == null) {
+            List.Panic.OutOfRange(0);
+        }
+        return this.head.value;
+    }
+
+    public fun E(int64) getIndex = (index) {
+        return this.getIndexNode(index).value;
+    }
+
+    public fun int64(E) firstIndex = (value) {
+        var bit64 prev = null{bit64};
+        var int64 i = 0;
+        var Node[E]* n = head;
+
+        while(i++ < this.length) {
+            var bit64 tempPrev = n{bit64};
+            n = n.xor ^ prev;
+            prev = tempPrev;
+            if(n.value == value)
+                return i - 1;
+        }
+        return -1;
+    }
+
+    public fun int64(E) lastIndex = (value) {
+        var bit64 prev = null{bit64};
+        var int64 i = this.length - 1;
+        var Node[E]* n = head;
+
+        while(i-- > 0) {
+            var bit64 tempPrev = n{bit64};
+            n = n.xor ^ prev;
+            prev = tempPrev;
+            if(n.value == value)
+                return i + 1;
+        }
+        return -1;
+    }
+
+    public fun bool(E) contains = (value) {
+        return this.firstIndex(value) != -1;
+    }
+
+    public fun int64() size = () {
+        return this.length;
+    }
+
+    public fun bool() isEmpty = () {
+        return this.length != 0;
+    }
+
+    public fun void() clear = () {
+        var bit64 prev = null{bit64};
+        var int64 i = 0;
+        var Node[E]* n = head;
+
+        while(i++ < this.length) {
+            var bit64 tempPrev = n{bit64};
+            var old = n;
+            n = n.xor ^ prev;
+            prev = tempPrev;
+            delete(n);
+        }
+
+        this.new();
+    }
+    
+    private class Iter[E] <: [OrderedIterator[E]] {
+        LinkList[E]* list;
+        var Node[E]* n;
+        var bit64 prev;
+        var bit64 next;
+
+        public fun LinkListIter[E]*(LinkList[E]) new = (list) {
+            this.list = list;
+            this.n = list.head;
+            prev = null{bit64};
+            next = n.xor;
+        }
+
+        public fun E() getNext = () {
+            var Node[E]* nextN = this.n.xor ^ this.prev;
+            this.prev = n{bit64};
+            this.n = nextN;
+            this.next = this.n.xor ^ this.prev;
+            return n.value;
+        }
+        public fun bool() hasNext = () {
+            return this.n != null && this.n.xor != this.prev;
+        }
+
+        public fun E() getPrev = () {
+            var Node[E]* nextN = this.n.xor ^ this.next;
+            this.next = n{bit64};
+            this.n = nextN;
+            this.prev = this.n.xor ^ this.next;
+            return n.value;
+        }
+
+        public fun bool() hasPrev = () {
+            return this.n != null && this.n.xor != this.next;
+        }
+    }
+
+    public fun OrderedIterator[E]*() iterator = () {
+        return heap(Iter[E]).new(this);
+    }
+
+    public fun void() mark = () {
+        if(this.head == null)
+            return;
+            
+        var bit64 prev = null{bit64};
+        var int64 i = 0;
+        var Node[E]* n = head;
+
+        while(i++ < this.length) {
+            n.mark();
+            var bit64 tempPrev = n{bit64};
+            n = n.xor ^ prev;
+            prev = tempPrev;
+        }
+    }
+
+    public fun void() reap = () {
+        this.clear();
+    }
+}

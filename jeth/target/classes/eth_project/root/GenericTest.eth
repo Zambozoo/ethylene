@@ -1,0 +1,8 @@
+class GenericTest[E] {
+    public fun void(E) add = (e) {
+        return;
+    }
+    class InnerTest {}
+}
+
+class Gen2[

@@ -1,0 +1,7 @@
+{
+    "name": "test_project",
+    "version": "v0.0.1",
+    "dependencies": {
+        "std": "std.zip"
+    }
+}

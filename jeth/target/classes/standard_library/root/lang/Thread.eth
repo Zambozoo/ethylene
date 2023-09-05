@@ -1,0 +1,3 @@
+class Thread[F, E] {
+    E result;
+}

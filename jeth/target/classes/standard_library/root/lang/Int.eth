@@ -1,0 +1,16 @@
+class Int {
+    var int64 i;
+
+    public fun Int*(int64) new = (i) {
+        this.i = i;
+        return this;
+    }
+
+    public fun int64() getValue = () {
+        return this.i;
+    }
+
+    public fun void(int64) setValue = (i) {
+        this.i = i;
+    }
+}

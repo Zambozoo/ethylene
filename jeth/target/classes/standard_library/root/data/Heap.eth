@@ -1,0 +1,16 @@
+import root("data/Iterator");
+import root("data/Iterable");
+
+interface Heap[E] <: [Iterable[E]] {
+    public abstract fun bool(E) add;
+    public abstract fun bool(E) contains;
+
+    public abstract fun E() getFirst;
+    public abstract fun E() removeFirst;
+
+    public abstract fun void() clear;
+    public abstract fun int64() size;
+    public abstract fun bool() isEmpty;
+
+    public abstract fun Iterator[E]() iterator;
+}

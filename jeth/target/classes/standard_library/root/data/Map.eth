@@ -1,0 +1,22 @@
+import root("data/Iterator");
+import root("data/Iterable");
+import root("data/Set");
+
+interface Map[K, V] <: [Iterable[Map.Entry[K, V]]] {
+    public interface Entry[K, V] {
+        public abstract fun K() getKey;
+        public abstract fun V() getValue;
+    }
+    
+    public abstract fun V(K, V) put;
+    public abstract fun V(K) get;
+    public abstract fun V(K) removeKey;
+    public abstract fun bool(K) containsKey;
+
+    public abstract fun void() clear;
+    public abstract fun int64() size;
+    public abstract fun bool() isEmpty;
+
+    public abstract fun Set[Map.Entry[K, V]]() entrySet;
+    public abstract fun Iterator[Map.Entry[K, V]]() iterator;
+}

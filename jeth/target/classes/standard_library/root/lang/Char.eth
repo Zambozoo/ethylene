@@ -1,0 +1,16 @@
+class Char {
+    var char32 c;
+
+    public fun Char*(char32) new = (c) {
+        this.c = c;
+        return this;
+    }
+
+    public fun char32() getValue = () {
+        return this.c;
+    }
+
+    public fun void(char32) setValue = (c) {
+        this.c = c;
+    }
+}

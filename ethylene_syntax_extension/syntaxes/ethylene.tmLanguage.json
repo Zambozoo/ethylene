@@ -1,0 +1,94 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Ethylene Programming Language",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#chars"
+		},
+		{
+			"include": "#numbers"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"begin": "/\\*",
+					"captures": {
+						"0": {
+							"name": "comment.ethylene"
+						}
+					},
+					"end": "\\*/",
+					"name": "comment.block"
+				},
+				{
+					"captures": {
+						"1": {
+							"name": "comment.ethylene"
+						}
+					},
+					"match": "(//).*$\\n?",
+					"name": "comment.line"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.ethylene",
+					"match": "\\b(public|private|protected|native|interface|abstract|class|struct|enum|import|label|delete|if|else|for|while|fun|var|return|lambda|try|catch|finally|throw|switch|break|continue|sync|static|print|heap|stack|mark|reap|async|wait|true|false|null|super|this)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.ethylene",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "char.ethylene",
+					"match": "\\\\."
+				}
+			]
+		},
+		"chars": {
+			"name": "character.ethylene",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "char.ethylene",
+					"match": "\\\\."
+				}
+			]
+		},
+		"numbers": {
+			"name": "number.ethylene",
+			"patterns": [
+				{
+					"name": "integer.ethylene",
+					"match": "[0-9]+"
+				},
+				{
+					"name": "fix.ethylene",
+					"match": "[0-9]+`[0-9]+"
+				},
+				{
+					"name": "float.ethylene",
+					"match": "[0-9]+.[0-9]+(e-?[0-9]+)?"
+				}
+			]
+		}
+	},
+	"scopeName": "source.eth"
+}

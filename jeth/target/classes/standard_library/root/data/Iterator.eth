@@ -1,0 +1,4 @@
+interface Iterator[E] {
+    public abstract fun E() getNext;
+    public abstract fun bool() hasNext;
+}

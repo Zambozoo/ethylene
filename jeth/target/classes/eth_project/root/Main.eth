@@ -1,0 +1,32 @@
+// import std("List");
+// import std("Iterator");
+
+class Main {
+    public class A {}
+    public class B <: [A] {}
+    public class C <: [B] {
+        var int64 i;
+    }
+    public class D <: [C] {
+        var int64 j;
+    }
+    public class E <: [D] {}
+    public interface InterfaceTest {
+        public fun A*(E*) f;
+    }
+
+    public abstract AbstractTest <: [InterfaceTest]{
+        public abstract fun B*(D*) f;
+    }
+    
+    public class ClassTest <: [AbstractTest] {
+        public fun C*(C*) f = (c) {
+            return heap(C);
+        }
+        public fun int64() i = () {
+            return (*heap(C)).i;
+        }
+    }
+
+    public static fun void(str32*) main = (args) {}
+}
