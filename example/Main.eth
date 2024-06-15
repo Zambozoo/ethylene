@@ -1,0 +1,7 @@
+import std("io");
+
+class Class {
+    public static fun void(str[]) main = (args) {
+        wait io.StdOut.Write("Hello world!\n");
+    }
+}

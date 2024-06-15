@@ -1,0 +1,5 @@
+.vscode/
+.idea/
+out/
+
+__debug_bin*
