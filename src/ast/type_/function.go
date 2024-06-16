@@ -10,14 +10,9 @@ import (
 
 // FunctionType represents a function signature
 type Function struct {
-	context         ast.TypeContext
 	ReturnType_     ast.Type
 	ParameterTypes_ []ast.Type
 	EndToken        token.Token
-}
-
-func (f *Function) Context() ast.TypeContext {
-	return f.context
 }
 
 func (f *Function) Location() token.Location {

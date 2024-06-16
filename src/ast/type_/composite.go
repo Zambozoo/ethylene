@@ -67,7 +67,7 @@ func (c *Composite) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	}
 
 	for _, parentType := range cChildDecl.Parents() {
-		if ok, err := pComposite.ExtendsAsPointer(parentType); err != nil || ok {
+		if ok, err := parentType.ExtendsAsPointer(pComposite); err != nil || ok {
 			return ok, err
 		}
 	}

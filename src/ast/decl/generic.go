@@ -10,9 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type GenericConstraint interface {
-	fmt.Stringer
-}
 type GenericSubtype []ast.Type
 
 func (g GenericSubtype) String() string {
@@ -72,8 +69,8 @@ func syntaxTypes(p ast.SyntaxParser) ([]ast.Type, io.Error) {
 	return types, nil
 }
 
-func syntaxGenericConstraints(p ast.SyntaxParser) (map[string]GenericConstraint, io.Error) {
-	genericConstraints := map[string]GenericConstraint{}
+func syntaxGenericConstraints(p ast.SyntaxParser) (map[string]ast.GenericConstraint, io.Error) {
+	genericConstraints := map[string]ast.GenericConstraint{}
 	if p.Match(token.TOK_LEFTBRACKET) {
 		for {
 			name, err := p.Consume(token.TOK_IDENTIFIER)

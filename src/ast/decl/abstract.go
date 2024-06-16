@@ -16,7 +16,7 @@ type Abstract struct {
 	BaseDecl
 
 	IsTailed           bool
-	GenericConstraints map[string]GenericConstraint // Generic type parameters
+	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
 
 	SuperClass ast.DeclType   // Optional
 	Implements []ast.DeclType // Interfaces this class implements
@@ -25,8 +25,12 @@ type Abstract struct {
 func newAbstract() *Abstract {
 	return &Abstract{
 		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]GenericConstraint{},
+		GenericConstraints: map[string]ast.GenericConstraint{},
 	}
+}
+
+func (a *Abstract) Generics() map[string]ast.GenericConstraint {
+	return a.GenericConstraints
 }
 
 func (a *Abstract) String() string {

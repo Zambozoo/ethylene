@@ -26,7 +26,7 @@ type Class struct {
 	BaseDecl
 
 	IsTailed           bool
-	GenericConstraints map[string]GenericConstraint // Generic type parameters
+	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
 
 	SuperClass ast.DeclType   // Optional
 	Implements []ast.DeclType // Interfaces this class implements
@@ -37,8 +37,12 @@ func newClass() *Class {
 	decl.IsClass = true
 	return &Class{
 		BaseDecl:           decl,
-		GenericConstraints: map[string]GenericConstraint{},
+		GenericConstraints: map[string]ast.GenericConstraint{},
 	}
+}
+
+func (c *Class) Generics() map[string]ast.GenericConstraint {
+	return c.GenericConstraints
 }
 
 func (c *Class) String() string {

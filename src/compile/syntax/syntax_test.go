@@ -29,6 +29,17 @@ type mockChan[T any] struct{}
 
 func (c *mockChan[T]) Send(T) {}
 
+func wrappingDecl() ast.Declaration {
+	return &decl.Class{
+		BaseDecl: decl.BaseDecl{
+			Name_: token.Token{
+				Value: "Test",
+			},
+		},
+		GenericConstraints: make(map[string]ast.GenericConstraint),
+	}
+}
+
 func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.Node, io.Error)) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
@@ -43,8 +54,10 @@ func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.No
 				filePath, mainDirPath io.FilePath
 				symbolMap             SymbolMap
 			)
+			parser := NewParser(tokens, &project, &filePath, &mainDirPath, &channel, symbolMap)
+			parser.WrapScope(wrappingDecl())
 
-			node, err := f(NewParser(tokens, &project, &filePath, &mainDirPath, &channel, symbolMap))
+			node, err := f(parser)
 			tt.errFunc(t, err)
 
 			if !reflect.DeepEqual(node, tt.expected) {
@@ -80,7 +93,7 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty class",
 			input: `class Class {}`,
 			expected: &decl.Class{
-				GenericConstraints: map[string]decl.GenericConstraint{},
+				GenericConstraints: map[string]ast.GenericConstraint{},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
@@ -109,7 +122,7 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty abstract",
 			input: `abstract Abstract {}`,
 			expected: &decl.Abstract{
-				GenericConstraints: map[string]decl.GenericConstraint{},
+				GenericConstraints: map[string]ast.GenericConstraint{},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_ABSTRACT,
@@ -137,7 +150,7 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty interface",
 			input: `interface Interface {}`,
 			expected: &decl.Interface{
-				GenericConstraints: map[string]decl.GenericConstraint{},
+				GenericConstraints: map[string]ast.GenericConstraint{},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_INTERFACE,
@@ -165,7 +178,7 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty struct",
 			input: `struct Struct {}`,
 			expected: &decl.Struct{
-				GenericConstraints: map[string]decl.GenericConstraint{},
+				GenericConstraints: map[string]ast.GenericConstraint{},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_STRUCT,
@@ -221,8 +234,9 @@ func TestParseDecl(t *testing.T) {
 							},
 							Type_: &type_.Composite{
 								Context_: &TypeContext{
-									project: &io.Project{},
-									scope:   []ast.Declaration{&enum},
+									project:  &io.Project{},
+									scope:    []ast.Declaration{wrappingDecl(), &enum},
+									generics: map[string]ast.GenericConstraint{},
 								},
 								Tokens: []token.Token{
 									{
@@ -1764,7 +1778,11 @@ func TestParseExpr(t *testing.T) {
 					},
 				},
 				Type: &type_.Composite{
-					Context_: &TypeContext{project: &io.Project{}},
+					Context_: &TypeContext{
+						project:  &io.Project{},
+						scope:    []ast.Declaration{wrappingDecl()},
+						generics: map[string]ast.GenericConstraint{},
+					},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2102,7 +2120,11 @@ func TestParseExpr(t *testing.T) {
 					},
 				},
 				Type: &type_.Composite{
-					Context_: &TypeContext{project: &io.Project{}},
+					Context_: &TypeContext{
+						project:  &io.Project{},
+						scope:    []ast.Declaration{wrappingDecl()},
+						generics: map[string]ast.GenericConstraint{},
+					},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2754,9 +2776,17 @@ func TestParseType(t *testing.T) {
 			name:  "generic",
 			input: `List[int]`,
 			expected: &type_.Generic{
-				Context_: &TypeContext{project: &io.Project{}},
+				Context_: &TypeContext{
+					project:  &io.Project{},
+					scope:    []ast.Declaration{wrappingDecl()},
+					generics: map[string]ast.GenericConstraint{},
+				},
 				Type: &type_.Composite{
-					Context_: &TypeContext{project: &io.Project{}},
+					Context_: &TypeContext{
+						project:  &io.Project{},
+						scope:    []ast.Declaration{wrappingDecl()},
+						generics: map[string]ast.GenericConstraint{},
+					},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2793,9 +2823,17 @@ func TestParseType(t *testing.T) {
 			name:  "generic, multiple types",
 			input: `Map[str, int]`,
 			expected: &type_.Generic{
-				Context_: &TypeContext{project: &io.Project{}},
+				Context_: &TypeContext{
+					project:  &io.Project{},
+					scope:    []ast.Declaration{wrappingDecl()},
+					generics: map[string]ast.GenericConstraint{},
+				},
 				Type: &type_.Composite{
-					Context_: &TypeContext{project: &io.Project{}},
+					Context_: &TypeContext{
+						project:  &io.Project{},
+						scope:    []ast.Declaration{wrappingDecl()},
+						generics: map[string]ast.GenericConstraint{},
+					},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2865,7 +2903,11 @@ func TestParseType(t *testing.T) {
 			input: `Node~`,
 			expected: &type_.Tailed{
 				Type: &type_.Composite{
-					Context_: &TypeContext{project: &io.Project{}},
+					Context_: &TypeContext{
+						project:  &io.Project{},
+						scope:    []ast.Declaration{wrappingDecl()},
+						generics: map[string]ast.GenericConstraint{},
+					},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2893,7 +2935,11 @@ func TestParseType(t *testing.T) {
 			input: `Node~8`,
 			expected: &type_.Tailed{
 				Type: &type_.Composite{
-					Context_: &TypeContext{project: &io.Project{}},
+					Context_: &TypeContext{
+						project:  &io.Project{},
+						scope:    []ast.Declaration{wrappingDecl()},
+						generics: map[string]ast.GenericConstraint{},
+					},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,

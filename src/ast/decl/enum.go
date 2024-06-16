@@ -24,6 +24,10 @@ func newEnum() *Enum {
 	}
 }
 
+func (e *Enum) Generics() map[string]ast.GenericConstraint {
+	return map[string]ast.GenericConstraint{}
+}
+
 func (e *Enum) String() string {
 	return fmt.Sprintf("Interface{Name: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		e.Name().Value,
