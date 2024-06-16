@@ -77,6 +77,10 @@ type File interface {
 	Semantic(p SemanticParser) io.Error
 }
 
+type GenericConstraint interface {
+	fmt.Stringer
+}
+
 // Declaration represents a composite object declaration node in the AST.
 type Declaration interface {
 	// Inherits Node interface.
@@ -87,6 +91,8 @@ type Declaration interface {
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration], cycleMap map[string]struct{}) io.Error
 	// Semantic performs semantic analysis on the declaration.
 	Semantic(p SemanticParser) io.Error
+
+	Generics() map[string]GenericConstraint
 
 	// Name returns the token representing the declaration's name.
 	Name() *token.Token

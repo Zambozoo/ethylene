@@ -13,10 +13,6 @@ type Tailed struct {
 	EndToken token.Token
 }
 
-func (t *Tailed) Context() ast.TypeContext {
-	return t.Type.Context()
-}
-
 func (t *Tailed) Location() token.Location {
 	return token.LocationBetween(t.Type, &t.EndToken)
 }

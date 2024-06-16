@@ -9,7 +9,6 @@ import (
 
 // Array represents an array of elements of another type
 type Array struct {
-	context  ast.TypeContext
 	Type     ast.Type
 	Size     int64
 	EndToken token.Token

@@ -136,6 +136,7 @@ func (p *Parser) TypeContext() ast.TypeContext {
 		project:   p.project,
 		scope:     slices.Clone(p.scope),
 		symbolMap: p.symbolMap,
+		generics:  p.scope[len(p.scope)-1].Generics(),
 	}
 }
 

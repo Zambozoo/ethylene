@@ -16,7 +16,7 @@ import (
 type Interface struct {
 	BaseDecl
 
-	GenericConstraints map[string]GenericConstraint // Generic type parameters
+	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
 
 	Implements []ast.DeclType // Interfaces this class implements
 }
@@ -24,8 +24,12 @@ type Interface struct {
 func newInterface() *Interface {
 	return &Interface{
 		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]GenericConstraint{},
+		GenericConstraints: map[string]ast.GenericConstraint{},
 	}
+}
+
+func (i *Interface) Generics() map[string]ast.GenericConstraint {
+	return i.GenericConstraints
 }
 
 func (a *Interface) String() string {

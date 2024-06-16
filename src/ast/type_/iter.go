@@ -8,12 +8,7 @@ import (
 )
 
 type Iter struct {
-	context ast.TypeContext
-	Type    ast.Type
-}
-
-func (i *Iter) Context() ast.TypeContext {
-	return i.context
+	Type ast.Type
 }
 
 func (i *Iter) String() string {

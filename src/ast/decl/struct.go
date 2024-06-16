@@ -16,14 +16,18 @@ type Struct struct {
 	BaseDecl
 
 	IsTailed           bool
-	GenericConstraints map[string]GenericConstraint // Generic type parameters
+	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
 }
 
 func newStruct() *Struct {
 	return &Struct{
 		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]GenericConstraint{},
+		GenericConstraints: map[string]ast.GenericConstraint{},
 	}
+}
+
+func (s *Struct) Generics() map[string]ast.GenericConstraint {
+	return s.GenericConstraints
 }
 
 func (s *Struct) String() string {
