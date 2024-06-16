@@ -57,11 +57,11 @@ func (p *Parser) AddPath(dependency, path string) (io.Path, io.Error) {
 				zap.Any("project", p.project),
 			)
 		}
-		zipFileName := fmt.Sprintf("%s~%s.zip", dependency, version)
+		zipFileName := fmt.Sprintf("pkgs/%s~%s.zip", dependency, version)
 		zipFilePath := fmt.Sprintf("%s:%s", p.mainDirPath.Join(zipFileName).String(), path)
 
 		var err io.Error
-		if targetPath, err = io.NewFilePath(zipFilePath); err != nil {
+		if targetPath, err = io.NewPath(zipFilePath); err != nil {
 			return nil, err
 		}
 	}
