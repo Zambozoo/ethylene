@@ -79,6 +79,13 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		f, err := p.ParseField()
 		if err != nil {
 			return err
+		} else if _, ok := f.(ast.DeclField); ok {
+			if _, exists := a.GenericConstraints[f.Name().Value]; exists {
+				return io.NewError("inner decl name duplicates generic type",
+					zap.Any("decl", f.Name()),
+					zap.Any("location", f.Location()),
+				)
+			}
 		}
 		a.AddField(f)
 	}
