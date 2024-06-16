@@ -13,6 +13,7 @@ type SyntaxParser interface {
 	AddPath(dependency, path string) (io.Path, io.Error)
 
 	Path() io.Path
+	File() File
 
 	// Peek returns the next token without consuming it.
 	Peek() token.Token

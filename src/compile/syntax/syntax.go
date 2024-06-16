@@ -48,6 +48,10 @@ func NewParser(tokens []token.Token, project *io.Project, path, mainDirPath io.P
 	}
 }
 
+func (p *Parser) File() ast.File {
+	return p.file
+}
+
 func (p *Parser) Path() io.Path {
 	return p.path
 }
