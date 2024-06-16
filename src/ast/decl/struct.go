@@ -48,13 +48,13 @@ func (s *Struct) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	if p.Match(token.TOK_TILDE) {
-		s.IsTailed = true
-	}
-
 	s.GenericConstraints, err = syntaxGenericConstraints(p)
 	if err != nil {
 		return err
+	}
+
+	if p.Match(token.TOK_TILDE) {
+		s.IsTailed = true
 	}
 
 	if _, err := p.Consume(token.TOK_LEFTBRACE); err != nil {
