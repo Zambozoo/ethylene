@@ -8,11 +8,6 @@ import (
 	"geth-cody/io"
 )
 
-type SymbolMap struct {
-	ProjectFiles map[string]*io.Project
-	FileEntries  map[string]syntax.FileEntry
-}
-
 func getProject(fp io.Path, projectFiles *data.AsyncSet[*io.Project]) (*io.Project, io.Error) {
 	mpp, err := io.MainProjectPath(fp)
 	if err != nil {
@@ -31,7 +26,7 @@ func getProject(fp io.Path, projectFiles *data.AsyncSet[*io.Project]) (*io.Proje
 	return project, nil
 }
 
-func parseFile(fp, mainDirPath io.Path, project *io.Project, unvisitedPaths *data.Chan[io.Path]) (ast.File, io.Error) {
+func parseFile(fp, mainDirPath io.Path, project *io.Project, unvisitedPaths *data.Chan[io.Path], symbolMap syntax.SymbolMap) (ast.File, io.Error) {
 	input, err := fp.Read()
 	if err != nil {
 		return nil, err
@@ -42,22 +37,27 @@ func parseFile(fp, mainDirPath io.Path, project *io.Project, unvisitedPaths *dat
 		return nil, err
 	}
 
-	return syntax.NewParser(tokens, project, fp, mainDirPath, unvisitedPaths).Parse()
+	return syntax.NewParser(tokens, project, fp, mainDirPath, unvisitedPaths, symbolMap).Parse()
 }
 
-func Syntax(mainFilePath io.Path) (SymbolMap, io.Error) {
+func Syntax(mainFilePath io.Path) (syntax.SymbolMap, io.Error) {
 	mainDirPath := mainFilePath.Dir()
 	visitedPaths, projectFiles := data.NewAsyncSet[io.Path](), data.NewAsyncSet[*io.Project]()
 
 	unvisitedPaths := data.NewChan[io.Path](io.Env.BufferSize)
 	unvisitedPaths.Send(mainFilePath)
 
-	fileEntries := map[string]syntax.FileEntry{}
+	fileEntries := map[string]ast.File{}
 	symbolEntries, closeSymbolEntries := data.RunUntilClosed(io.Env.BufferSize,
 		func(se syntax.FileEntry) {
-			fileEntries[se.Path.String()] = se
+			fileEntries[se.Path.String()] = se.File
 		},
 	)
+
+	symbolMap := syntax.SymbolMap{
+		Projects: projectFiles.Map(),
+		Files:    fileEntries,
+	}
 
 	unvisitedPaths.AsyncForEach(io.Env.BufferSize, io.Env.ThreadCount, func(fp io.Path) io.Error {
 		// skip if file is already visited
@@ -70,15 +70,14 @@ func Syntax(mainFilePath io.Path) (SymbolMap, io.Error) {
 			return err
 		}
 
-		file, err := parseFile(fp, mainDirPath, project, unvisitedPaths)
+		file, err := parseFile(fp, mainDirPath, project, unvisitedPaths, symbolMap)
 		if err != nil {
 			return err
 		}
 
 		symbolEntries <- syntax.FileEntry{
-			Path:    fp,
-			Project: project,
-			File:    file,
+			Path: fp,
+			File: file,
 		}
 		if unvisitedPaths.Size() == 0 {
 			unvisitedPaths.Close()
@@ -88,8 +87,5 @@ func Syntax(mainFilePath io.Path) (SymbolMap, io.Error) {
 	})
 
 	closeSymbolEntries()
-	return SymbolMap{
-		ProjectFiles: projectFiles.Map(),
-		FileEntries:  fileEntries,
-	}, nil
+	return symbolMap, nil
 }

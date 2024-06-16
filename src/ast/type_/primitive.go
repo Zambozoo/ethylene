@@ -18,15 +18,15 @@ func (p *Primitive[T]) Location() token.Location {
 	return (*token.Token)(p).Location()
 }
 
-func (p *Primitive[T]) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return p.Equals(ctx, parent)
+func (p *Primitive[T]) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
+	return p.Equals(parent)
 }
 
-func (p *Primitive[T]) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return p.Equals(ctx, parent)
+func (p *Primitive[T]) Extends(parent ast.Type) (bool, io.Error) {
+	return p.Equals(parent)
 }
 
-func (p *Primitive[T]) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
+func (p *Primitive[T]) Equals(other ast.Type) (bool, io.Error) {
 	_, ok := other.(*Primitive[T])
 	return ok, nil
 }

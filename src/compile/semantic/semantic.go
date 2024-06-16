@@ -8,31 +8,17 @@ import (
 )
 
 type Parser struct {
-	typeContext *TypeContext
-	scope       *ast.Scope
-	bytecodes   *bytecode.Bytecodes
+	scope     *ast.Scope
+	bytecodes *bytecode.Bytecodes
+	File_     ast.File
 }
 
-func NewParser(fileEntry syntax.FileEntry, projectFiles map[string]*io.Project, fileEntries map[string]syntax.FileEntry) *Parser {
-	return &Parser{
-		typeContext: &TypeContext{
-			fileEntry:    fileEntry,
-			projectFiles: projectFiles,
-			fileEntries:  fileEntries,
-		},
-	}
+func NewParser(file ast.File, symbolMap syntax.SymbolMap) *Parser {
+	panic("")
 }
 
-func (p *Parser) TypeContext() ast.TypeContext {
-	return p.typeContext
-}
-
-func (p *Parser) WrapTypeContext(decl ast.Declaration) {
-	p.typeContext.scope = append(p.typeContext.scope, decl)
-}
-
-func (p *Parser) UnwrapTypeContext() {
-	p.typeContext.scope = p.typeContext.scope[:len(p.typeContext.scope)-1]
+func (p *Parser) File() ast.File {
+	return p.File_
 }
 
 func (p *Parser) Scope() *ast.Scope {
@@ -40,7 +26,7 @@ func (p *Parser) Scope() *ast.Scope {
 }
 
 func (p *Parser) Parse() (*bytecode.Bytecodes, io.Error) {
-	if err := p.typeContext.fileEntry.File.Semantic(p); err != nil {
+	if err := p.File_.Semantic(p); err != nil {
 		return nil, err
 	}
 

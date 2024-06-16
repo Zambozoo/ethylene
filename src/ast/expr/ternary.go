@@ -67,7 +67,7 @@ func (t *Ternary) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	cond, err := t.Condition.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := p.TypeContext().MustExtend(cond, &type_.Boolean{}); err != nil {
+	} else if _, err := type_.MustExtend(cond, &type_.Boolean{}); err != nil {
 		return nil, err
 	}
 

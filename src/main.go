@@ -27,8 +27,8 @@ func main() {
 		return
 	}
 	io.Infof("[Syntax] End",
-		zap.Strings("file entries", maps.Keys(symbolMap.FileEntries)),
-		zap.Strings("project files", maps.Keys(symbolMap.ProjectFiles)),
+		zap.Strings("file entries", maps.Keys(symbolMap.Files)),
+		zap.Strings("project files", maps.Keys(symbolMap.Projects)),
 	)
 
 	io.Infof("[Semantic] Start")

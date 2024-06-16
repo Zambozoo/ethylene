@@ -2,6 +2,7 @@ package decl
 
 import (
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
@@ -168,6 +169,9 @@ func Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 		return nil, io.NewError("expected declaration", zap.Any("token", t))
 	}
 
+	p.WrapScope(declaration)
+	defer p.UnwrapScope()
+
 	if err := declaration.Syntax(p); err != nil {
 		return nil, err
 	}
@@ -211,7 +215,7 @@ func (d *BaseDecl) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet
 func (child *BaseDecl) Extends(p ast.SemanticParser, parent ast.Declaration, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	for name, parentMethod := range parent.Methods() {
 		if childMethod, exists := child.Methods_[name]; exists {
-			if _, err := p.TypeContext().MustExtend(childMethod.Type(), parentMethod.Type()); err != nil {
+			if _, err := type_.MustExtend(childMethod.Type(), parentMethod.Type()); err != nil {
 				return err
 			}
 		} else if parentMethod.HasModifier(ast.MOD_VIRTUAL) && child.IsClass {

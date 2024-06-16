@@ -13,9 +13,8 @@ import (
 func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	var t ast.Type
 	var err io.Error
-	isPrimitive := false
 	if p.Peek().Type == token.TOK_IDENTIFIER {
-		t, err = (&Composite{}).Syntax(p)
+		t, err = (&Composite{Context_: p.TypeContext()}).Syntax(p)
 		if err != nil {
 			return nil, err
 		}
@@ -24,7 +23,6 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		if err != nil {
 			return nil, err
 		}
-		isPrimitive = true
 	}
 
 	// generic or array
@@ -58,7 +56,8 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				EndToken: tok,
 			}
 		default:
-			if isPrimitive {
+			declType, ok := t.(ast.DeclType)
+			if !ok {
 				return t, nil
 			}
 
@@ -78,7 +77,8 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				}
 			}
 			t = &Generic{
-				Type:         t,
+				Context_:     p.TypeContext(),
+				Type:         declType,
 				GenericTypes: types,
 				EndToken:     p.Prev(),
 			}
@@ -86,10 +86,12 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	}
 
 	if p.Match(token.TOK_TILDE) {
-		switch t.(type) {
-		case *Generic, *Composite:
-		default:
-			return nil, io.NewError("invalid tailed type.", zap.Any("location", t.Location()))
+		declType, ok := t.(ast.DeclType)
+		if !ok {
+			return nil, io.NewError("invalid tailed type.",
+				zap.Any("type", t),
+				zap.Any("location", t.Location()),
+			)
 		}
 
 		size := int64(-1)
@@ -100,7 +102,11 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 			}
 			size = int64(tok.Integer)
 		}
-		t = &Tailed{Type: t, Size: size, EndToken: p.Prev()}
+		t = &Tailed{
+			Type:     declType,
+			Size:     size,
+			EndToken: p.Prev(),
+		}
 	}
 
 	for {
@@ -159,10 +165,10 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	}
 }
 
-func MustExtend(ctx ast.TypeContext, child ast.Type, parent ast.Type, parents ...ast.Type) (ast.Type, io.Error) {
+func MustExtend(child ast.Type, parent ast.Type, parents ...ast.Type) (ast.Type, io.Error) {
 	parents = append(parents, parent)
 	for _, p := range parents {
-		if extends, err := child.Extends(ctx, p); err != nil {
+		if extends, err := child.Extends(p); err != nil {
 			return nil, err
 		} else if extends {
 			return p, nil

@@ -100,7 +100,7 @@ func (a *Abstract) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet
 	defer delete(cycleMap, l.String())
 
 	for _, parent := range a.Implements {
-		parentDecl, err := parent.Declaration(p.TypeContext())
+		parentDecl, err := parent.Declaration()
 		if err != nil {
 			return err
 		}
@@ -144,9 +144,6 @@ func (a *Abstract) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet
 }
 
 func (a *Abstract) Semantic(p ast.SemanticParser) io.Error {
-	p.WrapTypeContext(a)
-	defer p.UnwrapTypeContext()
-
 	// TODO: Handle generic constraints
 	return a.BaseDecl.Semantic(p)
 }

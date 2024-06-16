@@ -3,6 +3,7 @@ package stmt
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 )
@@ -68,7 +69,7 @@ func (v *Var) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	t, err := v.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := p.TypeContext().MustExtend(t, v.Type_); err != nil {
+	} else if _, err := type_.MustExtend(t, v.Type_); err != nil {
 		return nil, err
 	}
 

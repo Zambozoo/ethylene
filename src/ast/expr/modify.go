@@ -25,7 +25,7 @@ func (i *IncrementPrefix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.TypeContext().MustExtend(t, &type_.Integer{}); err != nil {
+	if _, err := type_.MustExtend(t, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 
@@ -50,7 +50,7 @@ func (i *IncrementSuffix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.TypeContext().MustExtend(t, &type_.Integer{}); err != nil {
+	if _, err := type_.MustExtend(t, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (d *DecrementPrefix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.TypeContext().MustExtend(t, &type_.Integer{}); err != nil {
+	if _, err := type_.MustExtend(t, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 
@@ -100,7 +100,7 @@ func (d *DecrementSuffix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.TypeContext().MustExtend(t, &type_.Integer{}); err != nil {
+	if _, err := type_.MustExtend(t, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 

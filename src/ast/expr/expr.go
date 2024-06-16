@@ -2,6 +2,7 @@ package expr
 
 import (
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 
@@ -22,7 +23,7 @@ func (b *Binary) MustBothExtendOne(p ast.SemanticParser, parent ast.Type, parent
 	if err != nil {
 		return nil, err
 	}
-	t, err := p.TypeContext().MustExtend(left, parent, parents...)
+	t, err := type_.MustExtend(left, parent, parents...)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (b *Binary) MustBothExtendOne(p ast.SemanticParser, parent ast.Type, parent
 	right, err := b.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := p.TypeContext().MustExtend(right, t); err != nil {
+	} else if _, err := type_.MustExtend(right, t); err != nil {
 		return nil, err
 	}
 

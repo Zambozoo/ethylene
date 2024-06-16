@@ -21,21 +21,21 @@ func (p *Pointer) String() string {
 	return fmt.Sprintf("Pointer{Type:%s}", p.Type.String())
 }
 
-func (p *Pointer) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return p.Equals(ctx, parent)
+func (p *Pointer) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
+	return p.Equals(parent)
 }
 
-func (p *Pointer) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
+func (p *Pointer) Extends(parent ast.Type) (bool, io.Error) {
 	if parentPtr, ok := parent.(*Pointer); ok {
-		return p.Type.Extends(ctx, parentPtr.Type)
+		return p.Type.Extends(parentPtr.Type)
 	}
 
 	return false, nil
 }
 
-func (p *Pointer) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
+func (p *Pointer) Equals(other ast.Type) (bool, io.Error) {
 	if otherPtr, ok := other.(*Pointer); ok {
-		return p.Type.Equals(ctx, otherPtr.Type)
+		return p.Type.Equals(otherPtr.Type)
 	}
 
 	return false, nil

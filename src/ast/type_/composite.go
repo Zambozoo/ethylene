@@ -8,7 +8,12 @@ import (
 )
 
 type Composite struct {
-	Tokens []token.Token
+	Context_ ast.TypeContext
+	Tokens   []token.Token
+}
+
+func (c *Composite) Context() ast.TypeContext {
+	return c.Context_
 }
 
 func (c *Composite) Location() token.Location {
@@ -43,21 +48,44 @@ func (c *Composite) Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	return c, nil
 }
 
-func (c *Composite) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	panic("not implemented")
+func (c *Composite) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
+	if ok, err := c.Equals(parent); err != nil || !ok {
+		return ok, err
+	}
+	pComposite, ok := parent.(*Composite)
+	if ok {
+		return false, nil
+	}
+
+	cDecl, err := c.Declaration()
+	if err != nil {
+		return false, err
+	}
+	cChildDecl, ok := cDecl.(ast.ChildDeclaration)
+	if !ok {
+		return false, nil
+	}
+
+	for _, parentType := range cChildDecl.Parents() {
+		if ok, err := pComposite.ExtendsAsPointer(parentType); err != nil || ok {
+			return ok, err
+		}
+	}
+
+	return false, nil
 }
 
-func (c *Composite) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return c.Equals(ctx, parent)
+func (c *Composite) Extends(parent ast.Type) (bool, io.Error) {
+	return c.Equals(parent)
 }
 
-func (c *Composite) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
+func (c *Composite) Equals(other ast.Type) (bool, io.Error) {
 	if otherComposite, ok := other.(*Composite); ok {
 		var cDeclaration, otherDeclaration ast.Declaration
 		var err io.Error
-		if cDeclaration, err = c.Declaration(ctx); err != nil {
+		if cDeclaration, err = c.Declaration(); err != nil {
 			return false, err
-		} else if otherDeclaration, err = otherComposite.Declaration(ctx); err != nil {
+		} else if otherDeclaration, err = otherComposite.Declaration(); err != nil {
 			return false, err
 		}
 
@@ -67,6 +95,6 @@ func (c *Composite) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error)
 	return false, nil
 }
 
-func (c *Composite) Declaration(ctx ast.TypeContext) (ast.Declaration, io.Error) {
-	return ctx.Declaration(c.Tokens)
+func (c *Composite) Declaration() (ast.Declaration, io.Error) {
+	return c.Context_.Declaration(c.Tokens)
 }
