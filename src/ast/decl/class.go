@@ -92,6 +92,13 @@ func (c *Class) Syntax(p ast.SyntaxParser) io.Error {
 		f, err := p.ParseField()
 		if err != nil {
 			return err
+		} else if _, ok := f.(ast.DeclField); ok {
+			if _, exists := c.GenericConstraints[f.Name().Value]; exists {
+				return io.NewError("inner decl name duplicates generic type",
+					zap.Any("decl", f.Name()),
+					zap.Any("location", f.Location()),
+				)
+			}
 		} else if f.HasModifier(ast.MOD_VIRTUAL) {
 			return io.NewError("virtual fields are not allowed in classes", zap.Any("field", f.Name()))
 		}

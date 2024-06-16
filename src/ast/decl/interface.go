@@ -75,6 +75,13 @@ func (i *Interface) Syntax(p ast.SyntaxParser) io.Error {
 		f, err := p.ParseField()
 		if err != nil {
 			return err
+		} else if _, ok := f.(ast.DeclField); ok {
+			if _, exists := i.GenericConstraints[f.Name().Value]; exists {
+				return io.NewError("inner decl name duplicates generic type",
+					zap.Any("decl", f.Name()),
+					zap.Any("location", f.Location()),
+				)
+			}
 		} else if !f.HasModifier(ast.MOD_STATIC) && !f.HasModifier(ast.MOD_VIRTUAL) {
 			return io.NewError("only static and virual fields are allowed in interfaces",
 				zap.Any("field", f.Name()),
