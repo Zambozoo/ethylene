@@ -76,7 +76,13 @@ func syntaxGenericConstraints(p ast.SyntaxParser) (map[string]ast.GenericConstra
 			name, err := p.Consume(token.TOK_IDENTIFIER)
 			if err != nil {
 				return nil, err
+			} else if _, exists := p.File().GetImport(name.Value); exists {
+				return nil, io.NewError("generic type cannot duplicate import",
+					zap.Any("name", name),
+					zap.Any("location", name.Location()),
+				)
 			}
+
 			if p.Match(token.TOK_SUBTYPE) {
 				ts, err := syntaxTypes(p)
 				if err != nil {
