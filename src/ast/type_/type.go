@@ -13,6 +13,7 @@ import (
 func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	var t ast.Type
 	var err io.Error
+	isPrimitive := false
 	if p.Peek().Type == token.TOK_IDENTIFIER {
 		t, err = (&Composite{}).Syntax(p)
 		if err != nil {
@@ -23,6 +24,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		if err != nil {
 			return nil, err
 		}
+		isPrimitive = true
 	}
 
 	// generic or array
@@ -56,6 +58,10 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				EndToken: tok,
 			}
 		default:
+			if isPrimitive {
+				return t, nil
+			}
+
 			var types []ast.Type
 			for {
 				t, err := p.ParseType()
@@ -77,6 +83,24 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				EndToken:     p.Prev(),
 			}
 		}
+	}
+
+	if p.Match(token.TOK_TILDE) {
+		switch t.(type) {
+		case *Generic, *Composite:
+		default:
+			return nil, io.NewError("invalid tailed type.", zap.Any("location", t.Location()))
+		}
+
+		size := int64(-1)
+		if p.Match(token.TOK_INTEGER) {
+			tok := p.Prev()
+			if tok.Integer > math.MaxInt {
+				return nil, io.NewError("type tail size is larger than max signed integer limit", zap.Any("token", tok))
+			}
+			size = int64(tok.Integer)
+		}
+		t = &Tailed{Type: t, Size: size, EndToken: p.Prev()}
 	}
 
 	for {

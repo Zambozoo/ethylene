@@ -23,7 +23,7 @@ root
 |-- pkgs
 |   `-- pkg1~0.0.0.zip
 `-- src
-     +-- Main.eth
+    `-- Main.eth
 ```
 
 ### Project File

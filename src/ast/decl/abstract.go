@@ -51,13 +51,13 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	if p.Match(token.TOK_TILDE) {
-		a.IsTailed = true
-	}
-
 	a.GenericConstraints, err = syntaxGenericConstraints(p)
 	if err != nil {
 		return err
+	}
+
+	if p.Match(token.TOK_TILDE) {
+		a.IsTailed = true
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {

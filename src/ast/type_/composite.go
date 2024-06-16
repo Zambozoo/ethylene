@@ -5,9 +5,6 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"math"
-
-	"go.uber.org/zap"
 )
 
 type Composite struct {
@@ -43,20 +40,7 @@ func (c *Composite) Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		c.Tokens = append(c.Tokens, tok)
 	}
 
-	var t ast.Type = c
-	if p.Match(token.TOK_TILDE) {
-		size := int64(-1)
-		if p.Match(token.TOK_INTEGER) {
-			tok := p.Prev()
-			if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type tail size is larger than max signed integer limit", zap.Any("token", tok))
-			}
-			size = int64(tok.Integer)
-		}
-		t = &Tailed{Type: t, Size: size, EndToken: p.Prev()}
-	}
-
-	return t, nil
+	return c, nil
 }
 
 func (c *Composite) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
