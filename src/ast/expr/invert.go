@@ -22,7 +22,7 @@ func (n *Negation) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.TypeContext().MustExtend(t, &type_.Integer{}, &type_.Float{}); err != nil {
+	if _, err := type_.MustExtend(t, &type_.Integer{}, &type_.Float{}); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +44,7 @@ func (b *Bang) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.TypeContext().MustExtend(t, &type_.Word{}, &type_.Boolean{}); err != nil {
+	if _, err := type_.MustExtend(t, &type_.Word{}, &type_.Boolean{}); err != nil {
 		return nil, err
 	}
 

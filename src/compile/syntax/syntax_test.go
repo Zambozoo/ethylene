@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,15 +37,23 @@ func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.No
 				t.Fatal(err)
 			}
 
-			var project io.Project
-			var channel mockChan[io.Path]
-			var filePath, mainDirPath io.FilePath
+			var (
+				project               io.Project
+				channel               mockChan[io.Path]
+				filePath, mainDirPath io.FilePath
+				symbolMap             SymbolMap
+			)
 
-			node, err := f(NewParser(tokens, &project, &filePath, &mainDirPath, &channel))
+			node, err := f(NewParser(tokens, &project, &filePath, &mainDirPath, &channel, symbolMap))
 			tt.errFunc(t, err)
 
 			if !reflect.DeepEqual(node, tt.expected) {
-				t.Error(cmp.Diff(node, tt.expected))
+				diff := cmp.Diff(node, tt.expected, cmpopts.IgnoreUnexported(TypeContext{}))
+				if diff == "" {
+					diff = "an unexported field differed"
+				}
+
+				t.Error(diff)
 			}
 		})
 	}
@@ -180,10 +189,9 @@ func TestParseDecl(t *testing.T) {
 			},
 			errFunc: assert.NoError,
 		},
-		{
-			name:  "valid enum",
-			input: `enum Enum {ONE;}`,
-			expected: &decl.Enum{
+		func() testCase {
+			var enum decl.Enum
+			enum = decl.Enum{
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_ENUM,
@@ -212,6 +220,10 @@ func TestParseDecl(t *testing.T) {
 								Loc:  token.Location{StartColumn: 14, EndColumn: 15},
 							},
 							Type_: &type_.Composite{
+								Context_: &TypeContext{
+									project: &io.Project{},
+									scope:   []ast.Declaration{&enum},
+								},
 								Tokens: []token.Token{
 									{
 										Type:  token.TOK_IDENTIFIER,
@@ -232,9 +244,15 @@ func TestParseDecl(t *testing.T) {
 					StaticMethods_: map[string]ast.Method{},
 					Declarations_:  map[string]ast.DeclField{},
 				},
-			},
-			errFunc: assert.NoError,
-		},
+			}
+
+			return testCase{
+				name:     "valid enum",
+				input:    `enum Enum {ONE;}`,
+				expected: &enum,
+				errFunc:  assert.NoError,
+			}
+		}(),
 	}
 
 	testParseHelper(t, testCases,
@@ -1746,6 +1764,7 @@ func TestParseExpr(t *testing.T) {
 					},
 				},
 				Type: &type_.Composite{
+					Context_: &TypeContext{project: &io.Project{}},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2083,6 +2102,7 @@ func TestParseExpr(t *testing.T) {
 					},
 				},
 				Type: &type_.Composite{
+					Context_: &TypeContext{project: &io.Project{}},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2734,7 +2754,9 @@ func TestParseType(t *testing.T) {
 			name:  "generic",
 			input: `List[int]`,
 			expected: &type_.Generic{
+				Context_: &TypeContext{project: &io.Project{}},
 				Type: &type_.Composite{
+					Context_: &TypeContext{project: &io.Project{}},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2771,7 +2793,9 @@ func TestParseType(t *testing.T) {
 			name:  "generic, multiple types",
 			input: `Map[str, int]`,
 			expected: &type_.Generic{
+				Context_: &TypeContext{project: &io.Project{}},
 				Type: &type_.Composite{
+					Context_: &TypeContext{project: &io.Project{}},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2841,6 +2865,7 @@ func TestParseType(t *testing.T) {
 			input: `Node~`,
 			expected: &type_.Tailed{
 				Type: &type_.Composite{
+					Context_: &TypeContext{project: &io.Project{}},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,
@@ -2868,6 +2893,7 @@ func TestParseType(t *testing.T) {
 			input: `Node~8`,
 			expected: &type_.Tailed{
 				Type: &type_.Composite{
+					Context_: &TypeContext{project: &io.Project{}},
 					Tokens: []token.Token{
 						{
 							Type:  token.TOK_IDENTIFIER,

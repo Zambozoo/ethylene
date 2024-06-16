@@ -44,7 +44,7 @@ func (a *Access) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	right, err := a.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := p.TypeContext().MustExtend(left, right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(left, right, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 

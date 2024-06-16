@@ -22,13 +22,13 @@ func (s Super) String() string {
 	return fmt.Sprintf("Super{Types:%s}", strs.Strings(s))
 }
 
-func (s Super) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return s.Equals(ctx, parent)
+func (s Super) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
+	return s.Equals(parent)
 }
 
-func (s Super) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
+func (s Super) Extends(parent ast.Type) (bool, io.Error) {
 	for _, t := range s {
-		if extends, err := ctx.Extends(t, parent); err != nil || !extends {
+		if extends, err := t.Extends(parent); err != nil || !extends {
 			return false, err
 		}
 	}
@@ -36,9 +36,9 @@ func (s Super) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (s Super) containsType(ctx ast.TypeContext, t ast.Type) (bool, io.Error) {
+func (s Super) containsType(t ast.Type) (bool, io.Error) {
 	for _, t2 := range s {
-		if ok, err := t2.Equals(ctx, t); err != nil || !ok {
+		if ok, err := t2.Equals(t); err != nil || !ok {
 			return false, err
 		}
 	}
@@ -46,14 +46,14 @@ func (s Super) containsType(ctx ast.TypeContext, t ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (s Super) Equals(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
+func (s Super) Equals(parent ast.Type) (bool, io.Error) {
 	if parentSuper, ok := parent.(Super); ok {
 		if len(s) != len(parentSuper) {
 			return false, nil
 		}
 
 		for _, t := range s {
-			if ok, err := parentSuper.containsType(ctx, t); err != nil || !ok {
+			if ok, err := parentSuper.containsType(t); err != nil || !ok {
 				return false, err
 			}
 		}

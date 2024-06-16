@@ -10,9 +10,14 @@ import (
 
 // FunctionType represents a function signature
 type Function struct {
+	context         ast.TypeContext
 	ReturnType_     ast.Type
 	ParameterTypes_ []ast.Type
 	EndToken        token.Token
+}
+
+func (f *Function) Context() ast.TypeContext {
+	return f.context
 }
 
 func (f *Function) Location() token.Location {
@@ -33,23 +38,23 @@ func (f *Function) Arity() int {
 	return len(f.ParameterTypes_)
 }
 
-func (f *Function) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return f.Equals(ctx, parent)
+func (f *Function) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
+	return f.Equals(parent)
 }
 
-func (f *Function) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
+func (f *Function) Extends(parent ast.Type) (bool, io.Error) {
 	if fun, ok := parent.(*Function); ok {
 		if f.Arity() != fun.Arity() {
 			return false, nil
 		}
 
-		if ok, err := f.ReturnType_.Extends(ctx, fun.ReturnType_); err != nil || !ok {
+		if ok, err := f.ReturnType_.Extends(fun.ReturnType_); err != nil || !ok {
 			return false, err
 		}
 
 		for i, childArgType := range f.ParameterTypes_ {
 			parentArgType := fun.ParameterTypes_[i]
-			if ok, err := parentArgType.Extends(ctx, childArgType); err != nil || !ok {
+			if ok, err := parentArgType.Extends(childArgType); err != nil || !ok {
 				return false, err
 			}
 		}
@@ -58,6 +63,20 @@ func (f *Function) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error
 	return false, nil
 }
 
-func (f *Function) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
-	panic("not implemented")
+func (f *Function) Equals(other ast.Type) (bool, io.Error) {
+	fOther, ok := other.(*Function)
+	if !ok || f.Arity() != fOther.Arity() {
+		return false, nil
+	} else if ok, err := f.ReturnType_.Equals(fOther.ReturnType_); err != nil || !ok {
+		return ok, err
+	}
+
+	for i, childArgType := range f.ParameterTypes_ {
+		parentArgType := fOther.ParameterTypes_[i]
+		if ok, err := childArgType.Equals(parentArgType); err != nil || !ok {
+			return ok, err
+		}
+	}
+
+	return true, nil
 }

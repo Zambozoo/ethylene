@@ -19,17 +19,17 @@ func (t *Thread) Location() token.Location {
 	return t.Type.Location()
 }
 
-func (t *Thread) ExtendsAsPointer(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
+func (t *Thread) ExtendsAsPointer(other ast.Type) (bool, io.Error) {
 	panic("not implemented")
 }
 
-func (t *Thread) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return t.Equals(ctx, parent)
+func (t *Thread) Extends(parent ast.Type) (bool, io.Error) {
+	return t.Equals(parent)
 }
 
-func (t *Thread) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
+func (t *Thread) Equals(other ast.Type) (bool, io.Error) {
 	if otherThread, ok := other.(*Thread); ok {
-		return t.Type.Equals(ctx, otherThread.Type)
+		return t.Type.Equals(otherThread.Type)
 	}
 
 	return false, nil

@@ -87,9 +87,6 @@ func (s *Struct) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[a
 	return s.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
 }
 func (s *Struct) Semantic(p ast.SemanticParser) io.Error {
-	p.WrapTypeContext(s)
-	defer p.UnwrapTypeContext()
-
 	// TODO: Handle generic constraints
 	return s.BaseDecl.Semantic(p)
 }

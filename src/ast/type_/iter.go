@@ -8,7 +8,12 @@ import (
 )
 
 type Iter struct {
-	Type ast.Type
+	context ast.TypeContext
+	Type    ast.Type
+}
+
+func (i *Iter) Context() ast.TypeContext {
+	return i.context
 }
 
 func (i *Iter) String() string {
@@ -19,17 +24,17 @@ func (i *Iter) Location() token.Location {
 	return i.Type.Location()
 }
 
-func (i *Iter) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
+func (i *Iter) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	panic("not implemented")
 }
 
-func (i *Iter) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return i.Equals(ctx, parent)
+func (i *Iter) Extends(parent ast.Type) (bool, io.Error) {
+	return i.Equals(parent)
 }
 
-func (i *Iter) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
+func (i *Iter) Equals(other ast.Type) (bool, io.Error) {
 	if otherThread, ok := other.(*Thread); ok {
-		return i.Type.Equals(ctx, otherThread.Type)
+		return i.Type.Equals(otherThread.Type)
 	}
 
 	return false, nil

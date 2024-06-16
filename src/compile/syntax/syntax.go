@@ -11,14 +11,14 @@ import (
 	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"slices"
 
 	"go.uber.org/zap"
 )
 
 type FileEntry struct {
-	Path    io.Path
-	Project *io.Project
-	File    ast.File
+	Path io.Path
+	File ast.File
 }
 
 type Chan[T any] interface {
@@ -29,19 +29,27 @@ type Parser struct {
 	path          io.Path
 	tokens        []token.Token
 	curTokenIndex int
+	scope         []ast.Declaration
+	file          ast.File
 
+	symbolMap      SymbolMap
 	unvisitedPaths Chan[io.Path]
 	project        *io.Project
 	mainDirPath    *io.FilePath
 }
 
-func NewParser(tokens []token.Token, project *io.Project, path, mainDirPath io.Path, unvisitedPaths Chan[io.Path]) *Parser {
+func NewParser(tokens []token.Token, project *io.Project, path, mainDirPath io.Path, unvisitedPaths Chan[io.Path], symbolMap SymbolMap) *Parser {
 	return &Parser{
 		path:           path,
 		tokens:         tokens,
+		symbolMap:      symbolMap,
 		unvisitedPaths: unvisitedPaths,
 		project:        project,
 	}
+}
+
+func (p *Parser) Path() io.Path {
+	return p.path
 }
 
 func (p *Parser) AddPath(dependency, path string) (io.Path, io.Error) {
@@ -110,8 +118,34 @@ func (p *Parser) Consume(t token.Type) (token.Token, io.Error) {
 	)
 }
 
+func (p *Parser) WrapScope(decl ast.Declaration) {
+	p.scope = append(p.scope, decl)
+}
+
+func (p *Parser) UnwrapScope() {
+	p.scope = p.scope[:len(p.scope)-1]
+}
+
+func (p *Parser) Scope() []ast.Declaration {
+	return p.scope
+}
+
+func (p *Parser) TypeContext() ast.TypeContext {
+	return &TypeContext{
+		file:      p.file,
+		project:   p.project,
+		scope:     slices.Clone(p.scope),
+		symbolMap: p.symbolMap,
+	}
+}
+
 func (p *Parser) Parse() (ast.File, io.Error) {
-	return file.Syntax(p)
+	p.file = file.New(p)
+	if err := p.file.Syntax(p); err != nil {
+		return nil, err
+	}
+
+	return p.file, nil
 }
 
 func (p *Parser) ParseType() (ast.Type, io.Error) {

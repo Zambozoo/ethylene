@@ -15,6 +15,13 @@ import (
 type File struct {
 	Imports      map[string]Import
 	Declaration_ ast.Declaration
+
+	Path_   io.Path
+	Project *io.Project
+}
+
+func (f *File) Path() io.Path {
+	return f.Path_
 }
 
 func (f *File) GetImport(name string) (ast.Import, bool) {
@@ -67,13 +74,11 @@ func (f *File) Syntax(p ast.SyntaxParser) io.Error {
 	return err
 }
 
-func Syntax(p ast.SyntaxParser) (ast.File, io.Error) {
-	f := &File{Imports: map[string]Import{}}
-	if err := f.Syntax(p); err != nil {
-		return nil, err
+func New(p ast.SyntaxParser) ast.File {
+	return &File{
+		Imports: map[string]Import{},
+		Path_:   p.Path(),
 	}
-
-	return f, nil
 }
 
 func (f *File) Semantic(p ast.SemanticParser) io.Error {

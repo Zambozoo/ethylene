@@ -12,6 +12,8 @@ type SyntaxParser interface {
 	// AddPath ensures a file path dependency:path will be lexed.
 	AddPath(dependency, path string) (io.Path, io.Error)
 
+	Path() io.Path
+
 	// Peek returns the next token without consuming it.
 	Peek() token.Token
 	// Prev returns the previously consumed token with unconsuming it.
@@ -22,6 +24,10 @@ type SyntaxParser interface {
 	Match(ts ...token.Type) bool
 	// Consume checks if the next token is of the specified type and consumes it.
 	Consume(t token.Type) (token.Token, io.Error)
+
+	WrapScope(decl Declaration)
+	UnwrapScope()
+	TypeContext() TypeContext
 
 	// ParseType parses and returns a Type.
 	ParseType() (Type, io.Error)
@@ -37,13 +43,9 @@ type SyntaxParser interface {
 
 // SemanticParser defines an interface for semantic analysis of parsed elements.
 type SemanticParser interface {
-	// TypeContext returns the type context for resolving types.
-	TypeContext() TypeContext
+	File() File
 	// Scope returns the current scope for resolving identifiers.
 	Scope() *Scope
-
-	WrapTypeContext(decl Declaration)
-	UnwrapTypeContext()
 }
 
 // Node is an interface for all AST nodes, providing basic functionalities.
@@ -66,6 +68,8 @@ type File interface {
 
 	GetImport(name string) (Import, bool)
 	Declaration() Declaration
+
+	Syntax(p SyntaxParser) io.Error
 
 	// LinkParents links parent nodes within the AST, facilitating inheritance.
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
@@ -92,6 +96,11 @@ type Declaration interface {
 	Methods() map[string]Method
 	//Declarations returns a map of inner declarations.
 	Declarations() map[string]DeclField
+}
+
+type ChildDeclaration interface {
+	Declaration
+	Parents() []Type
 }
 
 // Field represents a field within the AST.
@@ -125,28 +134,20 @@ type Expression interface {
 
 // TypeContext represents the context in which types are resolved.
 type TypeContext interface {
-	Project() *io.Project
 	Declaration(tokens []token.Token) (Declaration, io.Error)
 	Dependency(pkg string) (string, bool)
-
-	// Equals returns true if a and b are the same type given a context.
-	Equals(a, b Type) (bool, io.Error)
-	// Extends returns true if child extends parent given a context.
-	Extends(child, parent Type) (bool, io.Error)
-	// MustExtends returns an error if child doesn't extend a parent given a context.
-	MustExtend(child, parent Type, parents ...Type) (Type, io.Error)
 }
 
 // Type represents a type in the AST, like primitives or composite types.
 type Type interface {
 	// Inherits Node interface.
 	Node
-	// Extends returns true if the type extends parent given a context.
-	Extends(ctx TypeContext, parent Type) (bool, io.Error)
-	// ExtendsAsPointer returns true if the type extends parent as a pointer given a context.
-	ExtendsAsPointer(ctx TypeContext, parent Type) (bool, io.Error)
-	// Equals returns true if the type is the same as other given a context.
-	Equals(ctx TypeContext, other Type) (bool, io.Error)
+	// Extends returns true if the type extends parent.
+	Extends(parent Type) (bool, io.Error)
+	// ExtendsAsPointer returns true if the type extends parent as a pointer.
+	ExtendsAsPointer(parent Type) (bool, io.Error)
+	// Equals returns true if the type is the same as other.
+	Equals(other Type) (bool, io.Error)
 }
 
 // FunType represents a function type, detailing its return and parameter types.
@@ -165,8 +166,10 @@ type FunType interface {
 type DeclType interface {
 	// Inherits from Type interface.
 	Type
+
+	Context() TypeContext
 	// Declaration returns the Declaration associated with the type within a given context.
-	Declaration(ctx TypeContext) (Declaration, io.Error)
+	Declaration() (Declaration, io.Error)
 }
 
 // Method represents a method, which is a function associated with a type.

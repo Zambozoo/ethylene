@@ -10,9 +10,14 @@ import (
 
 // GenericType represents a type with generic type parameters
 type Generic struct {
-	Type         ast.Type
+	Context_     ast.TypeContext
+	Type         ast.DeclType
 	GenericTypes []ast.Type
 	EndToken     token.Token
+}
+
+func (g *Generic) Context() ast.TypeContext {
+	return g.Context_
 }
 
 func (g *Generic) Location() token.Location {
@@ -23,22 +28,32 @@ func (g *Generic) String() string {
 	return fmt.Sprintf("Generic{Type:%s,GenericParameters:%s}", g.Type, strs.Strings(g.GenericTypes))
 }
 
-func (g *Generic) ExtendsAsPointer(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
+func (g *Generic) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	panic("not implemented")
 }
 
-func (g *Generic) Extends(ctx ast.TypeContext, parent ast.Type) (bool, io.Error) {
-	return g.Equals(ctx, parent)
+func (g *Generic) Extends(parent ast.Type) (bool, io.Error) {
+	return g.Equals(parent)
 }
 
-func (g *Generic) Equals(ctx ast.TypeContext, other ast.Type) (bool, io.Error) {
-	if _, ok := other.(*Generic); ok {
-		panic("not implemented")
+func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
+	gOther, ok := other.(*Generic)
+	if !ok {
+		return false, nil
+	} else if ok, err := g.Type.Equals(gOther.Type); err != nil || !ok {
+		return false, err
 	}
 
-	return false, nil
+	for i, childGenericArg := range g.GenericTypes {
+		parentGenericArg := gOther.GenericTypes[i]
+		if ok, err := childGenericArg.Equals(parentGenericArg); err != nil || !ok {
+			return false, err
+		}
+	}
+
+	return true, nil
 }
 
-func (g *Generic) Declaration(ctx ast.TypeContext) (ast.Declaration, io.Error) {
-	panic("not implemented")
+func (g *Generic) Declaration() (ast.Declaration, io.Error) {
+	return g.Type.Declaration()
 }

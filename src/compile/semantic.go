@@ -9,12 +9,12 @@ import (
 	"geth-cody/io"
 )
 
-func fileEntriesChan(m map[string]syntax.FileEntry) *data.Chan[syntax.FileEntry] {
-	c := data.NewChan[syntax.FileEntry](io.Env.BufferSize)
+func filesChan(m map[string]ast.File) *data.Chan[ast.File] {
+	c := data.NewChan[ast.File](io.Env.BufferSize)
 
 	go func() {
-		for _, fileEntry := range m {
-			c.Send(fileEntry)
+		for _, file := range m {
+			c.Send(file)
 		}
 		c.Close()
 	}()
@@ -22,13 +22,13 @@ func fileEntriesChan(m map[string]syntax.FileEntry) *data.Chan[syntax.FileEntry]
 	return c
 }
 
-func Semantic(symbolMap SymbolMap) (*bytecode.Bytecodes, io.Error) {
-	parentsChan := fileEntriesChan(symbolMap.FileEntries)
+func Semantic(symbolMap syntax.SymbolMap) (*bytecode.Bytecodes, io.Error) {
+	parentsChan := filesChan(symbolMap.Files)
 	visitedDecls := data.NewAsyncSet[ast.Declaration]()
 	parentsChan.AsyncForEach(io.Env.BufferSize, io.Env.ThreadCount,
-		func(fe syntax.FileEntry) io.Error {
-			p := semantic.NewParser(fe, symbolMap.ProjectFiles, symbolMap.FileEntries)
-			return fe.File.LinkParents(p, visitedDecls)
+		func(file ast.File) io.Error {
+			p := semantic.NewParser(file, symbolMap)
+			return file.LinkParents(p, visitedDecls)
 		},
 	)
 
@@ -39,10 +39,10 @@ func Semantic(symbolMap SymbolMap) (*bytecode.Bytecodes, io.Error) {
 		},
 	)
 
-	semanticChan := fileEntriesChan(symbolMap.FileEntries)
+	semanticChan := filesChan(symbolMap.Files)
 	semanticChan.AsyncForEach(io.Env.BufferSize, io.Env.ThreadCount,
-		func(fe syntax.FileEntry) io.Error {
-			p := semantic.NewParser(fe, symbolMap.ProjectFiles, symbolMap.FileEntries)
+		func(file ast.File) io.Error {
+			p := semantic.NewParser(file, symbolMap)
 			fileBytecodes, err := p.Parse()
 			if err != nil {
 				return err

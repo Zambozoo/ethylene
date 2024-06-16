@@ -46,7 +46,7 @@ func (c *Call) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		}
 
 		expectedType := ft.ParameterTypes()[i]
-		if _, err := p.TypeContext().MustExtend(t, expectedType); err != nil {
+		if _, err := type_.MustExtend(t, expectedType); err != nil {
 			return nil, err
 		}
 	}

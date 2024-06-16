@@ -53,7 +53,8 @@ func (e *Enum) Syntax(p ast.SyntaxParser) io.Error {
 		for {
 			enumField := field.Enum{
 				Type_: &type_.Composite{
-					Tokens: []token.Token{e.Name_},
+					Context_: p.TypeContext(),
+					Tokens:   []token.Token{e.Name_},
 				},
 			}
 
@@ -96,7 +97,5 @@ func (e *Enum) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast
 	return e.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
 }
 func (e *Enum) Semantic(p ast.SemanticParser) io.Error {
-	p.WrapTypeContext(e)
-	defer p.UnwrapTypeContext()
 	return e.BaseDecl.Semantic(p)
 }
