@@ -15,7 +15,7 @@ func singleTokenCompositeSyntax(p ast.SyntaxParser) (*Composite, io.Error) {
 	}
 
 	return &Composite{
-		Context_: p.TypeContext(),
+		Context_: p.TypeContextWithoutGenerics(),
 		Tokens:   []token.Token{tok},
 	}, nil
 }
@@ -103,7 +103,7 @@ func genericSyntax(p ast.SyntaxParser, dt *Composite, d ast.Declaration) (*Gener
 	}
 
 	return &Generic{
-		Context_:     p.TypeContext(),
+		Context_:     p.TypeContextWithoutGenerics(),
 		Type:         dt,
 		GenericTypes: types,
 		EndToken:     p.Prev(),
