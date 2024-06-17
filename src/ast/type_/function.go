@@ -58,7 +58,7 @@ func (f *Function) Extends(parent ast.Type) (bool, io.Error) {
 	return false, nil
 }
 
-func (f *Function) Equals(other ast.Type) (bool, io.Error) {
+func (f *Function) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	fOther, ok := other.(*Function)
 	if !ok || f.Arity() != fOther.Arity() {
 		return false, nil

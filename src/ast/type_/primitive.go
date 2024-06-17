@@ -26,7 +26,7 @@ func (p *Primitive[T]) Extends(parent ast.Type) (bool, io.Error) {
 	return p.Equals(parent)
 }
 
-func (p *Primitive[T]) Equals(other ast.Type) (bool, io.Error) {
+func (p *Primitive[T]) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	_, ok := other.(*Primitive[T])
 	return ok, nil
 }

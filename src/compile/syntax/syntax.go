@@ -157,6 +157,14 @@ func (p *Parser) ParseType() (ast.Type, io.Error) {
 	return type_.Syntax(p)
 }
 
+func (p *Parser) ParseDeclType(d ast.Declaration) (ast.DeclType, io.Error) {
+	return type_.SyntaxDecl(p, d)
+}
+
+func (p *Parser) ParseParentTypes() ([]ast.DeclType, io.Error) {
+	return type_.SyntaxParents(p)
+}
+
 func (p *Parser) ParseDecl() (ast.Declaration, io.Error) {
 	return decl.Syntax(p)
 }

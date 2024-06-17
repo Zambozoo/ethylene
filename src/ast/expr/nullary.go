@@ -62,5 +62,5 @@ func (n *Nullary) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, io.NewError("right operand of nullary operator must be a pointer", zap.Any("location", n.Left.Location()))
 	}
 
-	return type_.Super{right, left}, nil
+	return type_.Union{right, left}, nil
 }

@@ -81,5 +81,5 @@ func (t *Ternary) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return type_.Super{then, else_}, nil
+	return type_.Union{then, else_}, nil
 }

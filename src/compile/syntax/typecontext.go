@@ -14,7 +14,7 @@ type TypeContext struct {
 	scope     []ast.Declaration
 	symbolMap SymbolMap
 
-	generics map[string]ast.GenericConstraint
+	generics map[string]ast.GenericTypeArg
 }
 
 func (tc *TypeContext) Dependency(pkg string) (string, bool) {
