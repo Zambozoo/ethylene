@@ -7,6 +7,7 @@ This is a wishlist of features for Ethylene.
 * Switch Statements
 * Try-Catch-Finally Statements
 * Enums can extend classes, abstracts, and implement interfaces
+* Wildcards and type constraints
 
 ## Semantic
 * Enums can extend classes, abstracts, and implement interfaces

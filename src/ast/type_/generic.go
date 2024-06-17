@@ -12,7 +12,7 @@ import (
 type Generic struct {
 	Context_     ast.TypeContext
 	Type         ast.DeclType
-	GenericTypes []ast.GenericTypeArg
+	GenericTypes []ast.Type
 	EndToken     token.Token
 }
 
@@ -33,14 +33,43 @@ func (g *Generic) String() string {
 }
 
 func (g *Generic) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	panic("not implemented")
+	cDecl, err := g.Declaration()
+	if err != nil {
+		return false, err
+	}
+	cChildDecl, ok := cDecl.(ast.ChildDeclaration)
+	if !ok {
+		return false, nil
+	}
+
+	mapping := map[string]ast.Type{}
+	for i, t := range cChildDecl.Generics() {
+		gt := g.GenericTypes[i]
+		if c, ok := gt.(*Composite); !ok || !c.IsGeneric() {
+			mapping[t.Name().Value] = gt
+		}
+	}
+
+	pDecl, ok := parent.(ast.DeclType)
+	if ok {
+		return false, nil
+	}
+
+	for _, parentType := range cChildDecl.Parents() {
+		concreteParentType := parentType.Concretize(mapping)
+		if ok, err := concreteParentType.ExtendsAsPointer(pDecl); err != nil || ok {
+			return ok, err
+		}
+	}
+
+	return false, nil
 }
 
 func (g *Generic) Extends(parent ast.Type) (bool, io.Error) {
 	return g.Equals(parent)
 }
 
-func (g *Generic) Equals(other ast.GenericTypeArg) (bool, io.Error) {
+func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
 	gOther, ok := other.(*Generic)
 	if !ok {
 		return false, nil
@@ -82,4 +111,18 @@ func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {
 	g.Context_ = p.TypeContext()
 	g.EndToken = p.Prev()
 	return nil
+}
+
+func (g *Generic) Concretize(mapping map[string]ast.Type) ast.Type {
+	genericTypes := make([]ast.Type, len(g.GenericTypes))
+	for i, t := range g.GenericTypes {
+		genericTypes[i] = t.Concretize(mapping)
+	}
+
+	return &Generic{
+		Context_:     g.Context_,
+		Type:         g.Type,
+		GenericTypes: genericTypes,
+		EndToken:     g.EndToken,
+	}
 }

@@ -14,7 +14,7 @@ type TypeContext struct {
 	scope     []ast.Declaration
 	symbolMap SymbolMap
 
-	generics map[string]ast.GenericTypeArg
+	generics map[string]ast.DeclType
 }
 
 func (tc *TypeContext) Dependency(pkg string) (string, bool) {
@@ -64,4 +64,8 @@ scope:
 	}
 
 	return nil, io.NewError("missing declaration", zap.Any("location", tokens[0].Location()))
+}
+
+func (tc *TypeContext) Generics() map[string]ast.DeclType {
+	return tc.generics
 }

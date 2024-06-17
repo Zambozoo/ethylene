@@ -7,7 +7,7 @@ import (
 )
 
 func genericParent(p ast.SyntaxParser, dt *Composite) (*Generic, io.Error) {
-	var types []ast.GenericTypeArg
+	var types []ast.Type
 	for {
 		t, err := p.ParseType()
 		if err != nil {

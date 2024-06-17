@@ -88,3 +88,7 @@ func (f *File) Semantic(p ast.SemanticParser) io.Error {
 func (f *File) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	return f.Declaration_.LinkParents(p, visitedDecls, map[string]struct{}{})
 }
+
+func (f *File) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	return f.Declaration_.LinkMethods(p, visitedDecls)
+}

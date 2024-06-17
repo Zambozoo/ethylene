@@ -37,7 +37,7 @@ func (t *Tailed) Extends(parent ast.Type) (bool, io.Error) {
 	return t.Equals(parent)
 }
 
-func (t *Tailed) Equals(other ast.GenericTypeArg) (bool, io.Error) {
+func (t *Tailed) Equals(other ast.Type) (bool, io.Error) {
 	if otherTailed, ok := other.(*Tailed); ok {
 		if t.Size != otherTailed.Size {
 			return false, nil
@@ -51,4 +51,11 @@ func (t *Tailed) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 
 func (t *Tailed) Declaration() (ast.Declaration, io.Error) {
 	return t.Type.Declaration()
+}
+
+func (t *Tailed) Concretize(mapping map[string]ast.Type) ast.Type {
+	return &Tailed{
+		Type: t.Type.Concretize(mapping).(ast.DeclType),
+		Size: t.Size,
+	}
 }

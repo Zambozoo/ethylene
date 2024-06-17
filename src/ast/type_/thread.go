@@ -27,10 +27,16 @@ func (t *Thread) Extends(parent ast.Type) (bool, io.Error) {
 	return t.Equals(parent)
 }
 
-func (t *Thread) Equals(other ast.GenericTypeArg) (bool, io.Error) {
+func (t *Thread) Equals(other ast.Type) (bool, io.Error) {
 	if otherThread, ok := other.(*Thread); ok {
 		return t.Type.Equals(otherThread.Type)
 	}
 
 	return false, nil
+}
+
+func (t *Thread) Concretize(mapping map[string]ast.Type) ast.Type {
+	return &Thread{
+		Type: t.Type.Concretize(mapping),
+	}
 }

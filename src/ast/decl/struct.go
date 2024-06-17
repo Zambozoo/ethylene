@@ -15,19 +15,27 @@ import (
 type Struct struct {
 	BaseDecl
 
-	IsTailed        bool
-	GenericTypeArgs map[string]ast.GenericTypeArg // Generic type parameters
+	IsTailed bool
+	TypesMap map[string]ast.DeclType // Generic type parameters
+	Types    []ast.DeclType
 }
 
 func newStruct() *Struct {
 	return &Struct{
-		BaseDecl:        newDecl(),
-		GenericTypeArgs: map[string]ast.GenericTypeArg{},
+		BaseDecl: newDecl(),
+		TypesMap: map[string]ast.DeclType{},
 	}
 }
 
-func (s *Struct) SetGenerics(genericTypeArgs map[string]ast.GenericTypeArg) io.Error {
-	s.GenericTypeArgs = genericTypeArgs
+func (s *Struct) PutGeneric(name string, generic ast.DeclType) io.Error {
+	if _, exists := s.TypesMap[name]; exists {
+		return io.NewError("Duplicate generic type parameter",
+			zap.String("name", name),
+			zap.Any("location", generic.Location()),
+		)
+	}
+	s.TypesMap[name] = generic
+	s.Types = append(s.Types, generic)
 	return nil
 }
 
@@ -36,14 +44,18 @@ func (s *Struct) SetTailed() io.Error {
 	return nil
 }
 
-func (s *Struct) Generics() map[string]ast.GenericTypeArg {
-	return s.GenericTypeArgs
+func (s *Struct) GenericsMap() map[string]ast.DeclType {
+	return s.TypesMap
+}
+
+func (s *Struct) Generics() []ast.DeclType {
+	return s.Types
 }
 
 func (s *Struct) String() string {
 	return fmt.Sprintf("Struct{Name: %s%s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		s.Name().Value,
-		s.GenericTypeArgs,
+		s.TypesMap,
 		strings.Join(maps.Keys(s.Methods_), ","),
 		strings.Join(maps.Keys(s.Members_), ","),
 		strings.Join(maps.Keys(s.StaticMembers_), ","),
@@ -70,7 +82,7 @@ func (s *Struct) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := s.GenericTypeArgs[f.Name().Value]; exists {
+			if _, exists := s.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),
@@ -97,6 +109,11 @@ func (s *Struct) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[a
 
 	return s.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
 }
+
+func (s *Struct) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	return nil
+}
+
 func (s *Struct) Semantic(p ast.SemanticParser) io.Error {
 	// TODO: Handle generic constraints
 	return s.BaseDecl.Semantic(p)

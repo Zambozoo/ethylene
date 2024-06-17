@@ -53,10 +53,10 @@ func (c *Composite) Syntax(p ast.SyntaxParser) (ast.DeclType, io.Error) {
 }
 
 func (c *Composite) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	if ok, err := c.Equals(parent); err != nil || !ok {
+	if ok, err := c.Equals(parent); err != nil || ok {
 		return ok, err
 	}
-	pComposite, ok := parent.(*Composite)
+	pDecl, ok := parent.(ast.DeclType)
 	if ok {
 		return false, nil
 	}
@@ -71,7 +71,7 @@ func (c *Composite) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	}
 
 	for _, parentType := range cChildDecl.Parents() {
-		if ok, err := parentType.ExtendsAsPointer(pComposite); err != nil || ok {
+		if ok, err := parentType.ExtendsAsPointer(pDecl); err != nil || ok {
 			return ok, err
 		}
 	}
@@ -83,7 +83,7 @@ func (c *Composite) Extends(parent ast.Type) (bool, io.Error) {
 	return c.Equals(parent)
 }
 
-func (c *Composite) Equals(other ast.GenericTypeArg) (bool, io.Error) {
+func (c *Composite) Equals(other ast.Type) (bool, io.Error) {
 	if otherComposite, ok := other.(*Composite); ok {
 		var cDeclaration, otherDeclaration ast.Declaration
 		var err io.Error
@@ -101,4 +101,19 @@ func (c *Composite) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 
 func (c *Composite) Declaration() (ast.Declaration, io.Error) {
 	return c.Context_.Declaration(c.Tokens)
+}
+
+func (c *Composite) IsGeneric() bool {
+	_, isGeneric := c.Context_.Generics()[c.Name().Value]
+	return isGeneric
+
+}
+func (c *Composite) Concretize(mapping map[string]ast.Type) ast.Type {
+	if c.IsGeneric() {
+		if t, ok := mapping[c.Name().Value]; ok {
+			return t
+		}
+	}
+
+	return c
 }
