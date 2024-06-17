@@ -29,6 +29,7 @@ type SyntaxParser interface {
 	WrapScope(decl Declaration)
 	UnwrapScope()
 	TypeContext() TypeContext
+	TypeContextWithoutGenerics() TypeContext
 
 	// ParseType parses and returns a Type.
 	ParseType() (Type, io.Error)
