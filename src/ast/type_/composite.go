@@ -12,6 +12,10 @@ type Composite struct {
 	Tokens   []token.Token
 }
 
+func (c *Composite) Name() token.Token {
+	return c.Tokens[0]
+}
+
 func (c *Composite) Context() ast.TypeContext {
 	return c.Context_
 }
@@ -29,7 +33,7 @@ func (c *Composite) String() string {
 	return fmt.Sprintf("Composite{Tokens:%s}", tokensString)
 }
 
-func (c *Composite) Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
+func (c *Composite) Syntax(p ast.SyntaxParser) (ast.DeclType, io.Error) {
 	tok, err := p.Consume(token.TOK_IDENTIFIER)
 	if err != nil {
 		return nil, err
@@ -79,7 +83,7 @@ func (c *Composite) Extends(parent ast.Type) (bool, io.Error) {
 	return c.Equals(parent)
 }
 
-func (c *Composite) Equals(other ast.Type) (bool, io.Error) {
+func (c *Composite) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	if otherComposite, ok := other.(*Composite); ok {
 		var cDeclaration, otherDeclaration ast.Declaration
 		var err io.Error

@@ -8,52 +8,30 @@ import (
 	"geth-cody/strs"
 )
 
-type Super []ast.Type
+// Super is a type constraint for a generic type.
+//
+//	A :> [B, C, ...]
+type Super struct {
+	Type  ast.Type
+	Types []ast.Type
+}
 
 func (s Super) Location() token.Location {
-	if len(s) == 0 {
-		panic("empty super")
-	}
-
-	return token.LocationBetween(s[0], s[len(s)-1])
+	return token.LocationBetween(s.Type, s.Types[len(s.Types)-1])
 }
 
 func (s Super) String() string {
-	return fmt.Sprintf("Super{Types:%s}", strs.Strings(s))
+	return fmt.Sprintf("Super{Type:%s,Types:%s}", s.Type.String(), strs.Strings(s.Types))
 }
 
-func (s Super) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	return s.Equals(parent)
-}
-
-func (s Super) Extends(parent ast.Type) (bool, io.Error) {
-	for _, t := range s {
-		if extends, err := t.Extends(parent); err != nil || !extends {
-			return false, err
-		}
-	}
-
-	return true, nil
-}
-
-func (s Super) containsType(t ast.Type) (bool, io.Error) {
-	for _, t2 := range s {
-		if ok, err := t2.Equals(t); err != nil || !ok {
-			return false, err
-		}
-	}
-
-	return true, nil
-}
-
-func (s Super) Equals(parent ast.Type) (bool, io.Error) {
+func (s Super) Equals(parent ast.GenericTypeArg) (bool, io.Error) {
 	if parentSuper, ok := parent.(Super); ok {
-		if len(s) != len(parentSuper) {
+		if len(s.Types) != len(parentSuper.Types) {
 			return false, nil
 		}
 
-		for _, t := range s {
-			if ok, err := parentSuper.containsType(t); err != nil || !ok {
+		for _, t := range s.Types {
+			if ok, err := containsType(parentSuper.Types, t); err != nil || !ok {
 				return false, err
 			}
 		}
@@ -62,25 +40,4 @@ func (s Super) Equals(parent ast.Type) (bool, io.Error) {
 	}
 
 	return false, nil
-}
-
-func Join(ts ...ast.Type) ast.Type {
-	if len(ts) == 0 {
-		return nil
-	}
-
-	var returnType Super
-	for _, t := range ts {
-		if t == nil {
-			continue
-		}
-
-		if s, ok := t.(Super); ok {
-			t = Join(s...)
-		}
-
-		returnType = append(returnType, t)
-	}
-
-	return returnType
 }

@@ -34,7 +34,7 @@ func (a *Array) Extends(parent ast.Type) (bool, io.Error) {
 	return false, nil
 }
 
-func (a *Array) Equals(other ast.Type) (bool, io.Error) {
+func (a *Array) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	if arr, ok := other.(*Array); ok {
 		if a.Size != arr.Size {
 			return false, nil

@@ -61,27 +61,9 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				return t, nil
 			}
 
-			var types []ast.Type
-			for {
-				t, err := p.ParseType()
-				if err != nil {
-					return nil, err
-				}
-				types = append(types, t)
-				if p.Match(token.TOK_RIGHTBRACKET) {
-					break
-				}
-
-				if _, err := p.Consume(token.TOK_COMMA); err != nil {
-					return nil, err
-				}
-			}
-			t = &Generic{
-				Context_:     p.TypeContext(),
-				Type:         declType,
-				GenericTypes: types,
-				EndToken:     p.Prev(),
-			}
+			g := &Generic{Type: declType}
+			g.Syntax(p)
+			t = g
 		}
 	}
 

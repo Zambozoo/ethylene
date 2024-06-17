@@ -32,6 +32,10 @@ type SyntaxParser interface {
 
 	// ParseType parses and returns a Type.
 	ParseType() (Type, io.Error)
+	// ParseDeclType parses and returns a DeclType.
+	ParseDeclType(d Declaration) (DeclType, io.Error)
+	// ParseParentTypes parses and returns parent DeclTypes.
+	ParseParentTypes() ([]DeclType, io.Error)
 	// ParseDecl parses and returns a Declaration.
 	ParseDecl() (Declaration, io.Error)
 	// ParseField parses and returns a Field.
@@ -78,10 +82,6 @@ type File interface {
 	Semantic(p SemanticParser) io.Error
 }
 
-type GenericConstraint interface {
-	fmt.Stringer
-}
-
 // Declaration represents a composite object declaration node in the AST.
 type Declaration interface {
 	// Inherits Node interface.
@@ -93,7 +93,10 @@ type Declaration interface {
 	// Semantic performs semantic analysis on the declaration.
 	Semantic(p SemanticParser) io.Error
 
-	Generics() map[string]GenericConstraint
+	Generics() map[string]GenericTypeArg
+	SetName(tok token.Token)
+	SetGenerics(genericTypeArgs map[string]GenericTypeArg) io.Error
+	SetTailed() io.Error
 
 	// Name returns the token representing the declaration's name.
 	Name() *token.Token
@@ -145,16 +148,20 @@ type TypeContext interface {
 	Dependency(pkg string) (string, bool)
 }
 
-// Type represents a type in the AST, like primitives or composite types.
-type Type interface {
+type GenericTypeArg interface {
 	// Inherits Node interface.
 	Node
+	// Equals returns true if the type is the same as other.
+	Equals(other GenericTypeArg) (bool, io.Error)
+}
+
+// Type represents a type in the AST, like primitives or composite types.
+type Type interface {
+	GenericTypeArg
 	// Extends returns true if the type extends parent.
 	Extends(parent Type) (bool, io.Error)
 	// ExtendsAsPointer returns true if the type extends parent as a pointer.
 	ExtendsAsPointer(parent Type) (bool, io.Error)
-	// Equals returns true if the type is the same as other.
-	Equals(other Type) (bool, io.Error)
 }
 
 // FunType represents a function type, detailing its return and parameter types.
@@ -173,6 +180,8 @@ type FunType interface {
 type DeclType interface {
 	// Inherits from Type interface.
 	Type
+
+	Name() token.Token
 
 	Context() TypeContext
 	// Declaration returns the Declaration associated with the type within a given context.

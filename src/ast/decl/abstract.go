@@ -15,28 +15,37 @@ import (
 type Abstract struct {
 	BaseDecl
 
-	IsTailed           bool
-	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
+	IsTailed        bool
+	GenericTypeArgs map[string]ast.GenericTypeArg // Generic type parameters
 
 	SuperClass ast.DeclType   // Optional
 	Implements []ast.DeclType // Interfaces this class implements
 }
 
+func (a *Abstract) SetGenerics(genericTypeArgs map[string]ast.GenericTypeArg) io.Error {
+	a.GenericTypeArgs = genericTypeArgs
+	return nil
+}
+func (a *Abstract) SetTailed() io.Error {
+	a.IsTailed = true
+	return nil
+}
+
 func newAbstract() *Abstract {
 	return &Abstract{
-		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]ast.GenericConstraint{},
+		BaseDecl:        newDecl(),
+		GenericTypeArgs: map[string]ast.GenericTypeArg{},
 	}
 }
 
-func (a *Abstract) Generics() map[string]ast.GenericConstraint {
-	return a.GenericConstraints
+func (a *Abstract) Generics() map[string]ast.GenericTypeArg {
+	return a.GenericTypeArgs
 }
 
 func (a *Abstract) String() string {
 	return fmt.Sprintf("Abstract{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		a.Name().Value,
-		a.GenericConstraints,
+		a.GenericTypeArgs,
 		parentsString(a.SuperClass, a.Implements),
 		strings.Join(maps.Keys(a.Methods_), ","),
 		strings.Join(maps.Keys(a.Members_), ","),
@@ -51,22 +60,12 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	if a.Name_, err = p.Consume(token.TOK_IDENTIFIER); err != nil {
+	if _, err := p.ParseDeclType(a); err != nil {
 		return err
-	}
-
-	a.GenericConstraints, err = syntaxGenericConstraints(p)
-	if err != nil {
-		return err
-	}
-
-	if p.Match(token.TOK_TILDE) {
-		a.IsTailed = true
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		a.Implements, err = syntaxDeclTypes(p)
-		if err != nil {
+		if a.Implements, err = p.ParseParentTypes(); err != nil {
 			return err
 		}
 	}
@@ -80,7 +79,7 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := a.GenericConstraints[f.Name().Value]; exists {
+			if _, exists := a.GenericTypeArgs[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),

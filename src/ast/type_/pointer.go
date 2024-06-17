@@ -33,7 +33,7 @@ func (p *Pointer) Extends(parent ast.Type) (bool, io.Error) {
 	return false, nil
 }
 
-func (p *Pointer) Equals(other ast.Type) (bool, io.Error) {
+func (p *Pointer) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	if otherPtr, ok := other.(*Pointer); ok {
 		return p.Type.Equals(otherPtr.Type)
 	}

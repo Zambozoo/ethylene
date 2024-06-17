@@ -27,7 +27,7 @@ func (t *Thread) Extends(parent ast.Type) (bool, io.Error) {
 	return t.Equals(parent)
 }
 
-func (t *Thread) Equals(other ast.Type) (bool, io.Error) {
+func (t *Thread) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	if otherThread, ok := other.(*Thread); ok {
 		return t.Type.Equals(otherThread.Type)
 	}

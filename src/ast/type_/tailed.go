@@ -13,6 +13,14 @@ type Tailed struct {
 	EndToken token.Token
 }
 
+func (t *Tailed) Name() token.Token {
+	return t.Type.Name()
+}
+
+func (t *Tailed) Context() ast.TypeContext {
+	return t.Type.Context()
+}
+
 func (t *Tailed) Location() token.Location {
 	return token.LocationBetween(t.Type, &t.EndToken)
 }
@@ -29,7 +37,7 @@ func (t *Tailed) Extends(parent ast.Type) (bool, io.Error) {
 	return t.Equals(parent)
 }
 
-func (t *Tailed) Equals(other ast.Type) (bool, io.Error) {
+func (t *Tailed) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	if otherTailed, ok := other.(*Tailed); ok {
 		if t.Size != otherTailed.Size {
 			return false, nil

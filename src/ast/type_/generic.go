@@ -12,8 +12,12 @@ import (
 type Generic struct {
 	Context_     ast.TypeContext
 	Type         ast.DeclType
-	GenericTypes []ast.Type
+	GenericTypes []ast.GenericTypeArg
 	EndToken     token.Token
+}
+
+func (g *Generic) Name() token.Token {
+	return g.Type.Name()
 }
 
 func (g *Generic) Context() ast.TypeContext {
@@ -36,7 +40,7 @@ func (g *Generic) Extends(parent ast.Type) (bool, io.Error) {
 	return g.Equals(parent)
 }
 
-func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
+func (g *Generic) Equals(other ast.GenericTypeArg) (bool, io.Error) {
 	gOther, ok := other.(*Generic)
 	if !ok {
 		return false, nil
@@ -56,4 +60,26 @@ func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
 
 func (g *Generic) Declaration() (ast.Declaration, io.Error) {
 	return g.Type.Declaration()
+}
+
+func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {
+	for {
+		t, err := p.ParseType()
+		if err != nil {
+			return err
+		}
+		g.GenericTypes = append(g.GenericTypes, t)
+
+		if p.Match(token.TOK_RIGHTBRACKET) {
+			break
+		}
+
+		if _, err := p.Consume(token.TOK_COMMA); err != nil {
+			return err
+		}
+	}
+
+	g.Context_ = p.TypeContext()
+	g.EndToken = p.Prev()
+	return nil
 }
