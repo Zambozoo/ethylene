@@ -15,17 +15,26 @@ import (
 type Abstract struct {
 	BaseDecl
 
-	IsTailed        bool
-	GenericTypeArgs map[string]ast.GenericTypeArg // Generic type parameters
+	IsTailed bool
+	TypesMap map[string]ast.DeclType // Generic type parameters
+	Types    []ast.DeclType
 
 	SuperClass ast.DeclType   // Optional
 	Implements []ast.DeclType // Interfaces this class implements
 }
 
-func (a *Abstract) SetGenerics(genericTypeArgs map[string]ast.GenericTypeArg) io.Error {
-	a.GenericTypeArgs = genericTypeArgs
+func (a *Abstract) PutGeneric(name string, generic ast.DeclType) io.Error {
+	if _, exists := a.TypesMap[name]; exists {
+		return io.NewError("Duplicate generic type parameter",
+			zap.String("name", name),
+			zap.Any("location", generic.Location()),
+		)
+	}
+	a.TypesMap[name] = generic
+	a.Types = append(a.Types, generic)
 	return nil
 }
+
 func (a *Abstract) SetTailed() io.Error {
 	a.IsTailed = true
 	return nil
@@ -33,19 +42,23 @@ func (a *Abstract) SetTailed() io.Error {
 
 func newAbstract() *Abstract {
 	return &Abstract{
-		BaseDecl:        newDecl(),
-		GenericTypeArgs: map[string]ast.GenericTypeArg{},
+		BaseDecl: newDecl(),
+		TypesMap: map[string]ast.DeclType{},
 	}
 }
 
-func (a *Abstract) Generics() map[string]ast.GenericTypeArg {
-	return a.GenericTypeArgs
+func (a *Abstract) GenericsMap() map[string]ast.DeclType {
+	return a.TypesMap
+}
+
+func (a *Abstract) Generics() []ast.DeclType {
+	return a.Types
 }
 
 func (a *Abstract) String() string {
 	return fmt.Sprintf("Abstract{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		a.Name().Value,
-		a.GenericTypeArgs,
+		a.TypesMap,
 		parentsString(a.SuperClass, a.Implements),
 		strings.Join(maps.Keys(a.Methods_), ","),
 		strings.Join(maps.Keys(a.Members_), ","),
@@ -79,7 +92,7 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := a.GenericTypeArgs[f.Name().Value]; exists {
+			if _, exists := a.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),
@@ -144,13 +157,23 @@ func (a *Abstract) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet
 		if err := parentDecl.LinkParents(p, visitedDecls, cycleMap); err != nil {
 			return err
 		}
+	}
 
+	return a.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+}
+
+func (a *Abstract) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	for _, parent := range a.Implements {
+		parentDecl, err := parent.Declaration()
+		if err != nil {
+			return err
+		}
 		if err := a.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
 			return err
 		}
 	}
 
-	return a.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+	return nil
 }
 
 func (a *Abstract) Semantic(p ast.SemanticParser) io.Error {

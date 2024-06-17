@@ -11,6 +11,7 @@ import (
 	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"maps"
 	"slices"
 
 	"go.uber.org/zap"
@@ -140,16 +141,7 @@ func (p *Parser) TypeContext() ast.TypeContext {
 		project:   p.project,
 		scope:     slices.Clone(p.scope),
 		symbolMap: p.symbolMap,
-		generics:  p.scope[len(p.scope)-1].Generics(),
-	}
-}
-func (p *Parser) TypeContextWithoutGenerics() ast.TypeContext {
-	return &TypeContext{
-		file:      p.file,
-		project:   p.project,
-		scope:     slices.Clone(p.scope),
-		symbolMap: p.symbolMap,
-		generics:  map[string]ast.GenericTypeArg{},
+		generics:  maps.Clone(p.scope[len(p.scope)-1].GenericsMap()),
 	}
 }
 

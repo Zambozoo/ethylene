@@ -24,11 +24,15 @@ func newEnum() *Enum {
 	}
 }
 
-func (e *Enum) Generics() map[string]ast.GenericTypeArg {
-	return map[string]ast.GenericTypeArg{}
+func (*Enum) GenericsMap() map[string]ast.DeclType {
+	return map[string]ast.DeclType{}
 }
 
-func (e *Enum) SetGenerics(genericTypeArgs map[string]ast.GenericTypeArg) io.Error {
+func (*Enum) Generics() []ast.DeclType {
+	return nil
+}
+
+func (e *Enum) PutGeneric(name string, generic ast.DeclType) io.Error {
 	return io.NewError("enums cannot have generic type parameters", zap.Any("location", e.Name_.Location()))
 }
 
@@ -108,6 +112,11 @@ func (e *Enum) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast
 
 	return e.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
 }
+
+func (*Enum) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	return nil
+}
+
 func (e *Enum) Semantic(p ast.SemanticParser) io.Error {
 	return e.BaseDecl.Semantic(p)
 }

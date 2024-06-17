@@ -29,7 +29,6 @@ type SyntaxParser interface {
 	WrapScope(decl Declaration)
 	UnwrapScope()
 	TypeContext() TypeContext
-	TypeContextWithoutGenerics() TypeContext
 
 	// ParseType parses and returns a Type.
 	ParseType() (Type, io.Error)
@@ -79,6 +78,8 @@ type File interface {
 
 	// LinkParents links parent nodes within the AST, facilitating inheritance.
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
+	// LinkParents links parent nodes within the AST, facilitating inheritance.
+	LinkMethods(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
 	// Semantic performs semantic analysis on the file node.
 	Semantic(p SemanticParser) io.Error
 }
@@ -91,12 +92,15 @@ type Declaration interface {
 	Syntax(p SyntaxParser) io.Error
 	// LinkParents links parent nodes within the AST for this declaration.
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration], cycleMap map[string]struct{}) io.Error
+	// LinkParents links parent methods within the AST for this declaration.
+	LinkMethods(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
 	// Semantic performs semantic analysis on the declaration.
 	Semantic(p SemanticParser) io.Error
 
-	Generics() map[string]GenericTypeArg
+	GenericsMap() map[string]DeclType
+	Generics() []DeclType
 	SetName(tok token.Token)
-	SetGenerics(genericTypeArgs map[string]GenericTypeArg) io.Error
+	PutGeneric(name string, generic DeclType) io.Error
 	SetTailed() io.Error
 
 	// Name returns the token representing the declaration's name.
@@ -147,22 +151,20 @@ type Expression interface {
 type TypeContext interface {
 	Declaration(tokens []token.Token) (Declaration, io.Error)
 	Dependency(pkg string) (string, bool)
-}
-
-type GenericTypeArg interface {
-	// Inherits Node interface.
-	Node
-	// Equals returns true if the type is the same as other.
-	Equals(other GenericTypeArg) (bool, io.Error)
+	Generics() map[string]DeclType
 }
 
 // Type represents a type in the AST, like primitives or composite types.
 type Type interface {
-	GenericTypeArg
+	Node
 	// Extends returns true if the type extends parent.
 	Extends(parent Type) (bool, io.Error)
 	// ExtendsAsPointer returns true if the type extends parent as a pointer.
 	ExtendsAsPointer(parent Type) (bool, io.Error)
+	// Equals returns true if the type is the same as other.
+	Equals(other Type) (bool, io.Error)
+
+	Concretize(mapping map[string]Type) Type
 }
 
 // FunType represents a function type, detailing its return and parameter types.

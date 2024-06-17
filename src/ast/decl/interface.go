@@ -16,20 +16,28 @@ import (
 type Interface struct {
 	BaseDecl
 
-	GenericTypeArgs map[string]ast.GenericTypeArg // Generic type parameters
+	TypesMap map[string]ast.DeclType // Generic type parameters
+	Types    []ast.DeclType
 
 	Implements []ast.DeclType // Interfaces this class implements
 }
 
 func newInterface() *Interface {
 	return &Interface{
-		BaseDecl:        newDecl(),
-		GenericTypeArgs: map[string]ast.GenericTypeArg{},
+		BaseDecl: newDecl(),
+		TypesMap: map[string]ast.DeclType{},
 	}
 }
 
-func (i *Interface) SetGenerics(genericTypeArgs map[string]ast.GenericTypeArg) io.Error {
-	i.GenericTypeArgs = genericTypeArgs
+func (i *Interface) PutGeneric(name string, generic ast.DeclType) io.Error {
+	if _, exists := i.TypesMap[name]; exists {
+		return io.NewError("Duplicate generic type parameter",
+			zap.String("name", name),
+			zap.Any("location", generic.Location()),
+		)
+	}
+	i.TypesMap[name] = generic
+	i.Types = append(i.Types, generic)
 	return nil
 }
 
@@ -37,14 +45,18 @@ func (i *Interface) SetTailed() io.Error {
 	return io.NewError("interfaces cannot be tailed", zap.Any("location", i.Name_.Location()))
 }
 
-func (i *Interface) Generics() map[string]ast.GenericTypeArg {
-	return i.GenericTypeArgs
+func (i *Interface) GenericsMap() map[string]ast.DeclType {
+	return i.TypesMap
+}
+
+func (i *Interface) Generics() []ast.DeclType {
+	return i.Types
 }
 
 func (a *Interface) String() string {
 	return fmt.Sprintf("Interface{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		a.Name().Value,
-		a.GenericTypeArgs,
+		a.TypesMap,
 		strs.Strings(a.Implements),
 		strings.Join(maps.Keys(a.Methods_), ","),
 		strings.Join(maps.Keys(a.Members_), ","),
@@ -78,7 +90,7 @@ func (i *Interface) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := i.GenericTypeArgs[f.Name().Value]; exists {
+			if _, exists := i.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),
@@ -130,13 +142,22 @@ func (i *Interface) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSe
 		if err := parentDecl.LinkParents(p, visitedDecls, cycleMap); err != nil {
 			return err
 		}
+	}
 
+	return i.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+}
+func (i *Interface) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	for _, parent := range i.Implements {
+		parentDecl, err := parent.Declaration()
+		if err != nil {
+			return err
+		}
 		if err := i.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
 			return err
 		}
 	}
 
-	return i.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+	return nil
 }
 
 func (i *Interface) Semantic(p ast.SemanticParser) io.Error {

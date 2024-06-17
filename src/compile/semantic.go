@@ -32,6 +32,14 @@ func Semantic(symbolMap syntax.SymbolMap) (*bytecode.Bytecodes, io.Error) {
 		},
 	)
 
+	methodsChan := filesChan(symbolMap.Files)
+	methodsChan.AsyncForEach(io.Env.BufferSize, io.Env.ThreadCount,
+		func(file ast.File) io.Error {
+			p := semantic.NewParser(file, symbolMap)
+			return file.LinkMethods(p, visitedDecls)
+		},
+	)
+
 	var bytecodes *bytecode.Bytecodes
 	bytecodesChan, closeBytecodes := data.RunUntilClosed(io.Env.BufferSize,
 		func(b *bytecode.Bytecodes) {

@@ -24,7 +24,7 @@ func (i *Import) Location() token.Location {
 }
 
 func (i Import) String() string {
-	return fmt.Sprintf("Import{Dependency:%s, Path:%s}", i.Dependency, i.Path)
+	return fmt.Sprintf("Import{Dependency:%s, Path:%s}", i.Dependency, i.Path())
 }
 
 func (i *Import) Syntax(p ast.SyntaxParser) io.Error {

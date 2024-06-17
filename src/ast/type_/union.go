@@ -44,7 +44,7 @@ func containsType(ts []ast.Type, t ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (u Union) Equals(parent ast.GenericTypeArg) (bool, io.Error) {
+func (u Union) Equals(parent ast.Type) (bool, io.Error) {
 	if parentUnion, ok := parent.(Union); ok {
 		if len(u) != len(parentUnion) {
 			return false, nil
@@ -81,4 +81,13 @@ func Join(ts ...ast.Type) ast.Type {
 	}
 
 	return returnType
+}
+
+func (u Union) Concretize(mapping map[string]ast.Type) ast.Type {
+	concreteTypes := make(Union, len(u))
+	for i, t := range u {
+		concreteTypes[i] = t.Concretize(mapping)
+	}
+
+	return concreteTypes
 }
