@@ -36,13 +36,17 @@ func wrappingDecl() ast.Declaration {
 				Value: "Test",
 			},
 		},
-		TypesMap: make(map[string]ast.DeclType),
+		GenericDecl: decl.GenericDecl{
+			TypesMap: make(map[string]ast.DeclType),
+		},
 	}
 }
 
 func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.Node, io.Error)) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tokens, err := lexer.NewLexer(tt.input, nil).Lex()
 			if err != nil {
 				t.Fatal(err)
@@ -73,6 +77,8 @@ func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.No
 }
 
 func TestParse(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:    "empty string",
@@ -88,12 +94,16 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseDecl(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "valid empty class",
 			input: `class Class {}`,
 			expected: &decl.Class{
-				TypesMap: map[string]ast.DeclType{},
+				GenericDecl: decl.GenericDecl{
+					TypesMap: map[string]ast.DeclType{},
+				},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
@@ -122,7 +132,9 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty tailed class",
 			input: `class Class~ {}`,
 			expected: &decl.Class{
-				TypesMap: map[string]ast.DeclType{},
+				GenericDecl: decl.GenericDecl{
+					TypesMap: map[string]ast.DeclType{},
+				},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
@@ -165,10 +177,13 @@ func TestParseDecl(t *testing.T) {
 				},
 			}
 			c = decl.Class{
-				TypesMap: map[string]ast.DeclType{
-					"T": composite,
+				GenericDecl: decl.GenericDecl{
+					TypesMap: map[string]ast.DeclType{
+						"T": composite,
+					},
+					Types:      []ast.DeclType{composite},
+					TypesCount: 1,
 				},
-				Types: []ast.DeclType{composite},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
@@ -215,10 +230,13 @@ func TestParseDecl(t *testing.T) {
 				},
 			}
 			c = decl.Class{
-				TypesMap: map[string]ast.DeclType{
-					"T": composite,
+				GenericDecl: decl.GenericDecl{
+					TypesMap: map[string]ast.DeclType{
+						"T": composite,
+					},
+					Types:      []ast.DeclType{composite},
+					TypesCount: 1,
 				},
-				Types: []ast.DeclType{composite},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
@@ -253,7 +271,9 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty abstract",
 			input: `abstract Abstract {}`,
 			expected: &decl.Abstract{
-				TypesMap: map[string]ast.DeclType{},
+				GenericDecl: decl.GenericDecl{
+					TypesMap: map[string]ast.DeclType{},
+				},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_ABSTRACT,
@@ -280,8 +300,9 @@ func TestParseDecl(t *testing.T) {
 		{
 			name:  "valid empty interface",
 			input: `interface Interface {}`,
-			expected: &decl.Interface{
+			expected: &decl.Interface{GenericDecl: decl.GenericDecl{
 				TypesMap: map[string]ast.DeclType{},
+			},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_INTERFACE,
@@ -308,8 +329,9 @@ func TestParseDecl(t *testing.T) {
 		{
 			name:  "valid empty struct",
 			input: `struct Struct {}`,
-			expected: &decl.Struct{
+			expected: &decl.Struct{GenericDecl: decl.GenericDecl{
 				TypesMap: map[string]ast.DeclType{},
+			},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_STRUCT,
@@ -408,6 +430,8 @@ func TestParseDecl(t *testing.T) {
 }
 
 func TestParseField(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "valid empty member",
@@ -611,6 +635,8 @@ func TestParseField(t *testing.T) {
 }
 
 func TestParseStmt(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "valid empty block",
@@ -1358,6 +1384,8 @@ func TestParseStmt(t *testing.T) {
 }
 
 func TestParseExpr(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "access",
@@ -2746,6 +2774,8 @@ func TestParseExpr(t *testing.T) {
 }
 
 func TestParseType(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "array",

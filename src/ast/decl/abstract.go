@@ -14,25 +14,12 @@ import (
 
 type Abstract struct {
 	BaseDecl
+	GenericDecl
 
 	IsTailed bool
-	TypesMap map[string]ast.DeclType // Generic type parameters
-	Types    []ast.DeclType
 
 	SuperClass ast.DeclType   // Optional
 	Implements []ast.DeclType // Interfaces this class implements
-}
-
-func (a *Abstract) PutGeneric(name string, generic ast.DeclType) io.Error {
-	if _, exists := a.TypesMap[name]; exists {
-		return io.NewError("Duplicate generic type parameter",
-			zap.String("name", name),
-			zap.Any("location", generic.Location()),
-		)
-	}
-	a.TypesMap[name] = generic
-	a.Types = append(a.Types, generic)
-	return nil
 }
 
 func (a *Abstract) SetTailed() io.Error {
@@ -42,17 +29,9 @@ func (a *Abstract) SetTailed() io.Error {
 
 func newAbstract() *Abstract {
 	return &Abstract{
-		BaseDecl: newDecl(),
-		TypesMap: map[string]ast.DeclType{},
+		BaseDecl:    newDecl(),
+		GenericDecl: newGenericDecl(),
 	}
-}
-
-func (a *Abstract) GenericsMap() map[string]ast.DeclType {
-	return a.TypesMap
-}
-
-func (a *Abstract) Generics() []ast.DeclType {
-	return a.Types
 }
 
 func (a *Abstract) String() string {

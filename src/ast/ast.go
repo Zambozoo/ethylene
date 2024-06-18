@@ -99,6 +99,8 @@ type Declaration interface {
 
 	GenericsMap() map[string]DeclType
 	Generics() []DeclType
+	GenericsCount() int
+
 	SetName(tok token.Token)
 	PutGeneric(name string, generic DeclType) io.Error
 	SetTailed() io.Error

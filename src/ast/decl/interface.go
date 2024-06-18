@@ -15,42 +15,20 @@ import (
 
 type Interface struct {
 	BaseDecl
-
-	TypesMap map[string]ast.DeclType // Generic type parameters
-	Types    []ast.DeclType
+	GenericDecl
 
 	Implements []ast.DeclType // Interfaces this class implements
 }
 
 func newInterface() *Interface {
 	return &Interface{
-		BaseDecl: newDecl(),
-		TypesMap: map[string]ast.DeclType{},
+		BaseDecl:    newDecl(),
+		GenericDecl: newGenericDecl(),
 	}
-}
-
-func (i *Interface) PutGeneric(name string, generic ast.DeclType) io.Error {
-	if _, exists := i.TypesMap[name]; exists {
-		return io.NewError("Duplicate generic type parameter",
-			zap.String("name", name),
-			zap.Any("location", generic.Location()),
-		)
-	}
-	i.TypesMap[name] = generic
-	i.Types = append(i.Types, generic)
-	return nil
 }
 
 func (i *Interface) SetTailed() io.Error {
 	return io.NewError("interfaces cannot be tailed", zap.Any("location", i.Name_.Location()))
-}
-
-func (i *Interface) GenericsMap() map[string]ast.DeclType {
-	return i.TypesMap
-}
-
-func (i *Interface) Generics() []ast.DeclType {
-	return i.Types
 }
 
 func (a *Interface) String() string {

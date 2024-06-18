@@ -14,42 +14,21 @@ import (
 
 type Struct struct {
 	BaseDecl
+	GenericDecl
 
 	IsTailed bool
-	TypesMap map[string]ast.DeclType // Generic type parameters
-	Types    []ast.DeclType
 }
 
 func newStruct() *Struct {
 	return &Struct{
-		BaseDecl: newDecl(),
-		TypesMap: map[string]ast.DeclType{},
+		BaseDecl:    newDecl(),
+		GenericDecl: newGenericDecl(),
 	}
-}
-
-func (s *Struct) PutGeneric(name string, generic ast.DeclType) io.Error {
-	if _, exists := s.TypesMap[name]; exists {
-		return io.NewError("Duplicate generic type parameter",
-			zap.String("name", name),
-			zap.Any("location", generic.Location()),
-		)
-	}
-	s.TypesMap[name] = generic
-	s.Types = append(s.Types, generic)
-	return nil
 }
 
 func (s *Struct) SetTailed() io.Error {
 	s.IsTailed = true
 	return nil
-}
-
-func (s *Struct) GenericsMap() map[string]ast.DeclType {
-	return s.TypesMap
-}
-
-func (s *Struct) Generics() []ast.DeclType {
-	return s.Types
 }
 
 func (s *Struct) String() string {

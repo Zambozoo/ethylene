@@ -223,8 +223,34 @@ func (l *Lexer) readCharLiteral() token.Token {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar()
+	for {
+		if l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+			l.readChar()
+		} else if l.ch == '/' {
+			if l.peekChar() == '/' {
+				l.readChar()
+				l.readChar()
+				for l.ch != '\n' && l.ch != 0 {
+					l.readChar()
+				}
+			} else if l.peekChar() == '*' {
+				l.readChar()
+				l.readChar()
+
+				for l.ch != 0 && !(l.ch == '*' && l.peekChar() == '/') {
+					l.readChar()
+				}
+
+				if l.ch == '*' && l.peekChar() == '/' {
+					l.readChar()
+					l.readChar()
+				}
+			} else {
+				break
+			}
+		} else {
+			break
+		}
 	}
 }
 
