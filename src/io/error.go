@@ -7,13 +7,14 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Error is an interface for errors that can be logged.
 type Error interface {
 	error
+	// Log logs the error.
 	Log(f func(string, ...zapcore.Field))
 }
 
-type ZapErrors []Error
-
+// JoinError joins multiple errors into a single error.
 func JoinError(errs ...Error) Error {
 	n := 0
 	for _, err := range errs {
@@ -25,7 +26,7 @@ func JoinError(errs ...Error) Error {
 		return nil
 	}
 
-	e := make(ZapErrors, 0, n)
+	e := make(zapErrors, 0, n)
 	for _, err := range errs {
 		if err != nil {
 			e = append(e, err)
@@ -35,33 +36,35 @@ func JoinError(errs ...Error) Error {
 	return e
 }
 
-func (e ZapErrors) Error() string {
+type zapErrors []Error
+
+func (e zapErrors) Error() string {
 	err := errors.Join(e)
 	return err.Error()
 }
 
-func (es ZapErrors) Log(f func(string, ...zapcore.Field)) {
+func (es zapErrors) Log(f func(string, ...zapcore.Field)) {
 	for _, e := range es {
 		e.Log(f)
 	}
 }
 
-type ZapError struct {
-	Message string
-	Fields  []zapcore.Field
+type zapError struct {
+	message string
+	fields  []zapcore.Field
 }
 
-func (e *ZapError) Log(f func(string, ...zapcore.Field)) {
-	f(e.Message, e.Fields...)
+func (e *zapError) Log(f func(string, ...zapcore.Field)) {
+	f(e.message, e.fields...)
 }
 
-func (e *ZapError) Error() string {
-	return fmt.Sprintf(e.Message+"%v", e.Fields)
+func (e *zapError) Error() string {
+	return fmt.Sprintf(e.message+"%v", e.fields)
 }
 
 func NewError(message string, fields ...zapcore.Field) Error {
-	return &ZapError{
-		Message: message,
-		Fields:  fields,
+	return &zapError{
+		message: message,
+		fields:  fields,
 	}
 }

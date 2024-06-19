@@ -64,35 +64,38 @@ func (c *Chan[T]) Size() int64 {
 
 // AsyncForEach runs f for each value in the channel.
 func (c *Chan[T]) ForEach(f func(T) io.Error) io.Error {
-	var errs io.ZapErrors
+	var err io.Error
 	for v := range c.channel {
+		if e := f(v); e != nil {
+			err = io.JoinError(err, e)
+		}
 		c.size.Add(-1)
-		if err := f(v); err != nil {
-			errs = append(errs, err)
+		if c.size.Load() == 0 {
+			c.Close()
 		}
 	}
 
-	return &errs
+	return err
 }
 
 // AsyncForEach runs runs f for each value in the channel over util.Env.ThreadCount different workers.
 func (c *Chan[T]) AsyncForEach(bufferSize, threadCount int, f func(T) io.Error) io.Error {
-	var errs io.ZapErrors
-	errChan, closeErrChan := RunUntilClosed(bufferSize, func(err io.Error) { errs = append(errs, err) })
+	var err io.Error
+	errChan, closeErrChan := RunUntilClosed(bufferSize, func(e io.Error) { err = io.JoinError(err, e) })
 
 	var wg sync.WaitGroup
 	for i := 0; i < threadCount; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := c.ForEach(f); err != nil {
-				errChan <- err
+			if e := c.ForEach(f); e != nil {
+				errChan <- e
 			}
 		}()
 	}
 
-	wg.Done()
+	wg.Wait()
 	closeErrChan()
 
-	return &errs
+	return err
 }

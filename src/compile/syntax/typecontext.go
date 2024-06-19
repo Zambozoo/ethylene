@@ -4,13 +4,14 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
 
 	"go.uber.org/zap"
 )
 
 type TypeContext struct {
 	file      ast.File
-	project   *io.Project
+	project   *path.Project
 	scope     []ast.Declaration
 	symbolMap SymbolMap
 
