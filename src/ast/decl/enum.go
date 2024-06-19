@@ -32,6 +32,10 @@ func (*Enum) Generics() []ast.DeclType {
 	return nil
 }
 
+func (*Enum) GenericsCount() int {
+	return 0
+}
+
 func (e *Enum) PutGeneric(name string, generic ast.DeclType) io.Error {
 	return io.NewError("enums cannot have generic type parameters", zap.Any("location", e.Name_.Location()))
 }

@@ -6,4 +6,4 @@ run:
 	cd src ; go run ./... $(ARGS) ; cd ..
 
 test:
-	cd src ; go test ./... -count=1 $(ARGS) ; cd ..
+	cd src ; go test ./... -count=1 -race $(ARGS) ; cd ..

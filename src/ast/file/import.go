@@ -5,6 +5,7 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
 )
 
 type Import struct {
@@ -12,10 +13,10 @@ type Import struct {
 	Dependency string
 	Path_      string
 	EndToken   token.Token
-	FilePath   io.Path
+	FilePath   path.Path
 }
 
-func (i *Import) Path() io.Path {
+func (i *Import) Path() path.Path {
 	return i.FilePath
 }
 
@@ -33,24 +34,28 @@ func (i *Import) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	tok, err := p.Consume(token.TOK_IDENTIFIER)
-	if err != nil {
-		return err
-	}
-	i.Dependency = tok.Value
+	if p.Match(token.TOK_STRING) {
+		i.Path_ = p.Prev().Value
+	} else {
+		tok, err := p.Consume(token.TOK_IDENTIFIER)
+		if err != nil {
+			return err
+		}
+		i.Dependency = tok.Value
 
-	if _, err := p.Consume(token.TOK_LEFTPAREN); err != nil {
-		return err
-	}
+		if _, err := p.Consume(token.TOK_LEFTPAREN); err != nil {
+			return err
+		}
 
-	path, err := p.Consume(token.TOK_LEFTPAREN)
-	if err != nil {
-		return err
-	}
-	i.Path_ = path.Value
+		path, err := p.Consume(token.TOK_STRING)
+		if err != nil {
+			return err
+		}
+		i.Path_ = path.Value
 
-	if _, err := p.Consume(token.TOK_RIGHTPAREN); err != nil {
-		return err
+		if _, err := p.Consume(token.TOK_RIGHTPAREN); err != nil {
+			return err
+		}
 	}
 
 	i.EndToken, err = p.Consume(token.TOK_SEMICOLON)

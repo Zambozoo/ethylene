@@ -18,7 +18,10 @@ type testCase struct {
 
 func testLexHelper(t *testing.T, testCases []testCase) {
 	for _, tt := range testCases {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tokens, err := NewLexer(tt.input, nil).Lex()
 
 			tt.errFunc(t, err)
@@ -31,12 +34,32 @@ func testLexHelper(t *testing.T, testCases []testCase) {
 }
 
 func Test_Lex(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "empty input",
 			input: "",
 			expected: []token.Token{
 				{Type: token.TOK_EOF, Loc: token.Location{}},
+			},
+			errFunc: assert.NoError,
+		},
+		{
+			name:  "inline comment",
+			input: "// i am a comment",
+			expected: []token.Token{
+				{Type: token.TOK_EOF, Loc: token.Location{StartColumn: 17, EndColumn: 17}},
+			},
+			errFunc: assert.NoError,
+		},
+
+		{
+			name: "multilie comment",
+			input: `/* i am a comment
+on multiple lines */`,
+			expected: []token.Token{
+				{Type: token.TOK_EOF, Loc: token.Location{StartLine: 1, StartColumn: 20, EndLine: 1, EndColumn: 20}},
 			},
 			errFunc: assert.NoError,
 		},
@@ -146,6 +169,8 @@ func Test_LexChars(t *testing.T) {
 }
 
 func Test_LexString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "simple string",
@@ -225,6 +250,8 @@ func Test_LexString(t *testing.T) {
 }
 
 func Test_LexInt(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "decimal",
@@ -277,6 +304,8 @@ func Test_LexInt(t *testing.T) {
 }
 
 func Test_LexFloat(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "decimal",
@@ -320,6 +349,8 @@ func Test_LexFloat(t *testing.T) {
 }
 
 func Test_LexIdentifiers(t *testing.T) {
+	t.Parallel()
+
 	testCases := []testCase{
 		{
 			name:  "simple identifier",
@@ -390,6 +421,8 @@ func Test_LexIdentifiers(t *testing.T) {
 }
 
 func Test_LexKeywords(t *testing.T) {
+	t.Parallel()
+
 	var testCases []testCase
 	for keyword := range token.KeywordMap {
 		length := len(keyword)

@@ -1,11 +1,13 @@
-package io
+package path
 
 import (
+	"geth-cody/io"
+
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 )
 
+// Project is a project file.
 type Project struct {
 	path     Path
 	Name     string
@@ -13,7 +15,8 @@ type Project struct {
 	Packages map[string]string
 }
 
-func NewProject(fp Path) (*Project, Error) {
+// NewProject returns a new project whose contents are read from a given path.
+func NewProject(fp Path) (*Project, io.Error) {
 	str, err := fp.Read()
 	if err != nil {
 		return nil, err
@@ -21,23 +24,22 @@ func NewProject(fp Path) (*Project, Error) {
 
 	var p Project
 	if err := yaml.Unmarshal([]byte(str), &p); err != nil {
-		return nil, &ZapError{
-			Message: "couldn't unmarshal project file",
-			Fields: []zapcore.Field{
-				zap.Any("path", fp),
-				zap.Error(err),
-			},
-		}
+		return nil, io.NewError("couldn't unmarshal project file",
+			zap.Any("path", fp),
+			zap.Error(err),
+		)
 	}
 
 	p.path = fp
 	return &p, nil
 }
 
+// Path returns the path to the project file.
 func (p *Project) Path() Path {
 	return p.path
 }
 
+// String returns the string representation of the project file path.
 func (p *Project) String() string {
 	return p.path.String()
 }

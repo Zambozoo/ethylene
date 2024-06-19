@@ -24,10 +24,9 @@ import (
 //	`class` IDENTIFIER `~`? (`[` GENERIC_LIST `]`)? `[` PARENT_LIST `]` `{` FIELD* `}`
 type Class struct {
 	BaseDecl
+	GenericDecl
 
 	IsTailed bool
-	TypesMap map[string]ast.DeclType // Generic type parameters
-	Types    []ast.DeclType
 
 	SuperClass ast.DeclType   // Optional
 	Implements []ast.DeclType // Interfaces this class implements
@@ -37,34 +36,14 @@ func newClass() *Class {
 	decl := newDecl()
 	decl.IsClass = true
 	return &Class{
-		BaseDecl: decl,
-		TypesMap: map[string]ast.DeclType{},
+		BaseDecl:    decl,
+		GenericDecl: newGenericDecl(),
 	}
-}
-
-func (c *Class) PutGeneric(name string, generic ast.DeclType) io.Error {
-	if _, exists := c.TypesMap[name]; exists {
-		return io.NewError("Duplicate generic type parameter",
-			zap.String("name", name),
-			zap.Any("location", generic.Location()),
-		)
-	}
-	c.TypesMap[name] = generic
-	c.Types = append(c.Types, generic)
-	return nil
 }
 
 func (c *Class) SetTailed() io.Error {
 	c.IsTailed = true
 	return nil
-}
-
-func (c *Class) GenericsMap() map[string]ast.DeclType {
-	return c.TypesMap
-}
-
-func (c *Class) Generics() []ast.DeclType {
-	return c.Types
 }
 
 func (c *Class) String() string {

@@ -2,11 +2,11 @@ package token
 
 import (
 	"fmt"
-	"geth-cody/io"
+	"geth-cody/io/path"
 )
 
 type Location struct {
-	Path        io.Path
+	Path        path.Path
 	StartLine   int
 	EndLine     int
 	StartColumn int

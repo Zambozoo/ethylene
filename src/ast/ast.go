@@ -5,14 +5,15 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
 )
 
 // SyntaxParser defines an interface for parsing syntax elements of a language.
 type SyntaxParser interface {
 	// AddPath ensures a file path dependency:path will be lexed.
-	AddPath(dependency, path string) (io.Path, io.Error)
+	AddPath(dependency, path string) (path.Path, io.Error)
 
-	Path() io.Path
+	Path() path.Path
 	File() File
 
 	// Peek returns the next token without consuming it.
@@ -63,7 +64,7 @@ type Node interface {
 
 // Import represents a file import.
 type Import interface {
-	Path() io.Path
+	Path() path.Path
 }
 
 // File represents a file node in the AST.
@@ -99,6 +100,8 @@ type Declaration interface {
 
 	GenericsMap() map[string]DeclType
 	Generics() []DeclType
+	GenericsCount() int
+
 	SetName(tok token.Token)
 	PutGeneric(name string, generic DeclType) io.Error
 	SetTailed() io.Error

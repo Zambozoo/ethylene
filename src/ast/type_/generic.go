@@ -6,6 +6,8 @@ import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 	"geth-cody/strs"
+
+	"go.uber.org/zap"
 )
 
 // GenericType represents a type with generic type parameters
@@ -42,8 +44,16 @@ func (g *Generic) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 		return false, nil
 	}
 
+	cChildDeclGenerics := cChildDecl.Generics()
+	if len(g.GenericTypes) != len(cChildDeclGenerics) {
+		return false, io.NewError("generic type and declaration have differing generic type counts",
+			zap.Int("expected", len(cChildDeclGenerics)),
+			zap.Int("actual", len(g.GenericTypes)),
+		)
+	}
+
 	mapping := map[string]ast.Type{}
-	for i, t := range cChildDecl.Generics() {
+	for i, t := range cChildDeclGenerics {
 		gt := g.GenericTypes[i]
 		if c, ok := gt.(*Composite); !ok || !c.IsGeneric() {
 			mapping[t.Name().Value] = gt
@@ -88,7 +98,12 @@ func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
 }
 
 func (g *Generic) Declaration() (ast.Declaration, io.Error) {
-	return g.Type.Declaration()
+	d, err := g.Type.Declaration()
+	if err != nil {
+		return nil, err
+	}
+
+	return newGenericDecl(g, d), nil
 }
 
 func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {

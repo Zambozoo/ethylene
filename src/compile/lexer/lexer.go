@@ -3,6 +3,7 @@ package lexer
 import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
 	"strconv"
 	"unicode"
 	"unicode/utf8"
@@ -11,7 +12,7 @@ import (
 )
 
 type Lexer struct {
-	path          io.Path
+	path          path.Path
 	input         string
 	curRuneIndex  int  // current Location in input (points to current char)
 	nextRuneIndex int  // current reading Location in input (after current char)
@@ -21,7 +22,7 @@ type Lexer struct {
 	line int
 }
 
-func NewLexer(input string, path io.Path) *Lexer {
+func NewLexer(input string, path path.Path) *Lexer {
 	return &Lexer{
 		input: input,
 		path:  path,
@@ -223,8 +224,34 @@ func (l *Lexer) readCharLiteral() token.Token {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar()
+	for {
+		if l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+			l.readChar()
+		} else if l.ch == '/' {
+			if l.peekChar() == '/' {
+				l.readChar()
+				l.readChar()
+				for l.ch != '\n' && l.ch != 0 {
+					l.readChar()
+				}
+			} else if l.peekChar() == '*' {
+				l.readChar()
+				l.readChar()
+
+				for l.ch != 0 && !(l.ch == '*' && l.peekChar() == '/') {
+					l.readChar()
+				}
+
+				if l.ch == '*' && l.peekChar() == '/' {
+					l.readChar()
+					l.readChar()
+				}
+			} else {
+				break
+			}
+		} else {
+			break
+		}
 	}
 }
 
