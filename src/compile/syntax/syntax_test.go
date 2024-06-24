@@ -548,7 +548,7 @@ func TestParseField(t *testing.T) {
 						EndColumn:   12,
 					},
 				},
-				Type: &type_.Function{
+				Type_: &type_.Function{
 					ReturnType_: &type_.Void{
 						Primitive: type_.Primitive[type_.Void]{
 							Type: token.TOK_TYPEVOID,
@@ -588,7 +588,7 @@ func TestParseField(t *testing.T) {
 						EndColumn:   12,
 					},
 				},
-				Type: &type_.Function{
+				Type_: &type_.Function{
 					ReturnType_: &type_.Void{
 						Primitive: type_.Primitive[type_.Void]{
 							Type: token.TOK_TYPEVOID,

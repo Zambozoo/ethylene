@@ -2,6 +2,10 @@ package token
 
 type Type string
 
+func (t Type) String() string {
+	return string(t)
+}
+
 var SymbolMap = make(map[Type]struct{})
 
 func newSymbol(s string) Type {

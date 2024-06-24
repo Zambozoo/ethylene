@@ -13,7 +13,7 @@ type GenericDecl struct {
 	TypesCount int
 }
 
-func newGenericDecl() GenericDecl {
+func NewGenericDecl() GenericDecl {
 	return GenericDecl{
 		TypesMap: map[string]ast.DeclType{},
 	}

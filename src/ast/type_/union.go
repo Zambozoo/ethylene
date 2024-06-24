@@ -19,6 +19,16 @@ func (u Union) String() string {
 	return fmt.Sprintf("Union{Types:%s}", strs.Strings(u))
 }
 
+func (u Union) Key() string {
+	var s string
+	var spacer string
+	for _, t := range u {
+		s += spacer + t.Key()
+		spacer = ","
+	}
+	return fmt.Sprintf("(%s)", s)
+}
+
 func (u Union) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	return u.Equals(parent)
 }

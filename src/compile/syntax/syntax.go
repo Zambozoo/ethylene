@@ -9,6 +9,7 @@ import (
 	"geth-cody/ast/file"
 	"geth-cody/ast/stmt"
 	"geth-cody/ast/type_"
+	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 	"geth-cody/io/path"
@@ -167,7 +168,7 @@ func (p *Parser) ParseDeclType(d ast.Declaration) (ast.DeclType, io.Error) {
 	return type_.SyntaxDecl(p, d)
 }
 
-func (p *Parser) ParseParentTypes() ([]ast.DeclType, io.Error) {
+func (p *Parser) ParseParentTypes() (data.Set[ast.DeclType], io.Error) {
 	return type_.SyntaxParents(p)
 }
 

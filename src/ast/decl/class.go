@@ -28,8 +28,8 @@ type Class struct {
 
 	IsTailed bool
 
-	SuperClass ast.DeclType   // Optional
-	Implements []ast.DeclType // Interfaces this class implements
+	SuperClass ast.DeclType           // Optional
+	Implements data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
 func newClass() *Class {
@@ -37,7 +37,7 @@ func newClass() *Class {
 	decl.IsClass = true
 	return &Class{
 		BaseDecl:    decl,
-		GenericDecl: newGenericDecl(),
+		GenericDecl: NewGenericDecl(),
 	}
 }
 
@@ -50,7 +50,7 @@ func (c *Class) String() string {
 	return fmt.Sprintf("Class{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		c.Name().Value,
 		c.TypesMap,
-		parentsString(c.SuperClass, c.Implements),
+		maps.Keys(c.Implements),
 		strings.Join(maps.Keys(c.Methods_), ","),
 		strings.Join(maps.Keys(c.Members_), ","),
 		strings.Join(maps.Keys(c.StaticMembers_), ","),
@@ -93,22 +93,23 @@ func (c *Class) Syntax(p ast.SyntaxParser) io.Error {
 			return io.NewError("virtual fields are not allowed in classes", zap.Any("field", f.Name()))
 		}
 
-		c.AddField(f)
+		if err := c.AddField(f); err != nil {
+			return err
+		}
 	}
 	c.BaseDecl.EndToken = p.Prev()
 
 	return nil
 }
 
-func (c *Class) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) io.Error {
+func (c *Class) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
 	if _, exists := visitedDecls.Get(c); exists {
-		return nil
+		return c.Implements, nil
 	}
-	defer visitedDecls.Set(c)
 
 	l := c.Location()
 	if _, isCyclical := cycleMap[l.String()]; isCyclical {
-		return io.NewError("cyclical inheritance",
+		return nil, io.NewError("cyclical inheritance",
 			zap.Any("class", c.Name()),
 			zap.Any("location", l),
 		)
@@ -119,7 +120,7 @@ func (c *Class) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[as
 	for _, parent := range c.Implements {
 		parentDecl, err := parent.Declaration()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		_, isAbstract := parentDecl.(*Abstract)
 		_, isClass := parentDecl.(*Class)
@@ -127,7 +128,7 @@ func (c *Class) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[as
 		_, isEnum := parentDecl.(*Enum)
 		if isAbstract || isClass {
 			if c.SuperClass != nil {
-				return io.NewError("class cannot implement multiple concrete parents",
+				return nil, io.NewError("class cannot implement multiple concrete parents",
 					zap.Any("class", c.Name()),
 					zap.Any("location", c.Location()),
 					zap.Any("parent", parentDecl.Name()),
@@ -135,33 +136,52 @@ func (c *Class) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[as
 			}
 			c.SuperClass = parent
 		} else if isStruct || isEnum {
-			return io.NewError("class cannot implement struct or enum parents",
+			return nil, io.NewError("class cannot implement struct or enum parents",
 				zap.Any("class", c.Name()),
 				zap.Any("location", c.Location()),
 				zap.Any("parent", parentDecl.Name()),
 			)
 		}
 
-		if err := parentDecl.LinkParents(p, visitedDecls, cycleMap); err != nil {
-			return err
+		parents, err := parentDecl.LinkParents(p, visitedDecls, cycleMap)
+		if err != nil {
+			return nil, err
+		}
+		for _, parent := range parents {
+			c.Implements.Set(parent)
 		}
 	}
+	visitedDecls.Set(c)
 
-	return c.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+	return c.Implements, c.BaseDecl.LinkParents(p, visitedDecls)
 }
 
-func (c *Class) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+func (c *Class) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	if _, exists := visitedDecls.Get(c); exists {
+		return nil
+	}
+
 	for _, parent := range c.Implements {
 		parentDecl, err := parent.Declaration()
 		if err != nil {
 			return err
 		}
-		if err := c.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
+
+		if err := parentDecl.LinkFields(p, visitedDecls); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	if c.SuperClass != nil {
+		for name, m := range c.Members() {
+			if _, ok := c.Members_[name]; !ok && !m.HasModifier(ast.MOD_PRIVATE) {
+				c.Members_[name] = m
+			}
+		}
+	}
+	visitedDecls.Set(c)
+
+	return c.BaseDecl.LinkFields(p, visitedDecls)
 }
 
 func (c *Class) Semantic(p ast.SemanticParser) io.Error {

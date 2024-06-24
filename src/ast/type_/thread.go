@@ -7,12 +7,18 @@ import (
 	"geth-cody/io"
 )
 
+// TODO: REFERENCE ACTUAL TYPE IN STD LIB
+
 type Thread struct {
 	Type ast.Type
 }
 
 func (t *Thread) String() string {
 	return fmt.Sprintf("Thread{Type:%s}", t.Type.String())
+}
+
+func (t *Thread) Key() string {
+	return fmt.Sprintf("Thread[%s]", t.Type.Key())
 }
 
 func (t *Thread) Location() token.Location {

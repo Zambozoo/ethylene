@@ -36,7 +36,7 @@ type SyntaxParser interface {
 	// ParseDeclType parses and returns a DeclType.
 	ParseDeclType(d Declaration) (DeclType, io.Error)
 	// ParseParentTypes parses and returns parent DeclTypes.
-	ParseParentTypes() ([]DeclType, io.Error)
+	ParseParentTypes() (data.Set[DeclType], io.Error)
 	// ParseDecl parses and returns a Declaration.
 	ParseDecl() (Declaration, io.Error)
 	// ParseField parses and returns a Field.
@@ -79,8 +79,8 @@ type File interface {
 
 	// LinkParents links parent nodes within the AST, facilitating inheritance.
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
-	// LinkParents links parent nodes within the AST, facilitating inheritance.
-	LinkMethods(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
+	// LinkParents links parent and child field nodes within the AST, facilitating inheritance.
+	LinkFields(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
 	// Semantic performs semantic analysis on the file node.
 	Semantic(p SemanticParser) io.Error
 }
@@ -92,9 +92,10 @@ type Declaration interface {
 	// Syntax performs syntax analysis on the declaration.
 	Syntax(p SyntaxParser) io.Error
 	// LinkParents links parent nodes within the AST for this declaration.
-	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration], cycleMap map[string]struct{}) io.Error
-	// LinkParents links parent methods within the AST for this declaration.
-	LinkMethods(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
+	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration], cycleMap map[string]struct{}) (data.Set[DeclType], io.Error)
+	// LinkFields links parent and child method nodes within the AST for this declaration.
+	LinkFields(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
+
 	// Semantic performs semantic analysis on the declaration.
 	Semantic(p SemanticParser) io.Error
 
@@ -167,6 +168,8 @@ type Type interface {
 	// Equals returns true if the type is the same as other.
 	Equals(other Type) (bool, io.Error)
 
+	// Key returns a unique string representation of the type.
+	Key() string
 	Concretize(mapping map[string]Type) Type
 }
 
@@ -200,6 +203,8 @@ type Method interface {
 	Field
 	// Type returns the type of the method.
 	Type() Type
+	// ReturnType returns the return type of the method.
+	ReturnType() Type
 }
 
 // Member represents a member variable within a type.
@@ -216,6 +221,8 @@ type DeclField interface {
 	Field
 	// LinkParents links this declaration with its parent nodes within the AST.
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
+	// LinkFields links this declaration's methods with its parent nodes' methods within the AST.
+	LinkFields(p SemanticParser, visitedDecls *data.AsyncSet[Declaration]) io.Error
 
 	// Declaration returns the field's declaration.
 	Declaration() Declaration

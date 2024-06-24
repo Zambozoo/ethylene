@@ -23,6 +23,17 @@ func (f *Function) String() string {
 	return fmt.Sprintf("Function{ReturnType:%s, ParameterTypes:%s}", f.ReturnType_, strs.Strings(f.ParameterTypes_))
 }
 
+func (f *Function) Key() string {
+	var s string
+	var spacer string
+	for _, t := range f.ParameterTypes_ {
+		s += spacer + t.Key()
+		spacer = ","
+	}
+
+	return fmt.Sprintf("%s(%s)", f.ReturnType_.Key(), s)
+}
+
 func (f *Function) ReturnType() ast.Type {
 	return f.ReturnType_
 }
@@ -55,7 +66,7 @@ func (f *Function) Extends(parent ast.Type) (bool, io.Error) {
 		}
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func (f *Function) Equals(other ast.Type) (bool, io.Error) {

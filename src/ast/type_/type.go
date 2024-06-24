@@ -31,7 +31,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		case token.TOK_INTEGER:
 			p.Next()
 			if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type array size is larger than max signed integer limit", zap.Any("token", tok))
+				return nil, io.NewError("type array size is larger than max signed integer limit", zap.String("token", tok.String()))
 			}
 			endTok, err := p.Consume(token.TOK_RIGHTBRACKET)
 			if err != nil {
@@ -80,7 +80,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		if p.Match(token.TOK_INTEGER) {
 			tok := p.Prev()
 			if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type tail size is larger than max signed integer limit", zap.Any("token", tok))
+				return nil, io.NewError("type tail size is larger than max signed integer limit", zap.String("token", tok.String()))
 			}
 			size = int64(tok.Integer)
 		}
@@ -129,7 +129,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 			if err != nil {
 				return nil, err
 			} else if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type array size is larger than max signed integer limit", zap.Any("token", tok))
+				return nil, io.NewError("type array size is larger than max signed integer limit", zap.String("token", tok.String()))
 			}
 			endTok, err := p.Consume(token.TOK_RIGHTBRACKET)
 			if err != nil {

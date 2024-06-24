@@ -7,12 +7,18 @@ import (
 	"geth-cody/io"
 )
 
+// TODO: REFERENCE ACTUAL TYPE IN STD LIB
+
 type Iter struct {
 	Type ast.Type
 }
 
 func (i *Iter) String() string {
 	return fmt.Sprintf("Iter{Type:%s}", i.Type.String())
+}
+
+func (i *Iter) Key() string {
+	return fmt.Sprintf("Iter[%s]", i.Type.Key())
 }
 
 func (i *Iter) Location() token.Location {

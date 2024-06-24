@@ -11,10 +11,16 @@ type Parser struct {
 	scope     *ast.Scope
 	bytecodes *bytecode.Bytecodes
 	File_     ast.File
+	symbolMap syntax.SymbolMap
 }
 
 func NewParser(file ast.File, symbolMap syntax.SymbolMap) *Parser {
-	panic("")
+	return &Parser{
+		scope:     ast.NewScope(),
+		bytecodes: &bytecode.Bytecodes{},
+		File_:     file,
+		symbolMap: symbolMap,
+	}
 }
 
 func (p *Parser) File() ast.File {

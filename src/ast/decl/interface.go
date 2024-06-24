@@ -6,7 +6,6 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
 	"strings"
 
 	"go.uber.org/zap"
@@ -17,13 +16,13 @@ type Interface struct {
 	BaseDecl
 	GenericDecl
 
-	Implements []ast.DeclType // Interfaces this class implements
+	Implements data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
 func newInterface() *Interface {
 	return &Interface{
 		BaseDecl:    newDecl(),
-		GenericDecl: newGenericDecl(),
+		GenericDecl: NewGenericDecl(),
 	}
 }
 
@@ -35,7 +34,7 @@ func (a *Interface) String() string {
 	return fmt.Sprintf("Interface{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		a.Name().Value,
 		a.TypesMap,
-		strs.Strings(a.Implements),
+		maps.Keys(a.Implements),
 		strings.Join(maps.Keys(a.Methods_), ","),
 		strings.Join(maps.Keys(a.Members_), ","),
 		strings.Join(maps.Keys(a.StaticMembers_), ","),
@@ -80,22 +79,23 @@ func (i *Interface) Syntax(p ast.SyntaxParser) io.Error {
 				zap.Any("location", f.Location()),
 			)
 		}
-		i.AddField(f)
+		if err := i.AddField(f); err != nil {
+			return err
+		}
 	}
 	i.BaseDecl.EndToken = p.Prev()
 
 	return nil
 }
 
-func (i *Interface) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) io.Error {
+func (i *Interface) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
 	if _, exists := visitedDecls.Get(i); exists {
-		return nil
+		return i.Implements, nil
 	}
-	defer visitedDecls.Set(i)
 
 	l := i.Location()
 	if _, isCyclical := cycleMap[l.String()]; isCyclical {
-		return io.NewError("cyclical inheritance",
+		return nil, io.NewError("cyclical inheritance",
 			zap.Any("interface", i.Name()),
 			zap.Any("location", l),
 		)
@@ -106,36 +106,52 @@ func (i *Interface) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSe
 	for _, parent := range i.Implements {
 		parentDecl, err := parent.Declaration()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if _, isInterface := parentDecl.(*Interface); !isInterface {
-			return io.NewError("interface can only implement interface parents",
+			return nil, io.NewError("interface can only implement interface parents",
 				zap.Any("interface", i.Name()),
 				zap.Any("location", i.Location()),
 				zap.Any("parent", parentDecl.Name()),
 			)
 		}
 
-		if err := parentDecl.LinkParents(p, visitedDecls, cycleMap); err != nil {
-			return err
+		parents, err := parentDecl.LinkParents(p, visitedDecls, cycleMap)
+		if err != nil {
+			return nil, err
+		}
+		for _, parent := range parents {
+			i.Implements.Set(parent)
+		}
+
+		if err := i.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
+			return nil, err
 		}
 	}
+	visitedDecls.Set(i)
 
-	return i.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+	return i.Implements, i.BaseDecl.LinkParents(p, visitedDecls)
 }
-func (i *Interface) LinkMethods(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+
+func (i *Interface) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	if _, exists := visitedDecls.Get(i); exists {
+		return nil
+	}
+
 	for _, parent := range i.Implements {
 		parentDecl, err := parent.Declaration()
 		if err != nil {
 			return err
 		}
-		if err := i.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
+
+		if err := parentDecl.LinkFields(p, visitedDecls); err != nil {
 			return err
 		}
 	}
+	visitedDecls.Set(i)
 
-	return nil
+	return i.BaseDecl.LinkFields(p, visitedDecls)
 }
 
 func (i *Interface) Semantic(p ast.SemanticParser) io.Error {

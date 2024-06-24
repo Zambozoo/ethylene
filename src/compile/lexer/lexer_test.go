@@ -49,7 +49,7 @@ func Test_Lex(t *testing.T) {
 			name:  "inline comment",
 			input: "// i am a comment",
 			expected: []token.Token{
-				{Type: token.TOK_EOF, Loc: token.Location{StartColumn: 17, EndColumn: 17}},
+				{Type: token.TOK_EOF, Loc: token.Location{StartColumn: 18, EndColumn: 18}},
 			},
 			errFunc: assert.NoError,
 		},

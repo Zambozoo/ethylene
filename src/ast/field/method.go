@@ -18,16 +18,23 @@ type Method struct {
 
 	Name_      token.Token
 	Parameters []*token.Token
-	Type       ast.FunType
+	Type_      ast.FunType
 	Stmt       ast.Statement
 }
 
+func (m *Method) ReturnType() ast.Type {
+	return m.Type_.ReturnType()
+}
+
+func (m *Method) Type() ast.Type {
+	return m.Type_
+}
 func (m *Method) Name() *token.Token {
 	return &m.Name_
 }
 func (m *Method) Location() token.Location {
 	var locatable token.Locatable = m.Stmt
-	if m.Stmt != nil {
+	if m.Stmt == nil {
 		locatable = &m.EndToken
 	}
 
@@ -38,7 +45,7 @@ func (m *Method) String() string {
 	return fmt.Sprintf("Member{Name:%s, Modifiers:%s, Type:%s, Parameters:%s, Stmt:%s}",
 		m.Name(),
 		m.Modifiers.String(),
-		m.Type.String(),
+		m.Type_.String(),
 		strs.Strings(m.Parameters),
 		m.Stmt.String(),
 	)
@@ -56,7 +63,7 @@ func (m *Method) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	if m.Type, ok = t.(ast.FunType); !ok {
+	if m.Type_, ok = t.(ast.FunType); !ok {
 		return io.NewError("expected a function type for method", zap.Any("location", m.StartToken.Location()))
 	}
 
@@ -114,7 +121,7 @@ func (m *Method) Semantic(p ast.SemanticParser) io.Error {
 	if m.Stmt != nil {
 		p.Scope().Wrap()
 		defer p.Scope().Unwrap()
-		for i, t := range m.Type.ParameterTypes() {
+		for i, t := range m.Type_.ParameterTypes() {
 			name := m.Parameters[i]
 			p.Scope().AddVariable(&methodVariable{name: name, type_: t})
 		}
@@ -131,7 +138,7 @@ func (m *Method) Semantic(p ast.SemanticParser) io.Error {
 			).Log(io.Warnf)
 		}
 
-		if _, err := type_.MustExtend(t, m.Type.ReturnType()); err != nil {
+		if _, err := type_.MustExtend(t, m.Type_.ReturnType()); err != nil {
 			return err
 		}
 	}

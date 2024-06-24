@@ -33,6 +33,16 @@ func (c *Composite) String() string {
 	return fmt.Sprintf("Composite{Tokens:%s}", tokensString)
 }
 
+func (c *Composite) Key() string {
+	var tokensString, spacer string
+	for _, t := range c.Tokens {
+		tokensString += spacer + t.Value
+		spacer = "."
+	}
+
+	return fmt.Sprintf("%s:%s", c.Tokens[0].Loc.Path_.String(), tokensString)
+}
+
 func (c *Composite) Syntax(p ast.SyntaxParser) (ast.DeclType, io.Error) {
 	tok, err := p.Consume(token.TOK_IDENTIFIER)
 	if err != nil {

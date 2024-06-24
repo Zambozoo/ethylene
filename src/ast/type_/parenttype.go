@@ -2,8 +2,11 @@ package type_
 
 import (
 	"geth-cody/ast"
+	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 func genericParent(p ast.SyntaxParser, dt *Composite) (*Generic, io.Error) {
@@ -57,24 +60,27 @@ func syntaxParent(p ast.SyntaxParser) (ast.DeclType, io.Error) {
 	return dt, nil
 }
 
-func SyntaxParents(p ast.SyntaxParser) ([]ast.DeclType, io.Error) {
+func SyntaxParents(p ast.SyntaxParser) (data.Set[ast.DeclType], io.Error) {
+	parents := data.Set[ast.DeclType]{}
 	if !p.Match(token.TOK_LEFTBRACKET) {
 		t, err := syntaxParent(p)
 		if err != nil {
 			return nil, err
 		}
+		parents.Set(t)
 
-		return []ast.DeclType{t}, nil
+		return parents, nil
 	}
 
-	var types []ast.DeclType
 	for {
 		t, err := syntaxParent(p)
 		if err != nil {
 			return nil, err
 		}
 
-		types = append(types, t)
+		if !parents.Set(t) {
+			return nil, io.NewError("duplicate parent type", zap.Any("type", t.String()))
+		}
 
 		if p.Match(token.TOK_RIGHTBRACKET) {
 			break
@@ -83,5 +89,5 @@ func SyntaxParents(p ast.SyntaxParser) ([]ast.DeclType, io.Error) {
 		}
 	}
 
-	return types, nil
+	return parents, nil
 }

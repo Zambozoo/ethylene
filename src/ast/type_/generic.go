@@ -34,6 +34,17 @@ func (g *Generic) String() string {
 	return fmt.Sprintf("Generic{Type:%s,GenericParameters:%s}", g.Type, strs.Strings(g.GenericTypes))
 }
 
+func (g *Generic) Key() string {
+	var s string
+	var spacer string
+	for _, t := range g.GenericTypes {
+		s += spacer + t.Key()
+		spacer = ","
+	}
+
+	return fmt.Sprintf("%s[%s]", g.Type.Key(), s)
+}
+
 func (g *Generic) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	cDecl, err := g.Declaration()
 	if err != nil {

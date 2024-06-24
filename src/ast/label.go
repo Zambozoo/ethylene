@@ -40,5 +40,5 @@ func (s *Scope) GetLabel(tok token.Token) (*Label, io.Error) {
 		}
 	}
 
-	return nil, io.NewError("label not found", zap.Any("token", tok))
+	return nil, io.NewError("label not found", zap.String("token", tok.String()))
 }

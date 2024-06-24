@@ -29,6 +29,10 @@ func (t *Tailed) String() string {
 	return fmt.Sprintf("Tailed{Type:%s,Size:%d}", t.Type.String(), t.Size)
 }
 
+func (t *Tailed) Key() string {
+	return fmt.Sprintf("%s~%d", t.Type.String(), t.Size)
+}
+
 func (t *Tailed) ExtendsAsPointer(other ast.Type) (bool, io.Error) {
 	panic("not implemented")
 }
