@@ -82,21 +82,33 @@ func (s *Struct) Syntax(p ast.SyntaxParser) io.Error {
 				zap.Any("location", f.Location()),
 			)
 		}
-		s.AddField(f)
+		if err := s.AddField(f); err != nil {
+			return err
+		}
 	}
 	s.BaseDecl.EndToken = p.Prev()
 
 	return nil
 }
 
-func (s *Struct) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) io.Error {
+func (s *Struct) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], _ map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
+	if _, exists := visitedDecls.Get(s); exists {
+		return nil, nil
+	}
+	visitedDecls.Set(s)
+
+	return nil, s.BaseDecl.LinkParents(p, visitedDecls)
+}
+
+func (s *Struct) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	if _, exists := visitedDecls.Get(s); exists {
 		return nil
 	}
 	defer visitedDecls.Set(s)
 
-	return s.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+	return s.BaseDecl.LinkFields(p, visitedDecls)
 }
+
 func (s *Struct) Semantic(p ast.SemanticParser) io.Error {
 	// TODO: Handle generic constraints
 	return s.BaseDecl.Semantic(p)

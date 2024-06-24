@@ -6,7 +6,7 @@ import (
 )
 
 type Location struct {
-	Path        io.Path
+	Path_       io.Path
 	StartLine   int
 	EndLine     int
 	StartColumn int
@@ -18,7 +18,13 @@ func (l *Location) Location() Location {
 }
 
 func (l *Location) String() string {
-	return fmt.Sprintf("Location{Path:%s, StartLine:%d, StartColumn:%d, EndLine:%d, EndColumn:%d}", l.Path, l.StartLine, l.StartColumn, l.EndLine, l.EndColumn)
+	return fmt.Sprintf("%s:%d:%d-%d:%d",
+		l.Path_.String(),
+		l.StartLine,
+		l.StartColumn,
+		l.EndLine,
+		l.EndColumn,
+	)
 }
 
 type Locatable interface {
@@ -33,5 +39,6 @@ func LocationBetween(start, end Locatable) Location {
 		StartColumn: startLocation.StartColumn,
 		EndLine:     endLocation.EndLine,
 		EndColumn:   endLocation.EndColumn,
+		Path_:       startLocation.Path_,
 	}
 }

@@ -21,6 +21,10 @@ func (p *Pointer) String() string {
 	return fmt.Sprintf("Pointer{Type:%s}", p.Type.String())
 }
 
+func (p *Pointer) Key() string {
+	return fmt.Sprintf("%s*", p.Type.Key())
+}
+
 func (p *Pointer) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	return p.Equals(parent)
 }

@@ -3,6 +3,7 @@ package decl
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 	"geth-cody/strs"
@@ -22,19 +23,22 @@ func (g GenericSupertype) String() string {
 	return fmt.Sprintf("GenericSubtype{%s}", strs.Strings(g))
 }
 
-func syntaxDeclTypes(p ast.SyntaxParser) ([]ast.DeclType, io.Error) {
-	var declTypes []ast.DeclType
+func syntaxDeclTypes(p ast.SyntaxParser) (data.Set[ast.DeclType], io.Error) {
+	declTypes := data.Set[ast.DeclType]{}
 	syntaxTypes, err := syntaxTypes(p)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, t := range syntaxTypes {
-		if dt, isDeclType := t.(ast.DeclType); isDeclType {
-			declTypes = append(declTypes, dt)
-		} else {
-			return nil, io.NewError("expected DeclType", zap.Any("type", t))
+		dt, isDeclType := t.(ast.DeclType)
+		if !isDeclType {
+			return nil, io.NewError("expected parent DeclType", zap.Any("type", t))
+		} else if _, exists := declTypes.Get(dt); exists {
+			return nil, io.NewError("duplicate parent type", zap.Any("type", t))
 		}
+
+		declTypes.Set(dt)
 	}
 
 	return declTypes, nil

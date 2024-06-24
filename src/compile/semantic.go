@@ -22,15 +22,24 @@ func filesChan(m map[string]ast.File) *data.Chan[ast.File] {
 	return c
 }
 
-func Semantic(symbolMap syntax.SymbolMap) (*bytecode.Bytecodes, io.Error) {
+func semanticHelper(symbolMap syntax.SymbolMap, f func(ast.File, ast.SemanticParser, *data.AsyncSet[ast.Declaration]) io.Error) io.Error {
 	parentsChan := filesChan(symbolMap.Files)
 	visitedDecls := data.NewAsyncSet[ast.Declaration]()
-	parentsChan.AsyncForEach(io.Env.BufferSize, io.Env.ThreadCount,
+	return parentsChan.AsyncForEach(io.Env.BufferSize, io.Env.ThreadCount,
 		func(file ast.File) io.Error {
 			p := semantic.NewParser(file, symbolMap)
-			return file.LinkParents(p, visitedDecls)
+			return f(file, p, visitedDecls)
 		},
 	)
+}
+func Semantic(symbolMap syntax.SymbolMap) (*bytecode.Bytecodes, io.Error) {
+	if err := semanticHelper(symbolMap, ast.File.LinkParents); err != nil {
+		return nil, err
+	}
+
+	if err := semanticHelper(symbolMap, ast.File.LinkFields); err != nil {
+		return nil, err
+	}
 
 	var bytecodes *bytecode.Bytecodes
 	bytecodesChan, closeBytecodes := data.RunUntilClosed(io.Env.BufferSize,

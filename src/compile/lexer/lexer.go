@@ -80,7 +80,7 @@ func (l *Lexer) nextToken() token.Token {
 	}
 
 	tok.Loc = token.Location{
-		Path:        l.path,
+		Path_:       l.path,
 		StartLine:   startLine,
 		EndLine:     l.line,
 		StartColumn: startColumn,
@@ -223,8 +223,27 @@ func (l *Lexer) readCharLiteral() token.Token {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar()
+	for {
+		if l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+			l.readChar()
+		} else if l.ch == '/' {
+			if l.peekChar() == '/' {
+				for l.ch != '\n' && l.ch != 0 {
+					l.readChar()
+				}
+				l.readChar()
+			} else if l.peekChar() == '*' {
+				for !(l.ch == '*' && l.peekChar() == '/') && l.ch != 0 {
+					l.readChar()
+				}
+				l.readChar()
+				l.readChar()
+			} else {
+				return
+			}
+		} else {
+			return
+		}
 	}
 }
 
@@ -396,7 +415,7 @@ func (l *Lexer) Lex() ([]token.Token, io.Error) {
 		case token.TOK_EOF:
 			return tokens, err
 		case token.TOK_UNKOWN:
-			err = io.JoinError(err, io.NewError("malformed token", zap.Any("token", t)))
+			err = io.JoinError(err, io.NewError("malformed token", zap.String("token", t.String())))
 		}
 	}
 }

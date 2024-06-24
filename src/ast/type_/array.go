@@ -22,6 +22,10 @@ func (a *Array) String() string {
 	return fmt.Sprintf("Array{Type:%s,Size:%d}", a.Type.String(), a.Size)
 }
 
+func (a *Array) Key() string {
+	return fmt.Sprintf("%s[%d]", a.Type.Key(), a.Size)
+}
+
 func (a *Array) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	return a.Equals(parent)
 }

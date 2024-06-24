@@ -337,10 +337,7 @@ func syntaxPrimary(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	case token.TOK_LAMBDA:
 		return (&Lambda{}).Syntax(p)
 	case token.TOK_LEFTPAREN:
-		if _, err := p.Consume(token.TOK_LEFTPAREN); err != nil {
-			return nil, err
-		}
-
+		p.Next()
 		expr, err := p.ParseExpr()
 		if err != nil {
 			return nil, err
@@ -366,6 +363,6 @@ func syntaxPrimary(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	case token.TOK_SUPER:
 		return &Super{Token: p.Next()}, nil
 	default:
-		return nil, io.NewError("unexpected token", zap.Any("token", t))
+		return nil, io.NewError("unexpected token", zap.String("token", t.String()))
 	}
 }

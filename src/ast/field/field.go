@@ -42,7 +42,7 @@ func Syntax(p ast.SyntaxParser) (ast.Field, io.Error) {
 	case token.TOK_CLASS, token.TOK_ABSTRACT, token.TOK_INTERFACE, token.TOK_STRUCT, token.TOK_ENUM:
 		f = &Decl{Modifiers: modifiers, StartToken: startToken}
 	default:
-		return nil, io.NewError("expected field", zap.Any("token", t))
+		return nil, io.NewError("expected field", zap.String("token", t.String()))
 	}
 
 	if err := f.Syntax(p); err != nil {

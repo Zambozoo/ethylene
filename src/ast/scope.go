@@ -13,6 +13,13 @@ type Scope struct {
 	lambdaDepth int
 }
 
+func NewScope() *Scope {
+	return &Scope{
+		Variables: map[string]Variable{},
+		Labels:    map[string]Label{},
+	}
+}
+
 type Opt func(*Scope)
 
 func WithLambda() func(*Scope) {
@@ -21,9 +28,11 @@ func WithLambda() func(*Scope) {
 	}
 }
 func (s *Scope) Wrap(opts ...Opt) {
+	parent := *s
 	*s = Scope{
-		Parent:    s,
+		Parent:    &parent,
 		Variables: map[string]Variable{},
+		Labels:    map[string]Label{},
 	}
 
 	for _, opt := range opts {

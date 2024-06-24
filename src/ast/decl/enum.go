@@ -85,21 +85,33 @@ func (e *Enum) Syntax(p ast.SyntaxParser) io.Error {
 		} else if f.HasModifier(ast.MOD_VIRTUAL) {
 			return io.NewError("virtual fields are not allowed in enums", zap.Any("field", f.Name()))
 		}
-		e.AddField(f)
+		if err := e.AddField(f); err != nil {
+			return err
+		}
 	}
 	e.BaseDecl.EndToken = p.Prev()
 
 	return nil
 }
 
-func (e *Enum) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) io.Error {
+func (e *Enum) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], _ map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
+	if _, exists := visitedDecls.Get(e); exists {
+		return nil, nil
+	}
+	visitedDecls.Set(e)
+
+	return nil, e.BaseDecl.LinkParents(p, visitedDecls)
+}
+
+func (e *Enum) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	if _, exists := visitedDecls.Get(e); exists {
 		return nil
 	}
 	defer visitedDecls.Set(e)
 
-	return e.BaseDecl.LinkParents(p, visitedDecls, cycleMap)
+	return e.BaseDecl.LinkFields(p, visitedDecls)
 }
+
 func (e *Enum) Semantic(p ast.SemanticParser) io.Error {
 	return e.BaseDecl.Semantic(p)
 }

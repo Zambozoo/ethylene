@@ -28,5 +28,5 @@ func (t *Token) String() string {
 		value = fmt.Sprintf("%f", t.Float)
 	}
 
-	return fmt.Sprintf("Token{Type:%s, Value:%s, Location:%s}", t.Type, value, &t.Loc)
+	return fmt.Sprintf("Token{Type:%s, Value:%s, Location:%s}", t.Type.String(), value, &t.Loc)
 }

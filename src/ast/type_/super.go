@@ -22,6 +22,16 @@ func (s Super) String() string {
 	return fmt.Sprintf("Super{Types:%s}", strs.Strings(s))
 }
 
+func (s Super) Key() string {
+	var str string
+	var spacer string
+	for _, t := range s {
+		str += spacer + t.Key()
+		spacer = ", "
+	}
+	return fmt.Sprintf("<:[%s]", str)
+}
+
 func (s Super) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
 	return s.Equals(parent)
 }

@@ -31,5 +31,5 @@ func (s *Scope) GetVariable(tok token.Token) (variable Variable, isCaptured bool
 		}
 	}
 
-	return nil, false, io.NewError("variable not found", zap.Any("token", tok))
+	return nil, false, io.NewError("variable not found", zap.String("token", tok.String()))
 }

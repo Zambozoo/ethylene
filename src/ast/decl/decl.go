@@ -6,7 +6,6 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
 
 	"go.uber.org/zap"
 )
@@ -143,15 +142,6 @@ func (d *BaseDecl) Semantic(p ast.SemanticParser) io.Error {
 	return nil
 }
 
-func parentsString(superClass ast.DeclType, implements []ast.DeclType) string {
-	var parents []ast.DeclType
-	if superClass != nil {
-		parents = append(parents, superClass)
-	}
-
-	return strs.Strings(append(parents, implements...))
-}
-
 func Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	var declaration ast.Declaration
 	switch t := p.Peek(); t.Type {
@@ -166,7 +156,7 @@ func Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	case token.TOK_ENUM:
 		declaration = newEnum()
 	default:
-		return nil, io.NewError("expected declaration", zap.Any("token", t))
+		return nil, io.NewError("expected declaration", zap.String("token", t.String()))
 	}
 
 	p.WrapScope(declaration)
@@ -203,9 +193,19 @@ func (d *BaseDecl) addFields(scope *ast.Scope) io.Error {
 	return nil
 }
 
-func (d *BaseDecl) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) io.Error {
+func (d *BaseDecl) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	for _, decl := range d.Declarations_ {
 		if err := decl.LinkParents(p, visitedDecls); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (d *BaseDecl) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	for _, decl := range d.Declarations_ {
+		if err := decl.LinkFields(p, visitedDecls); err != nil {
 			return err
 		}
 	}

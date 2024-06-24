@@ -10,14 +10,12 @@ import (
 
 type Decl struct {
 	Modifiers
-	StartToken token.Token
-
-	name         token.Token
+	StartToken   token.Token
 	Declaration_ ast.Declaration
 }
 
 func (d *Decl) Name() *token.Token {
-	return &d.name
+	return d.Declaration_.Name()
 }
 
 func (d *Decl) Declaration() ast.Declaration {
@@ -46,5 +44,10 @@ func (d *Decl) Semantic(p ast.SemanticParser) io.Error {
 }
 
 func (d *Decl) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
-	return d.Declaration_.LinkParents(p, visitedDecls, map[string]struct{}{})
+	_, err := d.Declaration_.LinkParents(p, visitedDecls, map[string]struct{}{})
+	return err
+}
+
+func (d *Decl) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+	return d.Declaration_.LinkFields(p, visitedDecls)
 }

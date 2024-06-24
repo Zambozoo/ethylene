@@ -1,9 +1,9 @@
 godoc:
 	go install golang.org/x/tools/cmd/godoc@latest
-	$$GOPATH/bin/godoc -http=:6060 -goroot .
+	cd src; $$GOPATH/bin/godoc -http=:6060 -goroot .; cd ..
 
 run:
-	go run ./... $(ARGS)
+	cd scr; go run ./... $(ARGS); cd ..
 
 test:
-	go test ./... -count=1 $(ARGS)
+	cd src; go test ./... -count=1 $(ARGS); cd ..
