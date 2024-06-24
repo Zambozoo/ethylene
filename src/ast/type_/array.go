@@ -49,3 +49,11 @@ func (a *Array) Equals(other ast.Type) (bool, io.Error) {
 
 	return false, nil
 }
+
+func (a *Array) Concretize(mapping map[string]ast.Type) ast.Type {
+	return &Array{
+		Type:     a.Type.Concretize(mapping),
+		Size:     a.Size,
+		EndToken: a.EndToken,
+	}
+}

@@ -6,6 +6,8 @@ import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 	"geth-cody/strs"
+
+	"go.uber.org/zap"
 )
 
 // GenericType represents a type with generic type parameters
@@ -14,6 +16,10 @@ type Generic struct {
 	Type         ast.DeclType
 	GenericTypes []ast.Type
 	EndToken     token.Token
+}
+
+func (g *Generic) Name() token.Token {
+	return g.Type.Name()
 }
 
 func (g *Generic) Context() ast.TypeContext {
@@ -40,7 +46,44 @@ func (g *Generic) Key() string {
 }
 
 func (g *Generic) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	panic("not implemented")
+	cDecl, err := g.Declaration()
+	if err != nil {
+		return false, err
+	}
+	cChildDecl, ok := cDecl.(ast.ChildDeclaration)
+	if !ok {
+		return false, nil
+	}
+
+	cChildDeclGenerics := cChildDecl.Generics()
+	if len(g.GenericTypes) != len(cChildDeclGenerics) {
+		return false, io.NewError("generic type and declaration have differing generic type counts",
+			zap.Int("expected", len(cChildDeclGenerics)),
+			zap.Int("actual", len(g.GenericTypes)),
+		)
+	}
+
+	mapping := map[string]ast.Type{}
+	for i, t := range cChildDeclGenerics {
+		gt := g.GenericTypes[i]
+		if c, ok := gt.(*Composite); !ok || !c.IsGeneric() {
+			mapping[t.Name().Value] = gt
+		}
+	}
+
+	pDecl, ok := parent.(ast.DeclType)
+	if ok {
+		return false, nil
+	}
+
+	for _, parentType := range cChildDecl.Parents() {
+		concreteParentType := parentType.Concretize(mapping)
+		if ok, err := concreteParentType.ExtendsAsPointer(pDecl); err != nil || ok {
+			return ok, err
+		}
+	}
+
+	return false, nil
 }
 
 func (g *Generic) Extends(parent ast.Type) (bool, io.Error) {
@@ -66,5 +109,46 @@ func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
 }
 
 func (g *Generic) Declaration() (ast.Declaration, io.Error) {
-	return g.Type.Declaration()
+	d, err := g.Type.Declaration()
+	if err != nil {
+		return nil, err
+	}
+
+	return newGenericDecl(g, d), nil
+}
+
+func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {
+	for {
+		t, err := p.ParseType()
+		if err != nil {
+			return err
+		}
+		g.GenericTypes = append(g.GenericTypes, t)
+
+		if p.Match(token.TOK_RIGHTBRACKET) {
+			break
+		}
+
+		if _, err := p.Consume(token.TOK_COMMA); err != nil {
+			return err
+		}
+	}
+
+	g.Context_ = p.TypeContext()
+	g.EndToken = p.Prev()
+	return nil
+}
+
+func (g *Generic) Concretize(mapping map[string]ast.Type) ast.Type {
+	genericTypes := make([]ast.Type, len(g.GenericTypes))
+	for i, t := range g.GenericTypes {
+		genericTypes[i] = t.Concretize(mapping)
+	}
+
+	return &Generic{
+		Context_:     g.Context_,
+		Type:         g.Type,
+		GenericTypes: genericTypes,
+		EndToken:     g.EndToken,
+	}
 }

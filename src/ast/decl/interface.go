@@ -14,27 +14,26 @@ import (
 
 type Interface struct {
 	BaseDecl
-
-	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
+	GenericDecl
 
 	Implements data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
 func newInterface() *Interface {
 	return &Interface{
-		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]ast.GenericConstraint{},
+		BaseDecl:    newDecl(),
+		GenericDecl: NewGenericDecl(),
 	}
 }
 
-func (i *Interface) Generics() map[string]ast.GenericConstraint {
-	return i.GenericConstraints
+func (i *Interface) SetTailed() io.Error {
+	return io.NewError("interfaces cannot be tailed", zap.Any("location", i.Name_.Location()))
 }
 
 func (a *Interface) String() string {
 	return fmt.Sprintf("Interface{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		a.Name().Value,
-		a.GenericConstraints,
+		a.TypesMap,
 		maps.Keys(a.Implements),
 		strings.Join(maps.Keys(a.Methods_), ","),
 		strings.Join(maps.Keys(a.Members_), ","),
@@ -49,18 +48,12 @@ func (i *Interface) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	i.Name_, err = p.Consume(token.TOK_IDENTIFIER)
-	if err != nil {
-		return err
-	}
-
-	i.GenericConstraints, err = syntaxGenericConstraints(p)
-	if err != nil {
+	if _, err := p.ParseDeclType(i); err != nil {
 		return err
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		if i.Implements, err = syntaxDeclTypes(p); err != nil {
+		if i.Implements, err = p.ParseParentTypes(); err != nil {
 			return err
 		}
 	}
@@ -74,7 +67,7 @@ func (i *Interface) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := i.GenericConstraints[f.Name().Value]; exists {
+			if _, exists := i.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),
@@ -153,10 +146,6 @@ func (i *Interface) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet
 		}
 
 		if err := parentDecl.LinkFields(p, visitedDecls); err != nil {
-			return err
-		}
-
-		if err := i.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
 			return err
 		}
 	}

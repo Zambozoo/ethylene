@@ -14,29 +14,30 @@ import (
 
 type Abstract struct {
 	BaseDecl
+	GenericDecl
 
-	IsTailed           bool
-	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
+	IsTailed bool
 
 	SuperClass ast.DeclType           // Optional
 	Implements data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
-func newAbstract() *Abstract {
-	return &Abstract{
-		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]ast.GenericConstraint{},
-	}
+func (a *Abstract) SetTailed() io.Error {
+	a.IsTailed = true
+	return nil
 }
 
-func (a *Abstract) Generics() map[string]ast.GenericConstraint {
-	return a.GenericConstraints
+func newAbstract() *Abstract {
+	return &Abstract{
+		BaseDecl:    newDecl(),
+		GenericDecl: NewGenericDecl(),
+	}
 }
 
 func (a *Abstract) String() string {
 	return fmt.Sprintf("Abstract{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		a.Name().Value,
-		a.GenericConstraints,
+		a.TypesMap,
 		maps.Keys(a.Implements),
 		strings.Join(maps.Keys(a.Methods_), ","),
 		strings.Join(maps.Keys(a.Members_), ","),
@@ -51,21 +52,12 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	if a.Name_, err = p.Consume(token.TOK_IDENTIFIER); err != nil {
+	if _, err := p.ParseDeclType(a); err != nil {
 		return err
-	}
-
-	a.GenericConstraints, err = syntaxGenericConstraints(p)
-	if err != nil {
-		return err
-	}
-
-	if p.Match(token.TOK_TILDE) {
-		a.IsTailed = true
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		if a.Implements, err = syntaxDeclTypes(p); err != nil {
+		if a.Implements, err = p.ParseParentTypes(); err != nil {
 			return err
 		}
 	}
@@ -79,7 +71,7 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := a.GenericConstraints[f.Name().Value]; exists {
+			if _, exists := a.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),
@@ -167,10 +159,6 @@ func (a *Abstract) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[
 		}
 
 		if err := parentDecl.LinkFields(p, visitedDecls); err != nil {
-			return err
-		}
-
-		if err := a.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
 			return err
 		}
 	}

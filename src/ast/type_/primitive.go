@@ -10,6 +10,13 @@ import (
 
 type Primitive[T any] token.Token
 
+func (p *Primitive[T]) Equals(other ast.Type) (bool, io.Error)           { panic("") }
+func (p *Primitive[T]) Extends(other ast.Type) (bool, io.Error)          { panic("") }
+func (p *Primitive[T]) ExtendsAsPointer(other ast.Type) (bool, io.Error) { panic("") }
+func (p *Primitive[T]) Concretize(map[string]ast.Type) ast.Type {
+	return p
+}
+
 func (p *Primitive[T]) String() string {
 	return (*token.Token)(p).String()
 }

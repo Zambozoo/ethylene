@@ -40,3 +40,9 @@ func (t *Thread) Equals(other ast.Type) (bool, io.Error) {
 
 	return false, nil
 }
+
+func (t *Thread) Concretize(mapping map[string]ast.Type) ast.Type {
+	return &Thread{
+		Type: t.Type.Concretize(mapping),
+	}
+}

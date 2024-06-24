@@ -14,26 +14,27 @@ import (
 
 type Struct struct {
 	BaseDecl
+	GenericDecl
 
-	IsTailed           bool
-	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
+	IsTailed bool
 }
 
 func newStruct() *Struct {
 	return &Struct{
-		BaseDecl:           newDecl(),
-		GenericConstraints: map[string]ast.GenericConstraint{},
+		BaseDecl:    newDecl(),
+		GenericDecl: NewGenericDecl(),
 	}
 }
 
-func (s *Struct) Generics() map[string]ast.GenericConstraint {
-	return s.GenericConstraints
+func (s *Struct) SetTailed() io.Error {
+	s.IsTailed = true
+	return nil
 }
 
 func (s *Struct) String() string {
-	return fmt.Sprintf("Interface{Name: %s%s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
+	return fmt.Sprintf("Struct{Name: %s%s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		s.Name().Value,
-		s.GenericConstraints,
+		s.TypesMap,
 		strings.Join(maps.Keys(s.Methods_), ","),
 		strings.Join(maps.Keys(s.Members_), ","),
 		strings.Join(maps.Keys(s.StaticMembers_), ","),
@@ -47,18 +48,8 @@ func (s *Struct) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	s.Name_, err = p.Consume(token.TOK_IDENTIFIER)
-	if err != nil {
+	if _, err := p.ParseDeclType(s); err != nil {
 		return err
-	}
-
-	s.GenericConstraints, err = syntaxGenericConstraints(p)
-	if err != nil {
-		return err
-	}
-
-	if p.Match(token.TOK_TILDE) {
-		s.IsTailed = true
 	}
 
 	if _, err := p.Consume(token.TOK_LEFTBRACE); err != nil {
@@ -70,7 +61,7 @@ func (s *Struct) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := s.GenericConstraints[f.Name().Value]; exists {
+			if _, exists := s.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),

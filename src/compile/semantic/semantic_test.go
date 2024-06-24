@@ -9,6 +9,7 @@ import (
 	"geth-cody/compile/semantic/bytecode"
 	"geth-cody/compile/syntax"
 	"geth-cody/io"
+	"geth-cody/io/path"
 	"reflect"
 	"testing"
 
@@ -34,26 +35,26 @@ func wrappingDecl() ast.Declaration {
 				Value: "Test",
 			},
 		},
-		GenericConstraints: make(map[string]ast.GenericConstraint),
+		GenericDecl: decl.NewGenericDecl(),
 	}
 }
 
 func testParseHelper(t *testing.T, testCases []testCase, syntaxFunc func(*syntax.Parser) (ast.Node, io.Error), semanticFunc func(*Parser, ast.Node) (*bytecode.Bytecodes, io.Error)) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			filePath, _ := io.NewFilePath("test.eth")
-			tokens, err := lexer.NewLexer(tt.input, filePath).Lex()
+			filePath := path.File("test.eth")
+			tokens, err := lexer.NewLexer(tt.input, &filePath).Lex()
 			if err != nil {
 				t.Fatal(err)
 			}
 			var (
-				project     io.Project
-				channel     mockChan[io.Path]
-				mainDirPath io.FilePath
+				project     path.Project
+				channel     mockChan[path.Path]
+				mainDirPath path.File
 				symbolMap   syntax.SymbolMap
 			)
 
-			syntaxParser := syntax.NewParser(tokens, &project, filePath, &mainDirPath, &channel, symbolMap)
+			syntaxParser := syntax.NewParser(tokens, &project, &filePath, &mainDirPath, &path.DefaultProvider{}, &channel, symbolMap)
 			syntaxParser.WrapScope(wrappingDecl())
 			node, err := syntaxFunc(syntaxParser)
 			if err != nil {

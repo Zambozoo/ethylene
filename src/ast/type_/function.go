@@ -86,3 +86,16 @@ func (f *Function) Equals(other ast.Type) (bool, io.Error) {
 
 	return true, nil
 }
+
+func (f *Function) Concretize(mapping map[string]ast.Type) ast.Type {
+	concreteParamTypes := make([]ast.Type, len(f.ParameterTypes_))
+	for i, t := range f.ParameterTypes_ {
+		concreteParamTypes[i] = t.Concretize(mapping)
+	}
+
+	return &Function{
+		ReturnType_:     f.ReturnType_.Concretize(mapping),
+		ParameterTypes_: concreteParamTypes,
+		EndToken:        f.EndToken,
+	}
+}

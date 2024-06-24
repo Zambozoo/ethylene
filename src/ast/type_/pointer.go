@@ -44,3 +44,10 @@ func (p *Pointer) Equals(other ast.Type) (bool, io.Error) {
 
 	return false, nil
 }
+
+func (p *Pointer) Concretize(mapping map[string]ast.Type) ast.Type {
+	return &Array{
+		Type:     p.Type.Concretize(mapping),
+		EndToken: p.EndToken,
+	}
+}

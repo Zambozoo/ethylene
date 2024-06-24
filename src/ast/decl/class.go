@@ -24,9 +24,9 @@ import (
 //	`class` IDENTIFIER `~`? (`[` GENERIC_LIST `]`)? `[` PARENT_LIST `]` `{` FIELD* `}`
 type Class struct {
 	BaseDecl
+	GenericDecl
 
-	IsTailed           bool
-	GenericConstraints map[string]ast.GenericConstraint // Generic type parameters
+	IsTailed bool
 
 	SuperClass ast.DeclType           // Optional
 	Implements data.Set[ast.DeclType] // Interfaces this decl implements
@@ -36,19 +36,20 @@ func newClass() *Class {
 	decl := newDecl()
 	decl.IsClass = true
 	return &Class{
-		BaseDecl:           decl,
-		GenericConstraints: map[string]ast.GenericConstraint{},
+		BaseDecl:    decl,
+		GenericDecl: NewGenericDecl(),
 	}
 }
 
-func (c *Class) Generics() map[string]ast.GenericConstraint {
-	return c.GenericConstraints
+func (c *Class) SetTailed() io.Error {
+	c.IsTailed = true
+	return nil
 }
 
 func (c *Class) String() string {
 	return fmt.Sprintf("Class{Name: %s%s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		c.Name().Value,
-		c.GenericConstraints,
+		c.TypesMap,
 		maps.Keys(c.Implements),
 		strings.Join(maps.Keys(c.Methods_), ","),
 		strings.Join(maps.Keys(c.Members_), ","),
@@ -63,22 +64,12 @@ func (c *Class) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	c.Name_, err = p.Consume(token.TOK_IDENTIFIER)
-	if err != nil {
+	if _, err := p.ParseDeclType(c); err != nil {
 		return err
-	}
-
-	c.GenericConstraints, err = syntaxGenericConstraints(p)
-	if err != nil {
-		return err
-	}
-
-	if p.Match(token.TOK_TILDE) {
-		c.IsTailed = true
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		if c.Implements, err = syntaxDeclTypes(p); err != nil {
+		if c.Implements, err = p.ParseParentTypes(); err != nil {
 			return err
 		}
 	}
@@ -92,7 +83,7 @@ func (c *Class) Syntax(p ast.SyntaxParser) io.Error {
 		if err != nil {
 			return err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := c.GenericConstraints[f.Name().Value]; exists {
+			if _, exists := c.TypesMap[f.Name().Value]; exists {
 				return io.NewError("inner decl name duplicates generic type",
 					zap.Any("decl", f.Name()),
 					zap.Any("location", f.Location()),
@@ -177,10 +168,6 @@ func (c *Class) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast
 		}
 
 		if err := parentDecl.LinkFields(p, visitedDecls); err != nil {
-			return err
-		}
-
-		if err := c.BaseDecl.Extends(p, parentDecl, visitedDecls); err != nil {
 			return err
 		}
 	}

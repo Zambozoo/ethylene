@@ -2,10 +2,10 @@ package syntax
 
 import (
 	"geth-cody/ast"
-	"geth-cody/io"
+	"geth-cody/io/path"
 )
 
 type SymbolMap struct {
-	Projects map[string]*io.Project
+	Projects map[string]*path.Project
 	Files    map[string]ast.File
 }

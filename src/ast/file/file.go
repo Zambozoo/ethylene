@@ -6,6 +6,7 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
 	"strings"
 
 	"go.uber.org/zap"
@@ -16,11 +17,11 @@ type File struct {
 	Imports      map[string]Import
 	Declaration_ ast.Declaration
 
-	Path_   io.Path
-	Project *io.Project
+	Path_   path.Path
+	Project *path.Project
 }
 
-func (f *File) Path() io.Path {
+func (f *File) Path() path.Path {
 	return f.Path_
 }
 

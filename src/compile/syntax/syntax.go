@@ -9,15 +9,18 @@ import (
 	"geth-cody/ast/file"
 	"geth-cody/ast/stmt"
 	"geth-cody/ast/type_"
+	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
+	"maps"
 	"slices"
 
 	"go.uber.org/zap"
 )
 
 type FileEntry struct {
-	Path io.Path
+	Path path.Path
 	File ast.File
 }
 
@@ -26,21 +29,25 @@ type Chan[T any] interface {
 }
 
 type Parser struct {
-	path          io.Path
+	path          path.Path
 	tokens        []token.Token
 	curTokenIndex int
 	scope         []ast.Declaration
 	file          ast.File
 
 	symbolMap      SymbolMap
-	unvisitedPaths Chan[io.Path]
-	project        *io.Project
-	mainDirPath    *io.FilePath
+	unvisitedPaths Chan[path.Path]
+	project        *path.Project
+	mainDirPath    path.Path
+
+	pathProvider path.Provider
 }
 
-func NewParser(tokens []token.Token, project *io.Project, path, mainDirPath io.Path, unvisitedPaths Chan[io.Path], symbolMap SymbolMap) *Parser {
+func NewParser(tokens []token.Token, project *path.Project, path, mainDirPath path.Path, pathProvider path.Provider, unvisitedPaths Chan[path.Path], symbolMap SymbolMap) *Parser {
 	return &Parser{
 		path:           path,
+		mainDirPath:    mainDirPath,
+		pathProvider:   pathProvider,
 		tokens:         tokens,
 		symbolMap:      symbolMap,
 		unvisitedPaths: unvisitedPaths,
@@ -48,14 +55,18 @@ func NewParser(tokens []token.Token, project *io.Project, path, mainDirPath io.P
 	}
 }
 
-func (p *Parser) Path() io.Path {
+func (p *Parser) File() ast.File {
+	return p.file
+}
+
+func (p *Parser) Path() path.Path {
 	return p.path
 }
 
-func (p *Parser) AddPath(dependency, path string) (io.Path, io.Error) {
-	var targetPath io.Path
+func (p *Parser) AddPath(dependency, filePath string) (path.Path, io.Error) {
+	var targetPath path.Path
 	if dependency == "" {
-		targetPath = p.mainDirPath.Join(path)
+		targetPath = p.mainDirPath.Join(filePath)
 	} else {
 		version, ok := p.project.Packages[dependency]
 		if !ok {
@@ -66,10 +77,10 @@ func (p *Parser) AddPath(dependency, path string) (io.Path, io.Error) {
 			)
 		}
 		zipFileName := fmt.Sprintf("pkgs/%s~%s.zip", dependency, version)
-		zipFilePath := fmt.Sprintf("%s:%s", p.mainDirPath.Join(zipFileName).String(), path)
+		zipFilePath := fmt.Sprintf("%s:%s", p.mainDirPath.Join(zipFileName).String(), filePath)
 
 		var err io.Error
-		if targetPath, err = io.NewPath(zipFilePath); err != nil {
+		if targetPath, err = p.pathProvider.NewPath(zipFilePath); err != nil {
 			return nil, err
 		}
 	}
@@ -136,7 +147,7 @@ func (p *Parser) TypeContext() ast.TypeContext {
 		project:   p.project,
 		scope:     slices.Clone(p.scope),
 		symbolMap: p.symbolMap,
-		generics:  p.scope[len(p.scope)-1].Generics(),
+		generics:  maps.Clone(p.scope[len(p.scope)-1].GenericsMap()),
 	}
 }
 
@@ -151,6 +162,14 @@ func (p *Parser) Parse() (ast.File, io.Error) {
 
 func (p *Parser) ParseType() (ast.Type, io.Error) {
 	return type_.Syntax(p)
+}
+
+func (p *Parser) ParseDeclType(d ast.Declaration) (ast.DeclType, io.Error) {
+	return type_.SyntaxDecl(p, d)
+}
+
+func (p *Parser) ParseParentTypes() (data.Set[ast.DeclType], io.Error) {
+	return type_.SyntaxParents(p)
 }
 
 func (p *Parser) ParseDecl() (ast.Declaration, io.Error) {

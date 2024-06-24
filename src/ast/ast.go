@@ -5,14 +5,16 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/io/path"
 )
 
 // SyntaxParser defines an interface for parsing syntax elements of a language.
 type SyntaxParser interface {
 	// AddPath ensures a file path dependency:path will be lexed.
-	AddPath(dependency, path string) (io.Path, io.Error)
+	AddPath(dependency, path string) (path.Path, io.Error)
 
-	Path() io.Path
+	Path() path.Path
+	File() File
 
 	// Peek returns the next token without consuming it.
 	Peek() token.Token
@@ -31,6 +33,10 @@ type SyntaxParser interface {
 
 	// ParseType parses and returns a Type.
 	ParseType() (Type, io.Error)
+	// ParseDeclType parses and returns a DeclType.
+	ParseDeclType(d Declaration) (DeclType, io.Error)
+	// ParseParentTypes parses and returns parent DeclTypes.
+	ParseParentTypes() (data.Set[DeclType], io.Error)
 	// ParseDecl parses and returns a Declaration.
 	ParseDecl() (Declaration, io.Error)
 	// ParseField parses and returns a Field.
@@ -58,7 +64,7 @@ type Node interface {
 
 // Import represents a file import.
 type Import interface {
-	Path() io.Path
+	Path() path.Path
 }
 
 // File represents a file node in the AST.
@@ -79,10 +85,6 @@ type File interface {
 	Semantic(p SemanticParser) io.Error
 }
 
-type GenericConstraint interface {
-	fmt.Stringer
-}
-
 // Declaration represents a composite object declaration node in the AST.
 type Declaration interface {
 	// Inherits Node interface.
@@ -97,7 +99,13 @@ type Declaration interface {
 	// Semantic performs semantic analysis on the declaration.
 	Semantic(p SemanticParser) io.Error
 
-	Generics() map[string]GenericConstraint
+	GenericsMap() map[string]DeclType
+	Generics() []DeclType
+	GenericsCount() int
+
+	SetName(tok token.Token)
+	PutGeneric(name string, generic DeclType) io.Error
+	SetTailed() io.Error
 
 	// Name returns the token representing the declaration's name.
 	Name() *token.Token
@@ -147,11 +155,11 @@ type Expression interface {
 type TypeContext interface {
 	Declaration(tokens []token.Token) (Declaration, io.Error)
 	Dependency(pkg string) (string, bool)
+	Generics() map[string]DeclType
 }
 
 // Type represents a type in the AST, like primitives or composite types.
 type Type interface {
-	// Inherits Node interface.
 	Node
 	// Extends returns true if the type extends parent.
 	Extends(parent Type) (bool, io.Error)
@@ -162,6 +170,7 @@ type Type interface {
 
 	// Key returns a unique string representation of the type.
 	Key() string
+	Concretize(mapping map[string]Type) Type
 }
 
 // FunType represents a function type, detailing its return and parameter types.
@@ -180,6 +189,8 @@ type FunType interface {
 type DeclType interface {
 	// Inherits from Type interface.
 	Type
+
+	Name() token.Token
 
 	Context() TypeContext
 	// Declaration returns the Declaration associated with the type within a given context.

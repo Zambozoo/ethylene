@@ -13,6 +13,14 @@ type Tailed struct {
 	EndToken token.Token
 }
 
+func (t *Tailed) Name() token.Token {
+	return t.Type.Name()
+}
+
+func (t *Tailed) Context() ast.TypeContext {
+	return t.Type.Context()
+}
+
 func (t *Tailed) Location() token.Location {
 	return token.LocationBetween(t.Type, &t.EndToken)
 }
@@ -47,4 +55,11 @@ func (t *Tailed) Equals(other ast.Type) (bool, io.Error) {
 
 func (t *Tailed) Declaration() (ast.Declaration, io.Error) {
 	return t.Type.Declaration()
+}
+
+func (t *Tailed) Concretize(mapping map[string]ast.Type) ast.Type {
+	return &Tailed{
+		Type: t.Type.Concretize(mapping).(ast.DeclType),
+		Size: t.Size,
+	}
 }

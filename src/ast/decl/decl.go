@@ -38,6 +38,10 @@ func newDecl() BaseDecl {
 	}
 }
 
+func (d *BaseDecl) SetName(tok token.Token) {
+	d.Name_ = tok
+}
+
 func (d *BaseDecl) Name() *token.Token {
 	return &d.Name_
 }

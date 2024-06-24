@@ -24,8 +24,24 @@ func newEnum() *Enum {
 	}
 }
 
-func (e *Enum) Generics() map[string]ast.GenericConstraint {
-	return map[string]ast.GenericConstraint{}
+func (*Enum) GenericsMap() map[string]ast.DeclType {
+	return map[string]ast.DeclType{}
+}
+
+func (*Enum) Generics() []ast.DeclType {
+	return nil
+}
+
+func (*Enum) GenericsCount() int {
+	return 0
+}
+
+func (e *Enum) PutGeneric(name string, generic ast.DeclType) io.Error {
+	return io.NewError("enums cannot have generic type parameters", zap.Any("location", e.Name_.Location()))
+}
+
+func (e *Enum) SetTailed() io.Error {
+	return io.NewError("enums cannot be tailed", zap.Any("location", e.Name_.Location()))
 }
 
 func (e *Enum) String() string {
