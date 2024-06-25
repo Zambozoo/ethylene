@@ -9,6 +9,7 @@ import (
 
 // PointerType represents a pointer to another type
 type Pointer struct {
+	Constant bool
 	Type     ast.Type
 	EndToken token.Token
 }
@@ -47,7 +48,15 @@ func (p *Pointer) Equals(other ast.Type) (bool, io.Error) {
 
 func (p *Pointer) Concretize(mapping map[string]ast.Type) ast.Type {
 	return &Array{
+		Constant: p.Constant,
 		Type:     p.Type.Concretize(mapping),
 		EndToken: p.EndToken,
 	}
+}
+
+func (p *Pointer) IsConstant() bool {
+	return p.Constant
+}
+func (p *Pointer) SetConstant() {
+	p.Constant = true
 }

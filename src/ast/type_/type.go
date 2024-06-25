@@ -141,6 +141,15 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				Size:     int64(tok.Integer),
 				EndToken: endTok,
 			}
+		case token.TOK_DOLLAR:
+			p.Next()
+			if t.IsConstant() {
+				return nil, io.NewError("invalid double constant type",
+					zap.Any("type", t),
+					zap.Any("location", t.Location()),
+				)
+			}
+			t.SetConstant()
 		default:
 			return t, nil
 		}

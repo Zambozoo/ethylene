@@ -9,6 +9,7 @@ import (
 
 // Array represents an array of elements of another type
 type Array struct {
+	Constant bool
 	Type     ast.Type
 	Size     int64
 	EndToken token.Token
@@ -52,8 +53,16 @@ func (a *Array) Equals(other ast.Type) (bool, io.Error) {
 
 func (a *Array) Concretize(mapping map[string]ast.Type) ast.Type {
 	return &Array{
+		Constant: a.Constant,
 		Type:     a.Type.Concretize(mapping),
 		Size:     a.Size,
 		EndToken: a.EndToken,
 	}
+}
+
+func (a *Array) IsConstant() bool {
+	return a.Constant
+}
+func (a *Array) SetConstant() {
+	a.Constant = true
 }

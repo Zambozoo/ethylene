@@ -101,3 +101,10 @@ func (u Union) Concretize(mapping map[string]ast.Type) ast.Type {
 
 	return concreteTypes
 }
+
+func (Union) IsConstant() bool {
+	return false
+}
+func (Union) SetConstant() {
+	panic("unreachable ")
+}

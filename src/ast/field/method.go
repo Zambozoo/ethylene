@@ -62,6 +62,7 @@ func (m *Method) Syntax(p ast.SyntaxParser) io.Error {
 	if err != nil {
 		return err
 	}
+	t.SetConstant()
 
 	if m.Type_, ok = t.(ast.FunType); !ok {
 		return io.NewError("expected a function type for method", zap.Any("location", m.StartToken.Location()))

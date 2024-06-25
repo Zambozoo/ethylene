@@ -66,6 +66,8 @@ func (a *Assign) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	var t ast.Type
 	if err != nil {
 		return nil, err
+	} else if left.IsConstant() {
+		return nil, io.NewError("cannot assign to constant", zap.Any("location", a.Left.Location()))
 	}
 
 	right, err := a.Right.Semantic(p)

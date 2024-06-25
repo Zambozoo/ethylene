@@ -8,7 +8,10 @@ import (
 	"go.uber.org/zap"
 )
 
-type Primitive[T any] token.Token
+type Primitive[T any] struct {
+	Constant bool
+	token.Token
+}
 
 func (p *Primitive[T]) Equals(other ast.Type) (bool, io.Error)           { panic("") }
 func (p *Primitive[T]) Extends(other ast.Type) (bool, io.Error)          { panic("") }
@@ -17,16 +20,23 @@ func (p *Primitive[T]) Concretize(map[string]ast.Type) ast.Type {
 	return p
 }
 
+func (p *Primitive[T]) IsConstant() bool {
+	return p.Constant
+}
+func (p *Primitive[T]) SetConstant() {
+	p.Constant = true
+}
+
 func (p *Primitive[T]) String() string {
-	return (*token.Token)(p).String()
+	return p.Token.String()
 }
 
 func (p *Primitive[T]) Key() string {
-	return (*token.Token)(p).Value
+	return p.Token.Value
 }
 
 func (p *Primitive[T]) Location() token.Location {
-	return (*token.Token)(p).Location()
+	return p.Token.Location()
 }
 
 type Integer struct{ Primitive[Integer] }
@@ -113,21 +123,21 @@ func (p *Null) Equals(other ast.Type) (bool, io.Error) {
 func syntaxPrimitive(p ast.SyntaxParser) (ast.Type, io.Error) {
 	switch t := p.Peek(); t.Type {
 	case token.TOK_TYPEINT:
-		return &Integer{Primitive: Primitive[Integer](p.Next())}, nil
+		return &Integer{Primitive: Primitive[Integer]{Token: p.Next()}}, nil
 	case token.TOK_TYPEFLT:
-		return &Float{Primitive: Primitive[Float](p.Next())}, nil
+		return &Float{Primitive: Primitive[Float]{Token: p.Next()}}, nil
 	case token.TOK_TYPEWORD:
-		return &Word{Primitive: Primitive[Word](p.Next())}, nil
+		return &Word{Primitive: Primitive[Word]{Token: p.Next()}}, nil
 	case token.TOK_TYPE:
-		return &TypeID{Primitive: Primitive[TypeID](p.Next())}, nil
+		return &TypeID{Primitive: Primitive[TypeID]{Token: p.Next()}}, nil
 	case token.TOK_TYPESTR:
-		return &String{Primitive: Primitive[String](p.Next())}, nil
+		return &String{Primitive: Primitive[String]{Token: p.Next()}}, nil
 	case token.TOK_TYPECHAR:
-		return &Character{Primitive: Primitive[Character](p.Next())}, nil
+		return &Character{Primitive: Primitive[Character]{Token: p.Next()}}, nil
 	case token.TOK_TYPEBOOL:
-		return &Boolean{Primitive: Primitive[Boolean](p.Next())}, nil
+		return &Boolean{Primitive: Primitive[Boolean]{Token: p.Next()}}, nil
 	case token.TOK_TYPEVOID:
-		return &Void{Primitive: Primitive[Void](p.Next())}, nil
+		return &Void{Primitive: Primitive[Void]{Token: p.Next()}}, nil
 	default:
 		return nil, io.NewError("expected type", zap.String("token", t.String()))
 	}

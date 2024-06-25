@@ -10,7 +10,8 @@ import (
 // TODO: REFERENCE ACTUAL TYPE IN STD LIB
 
 type Thread struct {
-	Type ast.Type
+	Constant bool
+	Type     ast.Type
 }
 
 func (t *Thread) String() string {
@@ -45,4 +46,11 @@ func (t *Thread) Concretize(mapping map[string]ast.Type) ast.Type {
 	return &Thread{
 		Type: t.Type.Concretize(mapping),
 	}
+}
+
+func (t *Thread) IsConstant() bool {
+	return t.Constant
+}
+func (t *Thread) SetConstant() {
+	t.Constant = true
 }
