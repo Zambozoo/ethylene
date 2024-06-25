@@ -161,6 +161,7 @@ type TypeContext interface {
 // Type represents a type in the AST, like primitives or composite types.
 type Type interface {
 	Node
+
 	// Extends returns true if the type extends parent.
 	Extends(parent Type) (bool, io.Error)
 	// ExtendsAsPointer returns true if the type extends parent as a pointer.
@@ -170,7 +171,13 @@ type Type interface {
 
 	// Key returns a unique string representation of the type.
 	Key() string
+	// Concretize returns a concrete type, replacing any generics according to the mapping.
 	Concretize(mapping map[string]Type) Type
+
+	// IsContant returns true if the type is constant.
+	IsConstant() bool
+	// SetConstant sets the type to be constant.
+	SetConstant()
 }
 
 // FunType represents a function type, detailing its return and parameter types.

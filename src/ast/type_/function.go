@@ -10,6 +10,7 @@ import (
 
 // FunctionType represents a function signature
 type Function struct {
+	Constant        bool
 	ReturnType_     ast.Type
 	ParameterTypes_ []ast.Type
 	EndToken        token.Token
@@ -94,8 +95,16 @@ func (f *Function) Concretize(mapping map[string]ast.Type) ast.Type {
 	}
 
 	return &Function{
+		Constant:        f.Constant,
 		ReturnType_:     f.ReturnType_.Concretize(mapping),
 		ParameterTypes_: concreteParamTypes,
 		EndToken:        f.EndToken,
 	}
+}
+
+func (f *Function) IsConstant() bool {
+	return f.Constant
+}
+func (f *Function) SetConstant() {
+	f.Constant = true
 }

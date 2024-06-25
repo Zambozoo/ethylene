@@ -455,10 +455,12 @@ func TestParseField(t *testing.T) {
 				},
 				Type_: &type_.Integer{
 					Primitive: type_.Primitive[type_.Integer]{
-						Type: token.TOK_TYPEINT,
-						Loc: token.Location{
-							StartColumn: 4,
-							EndColumn:   7,
+						Token: token.Token{
+							Type: token.TOK_TYPEINT,
+							Loc: token.Location{
+								StartColumn: 4,
+								EndColumn:   7,
+							},
 						},
 					},
 				},
@@ -493,10 +495,12 @@ func TestParseField(t *testing.T) {
 				},
 				Type_: &type_.Integer{
 					Primitive: type_.Primitive[type_.Integer]{
-						Type: token.TOK_TYPEINT,
-						Loc: token.Location{
-							StartColumn: 4,
-							EndColumn:   7,
+						Token: token.Token{
+							Type: token.TOK_TYPEINT,
+							Loc: token.Location{
+								StartColumn: 4,
+								EndColumn:   7,
+							},
 						},
 					},
 				},
@@ -549,12 +553,15 @@ func TestParseField(t *testing.T) {
 					},
 				},
 				Type_: &type_.Function{
+					Constant: true,
 					ReturnType_: &type_.Void{
 						Primitive: type_.Primitive[type_.Void]{
-							Type: token.TOK_TYPEVOID,
-							Loc: token.Location{
-								StartColumn: 4,
-								EndColumn:   8,
+							Token: token.Token{
+								Type: token.TOK_TYPEVOID,
+								Loc: token.Location{
+									StartColumn: 4,
+									EndColumn:   8,
+								},
 							},
 						},
 					},
@@ -589,12 +596,15 @@ func TestParseField(t *testing.T) {
 					},
 				},
 				Type_: &type_.Function{
+					Constant: true,
 					ReturnType_: &type_.Void{
 						Primitive: type_.Primitive[type_.Void]{
-							Type: token.TOK_TYPEVOID,
-							Loc: token.Location{
-								StartColumn: 4,
-								EndColumn:   8,
+							Token: token.Token{
+								Type: token.TOK_TYPEVOID,
+								Loc: token.Location{
+									StartColumn: 4,
+									EndColumn:   8,
+								},
 							},
 						},
 					},
@@ -960,10 +970,12 @@ func TestParseStmt(t *testing.T) {
 						},
 						Type_: &type_.Integer{
 							Primitive: type_.Primitive[type_.Integer]{
-								Type: token.TOK_TYPEINT,
-								Loc: token.Location{
-									StartColumn: 9,
-									EndColumn:   12,
+								Token: token.Token{
+									Type: token.TOK_TYPEINT,
+									Loc: token.Location{
+										StartColumn: 9,
+										EndColumn:   12,
+									},
 								},
 							},
 						},
@@ -1348,10 +1360,12 @@ func TestParseStmt(t *testing.T) {
 				},
 				Type_: &type_.Integer{
 					Primitive: type_.Primitive[type_.Integer]{
-						Type: token.TOK_TYPEINT,
-						Loc: token.Location{
-							StartColumn: 4,
-							EndColumn:   7,
+						Token: token.Token{
+							Type: token.TOK_TYPEINT,
+							Loc: token.Location{
+								StartColumn: 4,
+								EndColumn:   7,
+							},
 						},
 					},
 				},
@@ -2069,10 +2083,12 @@ func TestParseExpr(t *testing.T) {
 				Type: &type_.Function{
 					ReturnType_: &type_.Void{
 						Primitive: type_.Primitive[type_.Void]{
-							Type: token.TOK_TYPEVOID,
-							Loc: token.Location{
-								StartColumn: 7,
-								EndColumn:   11,
+							Token: token.Token{
+								Type: token.TOK_TYPEVOID,
+								Loc: token.Location{
+									StartColumn: 7,
+									EndColumn:   11,
+								},
 							},
 						},
 					},
@@ -2785,10 +2801,12 @@ func TestParseType(t *testing.T) {
 			expected: &type_.Array{
 				Type: &type_.Integer{
 					Primitive: type_.Primitive[type_.Integer]{
-						Type: token.TOK_TYPEINT,
-						Loc: token.Location{
-							StartColumn: 0,
-							EndColumn:   3,
+						Token: token.Token{
+							Type: token.TOK_TYPEINT,
+							Loc: token.Location{
+								StartColumn: 0,
+								EndColumn:   3,
+							},
 						},
 					},
 				},
@@ -2810,10 +2828,12 @@ func TestParseType(t *testing.T) {
 				Type: &type_.Array{
 					Type: &type_.Integer{
 						Primitive: type_.Primitive[type_.Integer]{
-							Type: token.TOK_TYPEINT,
-							Loc: token.Location{
-								StartColumn: 0,
-								EndColumn:   3,
+							Token: token.Token{
+								Type: token.TOK_TYPEINT,
+								Loc: token.Location{
+									StartColumn: 0,
+									EndColumn:   3,
+								},
 							},
 						},
 					},
@@ -2843,10 +2863,12 @@ func TestParseType(t *testing.T) {
 			expected: &type_.Function{
 				ReturnType_: &type_.Void{
 					Primitive: type_.Primitive[type_.Void]{
-						Type: token.TOK_TYPEVOID,
-						Loc: token.Location{
-							StartColumn: 0,
-							EndColumn:   4,
+						Token: token.Token{
+							Type: token.TOK_TYPEVOID,
+							Loc: token.Location{
+								StartColumn: 0,
+								EndColumn:   4,
+							},
 						},
 					},
 				},
@@ -2866,29 +2888,35 @@ func TestParseType(t *testing.T) {
 			expected: &type_.Function{
 				ReturnType_: &type_.Void{
 					Primitive: type_.Primitive[type_.Void]{
-						Type: token.TOK_TYPEVOID,
-						Loc: token.Location{
-							StartColumn: 0,
-							EndColumn:   4,
+						Token: token.Token{
+							Type: token.TOK_TYPEVOID,
+							Loc: token.Location{
+								StartColumn: 0,
+								EndColumn:   4,
+							},
 						},
 					},
 				},
 				ParameterTypes_: []ast.Type{
 					&type_.Integer{
 						Primitive: type_.Primitive[type_.Integer]{
-							Type: token.TOK_TYPEINT,
-							Loc: token.Location{
-								StartColumn: 5,
-								EndColumn:   8,
+							Token: token.Token{
+								Type: token.TOK_TYPEINT,
+								Loc: token.Location{
+									StartColumn: 5,
+									EndColumn:   8,
+								},
 							},
 						},
 					},
 					&type_.Integer{
 						Primitive: type_.Primitive[type_.Integer]{
-							Type: token.TOK_TYPEINT,
-							Loc: token.Location{
-								StartColumn: 10,
-								EndColumn:   13,
+							Token: token.Token{
+								Type: token.TOK_TYPEINT,
+								Loc: token.Location{
+									StartColumn: 10,
+									EndColumn:   13,
+								},
 							},
 						},
 					},
@@ -2910,10 +2938,12 @@ func TestParseType(t *testing.T) {
 				ReturnType_: &type_.Function{
 					ReturnType_: &type_.Void{
 						Primitive: type_.Primitive[type_.Void]{
-							Type: token.TOK_TYPEVOID,
-							Loc: token.Location{
-								StartColumn: 0,
-								EndColumn:   4,
+							Token: token.Token{
+								Type: token.TOK_TYPEVOID,
+								Loc: token.Location{
+									StartColumn: 0,
+									EndColumn:   4,
+								},
 							},
 						},
 					},
@@ -2964,10 +2994,12 @@ func TestParseType(t *testing.T) {
 				GenericTypes: []ast.Type{
 					&type_.Integer{
 						Primitive: type_.Primitive[type_.Integer]{
-							Type: token.TOK_TYPEINT,
-							Loc: token.Location{
-								StartColumn: 5,
-								EndColumn:   8,
+							Token: token.Token{
+								Type: token.TOK_TYPEINT,
+								Loc: token.Location{
+									StartColumn: 5,
+									EndColumn:   8,
+								},
 							},
 						},
 					},
@@ -3011,19 +3043,23 @@ func TestParseType(t *testing.T) {
 				GenericTypes: []ast.Type{
 					&type_.String{
 						Primitive: type_.Primitive[type_.String]{
-							Type: token.TOK_TYPESTR,
-							Loc: token.Location{
-								StartColumn: 4,
-								EndColumn:   7,
+							Token: token.Token{
+								Type: token.TOK_TYPESTR,
+								Loc: token.Location{
+									StartColumn: 4,
+									EndColumn:   7,
+								},
 							},
 						},
 					},
 					&type_.Integer{
 						Primitive: type_.Primitive[type_.Integer]{
-							Type: token.TOK_TYPEINT,
-							Loc: token.Location{
-								StartColumn: 9,
-								EndColumn:   12,
+							Token: token.Token{
+								Type: token.TOK_TYPEINT,
+								Loc: token.Location{
+									StartColumn: 9,
+									EndColumn:   12,
+								},
 							},
 						},
 					},
@@ -3044,10 +3080,12 @@ func TestParseType(t *testing.T) {
 			expected: &type_.Pointer{
 				Type: &type_.Integer{
 					Primitive: type_.Primitive[type_.Integer]{
-						Type: token.TOK_TYPEINT,
-						Loc: token.Location{
-							StartColumn: 0,
-							EndColumn:   3,
+						Token: token.Token{
+							Type: token.TOK_TYPEINT,
+							Loc: token.Location{
+								StartColumn: 0,
+								EndColumn:   3,
+							},
 						},
 					},
 				},
@@ -3126,6 +3164,28 @@ func TestParseType(t *testing.T) {
 				},
 			},
 			errFunc: assert.NoError,
+		},
+		{
+			name:  "constant",
+			input: `int$`,
+			expected: &type_.Integer{
+				Primitive: type_.Primitive[type_.Integer]{
+					Constant: true,
+					Token: token.Token{
+						Type: token.TOK_TYPEINT,
+						Loc: token.Location{
+							StartColumn: 0,
+							EndColumn:   3,
+						},
+					},
+				},
+			},
+			errFunc: assert.NoError,
+		},
+		{
+			name:    "double constant",
+			input:   `int$$`,
+			errFunc: assert.Error,
 		},
 	}
 

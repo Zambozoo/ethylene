@@ -10,7 +10,8 @@ import (
 // TODO: REFERENCE ACTUAL TYPE IN STD LIB
 
 type Iter struct {
-	Type ast.Type
+	Constant bool
+	Type     ast.Type
 }
 
 func (i *Iter) String() string {
@@ -39,4 +40,11 @@ func (i *Iter) Equals(other ast.Type) (bool, io.Error) {
 	}
 
 	return false, nil
+}
+
+func (i *Iter) IsConstant() bool {
+	return i.Constant
+}
+func (i *Iter) SetConstant() {
+	i.Constant = true
 }

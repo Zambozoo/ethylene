@@ -8,6 +8,7 @@ import (
 )
 
 type Tailed struct {
+	Constant bool
 	Type     ast.DeclType
 	Size     int64
 	EndToken token.Token
@@ -59,7 +60,15 @@ func (t *Tailed) Declaration() (ast.Declaration, io.Error) {
 
 func (t *Tailed) Concretize(mapping map[string]ast.Type) ast.Type {
 	return &Tailed{
-		Type: t.Type.Concretize(mapping).(ast.DeclType),
-		Size: t.Size,
+		Constant: t.Constant,
+		Type:     t.Type.Concretize(mapping).(ast.DeclType),
+		Size:     t.Size,
 	}
+}
+
+func (t *Tailed) IsConstant() bool {
+	return t.Constant
+}
+func (t *Tailed) SetConstant() {
+	t.Constant = true
 }

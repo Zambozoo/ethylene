@@ -8,6 +8,7 @@ import (
 )
 
 type Composite struct {
+	Constant bool
 	Context_ ast.TypeContext
 	Tokens   []token.Token
 }
@@ -126,4 +127,11 @@ func (c *Composite) Concretize(mapping map[string]ast.Type) ast.Type {
 	}
 
 	return c
+}
+
+func (c *Composite) IsConstant() bool {
+	return c.Constant
+}
+func (c *Composite) SetConstant() {
+	c.Constant = true
 }

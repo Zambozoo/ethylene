@@ -12,6 +12,7 @@ import (
 
 // GenericType represents a type with generic type parameters
 type Generic struct {
+	Constant     bool
 	Context_     ast.TypeContext
 	Type         ast.DeclType
 	GenericTypes []ast.Type
@@ -146,9 +147,17 @@ func (g *Generic) Concretize(mapping map[string]ast.Type) ast.Type {
 	}
 
 	return &Generic{
+		Constant:     g.Constant,
 		Context_:     g.Context_,
 		Type:         g.Type,
 		GenericTypes: genericTypes,
 		EndToken:     g.EndToken,
 	}
+}
+
+func (g *Generic) IsConstant() bool {
+	return g.Constant
+}
+func (g *Generic) SetConstant() {
+	g.Constant = true
 }
