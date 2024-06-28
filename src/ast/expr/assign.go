@@ -73,7 +73,7 @@ func (a *Assign) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	right, err := a.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(right, left); err != nil {
+	} else if _, err := type_.MustExtend(p, right, left); err != nil {
 		return nil, err
 	}
 

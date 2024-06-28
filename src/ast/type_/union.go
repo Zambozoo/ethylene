@@ -19,24 +19,28 @@ func (u Union) String() string {
 	return fmt.Sprintf("Union{Types:%s}", strs.Strings(u))
 }
 
-func (u Union) Key() string {
+func (u Union) Key(p ast.SemanticParser) (string, io.Error) {
 	var s string
 	var spacer string
 	for _, t := range u {
-		s += spacer + t.Key()
+		k, err := t.Key(p)
+		if err != nil {
+			return "", err
+		}
+		s += spacer + k
 		spacer = ","
 	}
-	return fmt.Sprintf("(%s)", s)
+	return fmt.Sprintf("(%s)", s), nil
 }
 
-func (u Union) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	return u.Equals(parent)
+func (u Union) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return u.Equals(p, parent)
 }
 
 // Extends returns true if all
-func (u Union) Extends(parent ast.Type) (bool, io.Error) {
+func (u Union) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
 	for _, t := range u {
-		if extends, err := t.Extends(parent); err != nil || !extends {
+		if extends, err := t.Extends(p, parent); err != nil || !extends {
 			return false, err
 		}
 	}
@@ -44,9 +48,9 @@ func (u Union) Extends(parent ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func containsType(ts []ast.Type, t ast.Type) (bool, io.Error) {
+func containsType(p ast.SemanticParser, ts []ast.Type, t ast.Type) (bool, io.Error) {
 	for _, t2 := range ts {
-		if ok, err := t2.Equals(t); err != nil || !ok {
+		if ok, err := t2.Equals(p, t); err != nil || !ok {
 			return false, err
 		}
 	}
@@ -54,14 +58,14 @@ func containsType(ts []ast.Type, t ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (u Union) Equals(parent ast.Type) (bool, io.Error) {
+func (u Union) Equals(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
 	if parentUnion, ok := parent.(Union); ok {
 		if len(u) != len(parentUnion) {
 			return false, nil
 		}
 
 		for _, t := range u {
-			if ok, err := containsType(parentUnion, t); err != nil || !ok {
+			if ok, err := containsType(p, parentUnion, t); err != nil || !ok {
 				return false, err
 			}
 		}
@@ -93,7 +97,7 @@ func Join(ts ...ast.Type) ast.Type {
 	return returnType
 }
 
-func (u Union) Concretize(mapping map[string]ast.Type) ast.Type {
+func (u Union) Concretize(mapping []ast.Type) ast.Type {
 	concreteTypes := make(Union, len(u))
 	for i, t := range u {
 		concreteTypes[i] = t.Concretize(mapping)

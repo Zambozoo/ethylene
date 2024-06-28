@@ -22,14 +22,14 @@ func (r *RightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	left, err := r.Left.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(left, &type_.Word{}); err != nil {
+	} else if _, err := type_.MustExtend(p, left, &type_.Word{}); err != nil {
 		return nil, err
 	}
 
 	right, err := r.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(p, right, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 
@@ -50,14 +50,14 @@ func (l *LeftShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	left, err := l.Left.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(left, &type_.Word{}); err != nil {
+	} else if _, err := type_.MustExtend(p, left, &type_.Word{}); err != nil {
 		return nil, err
 	}
 
 	right, err := l.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(p, right, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 
@@ -78,14 +78,14 @@ func (u *UnsignedRightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error)
 	left, err := u.Left.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(left, &type_.Word{}); err != nil {
+	} else if _, err := type_.MustExtend(p, left, &type_.Word{}); err != nil {
 		return nil, err
 	}
 
 	right, err := u.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(p, right, &type_.Integer{}); err != nil {
 		return nil, err
 	}
 

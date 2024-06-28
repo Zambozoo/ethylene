@@ -33,8 +33,6 @@ type SyntaxParser interface {
 
 	// ParseType parses and returns a Type.
 	ParseType() (Type, io.Error)
-	// ParseDeclType parses and returns a DeclType.
-	ParseDeclType(d Declaration) (DeclType, io.Error)
 	// ParseParentTypes parses and returns parent DeclTypes.
 	ParseParentTypes() (data.Set[DeclType], io.Error)
 	// ParseDecl parses and returns a Declaration.
@@ -52,6 +50,7 @@ type SemanticParser interface {
 	File() File
 	// Scope returns the current scope for resolving identifiers.
 	Scope() *Scope
+	NewGenericDecl(d Declaration, slice []Type, mapping map[string]Type) Declaration
 }
 
 // Node is an interface for all AST nodes, providing basic functionalities.
@@ -87,10 +86,9 @@ type File interface {
 
 // Declaration represents a composite object declaration node in the AST.
 type Declaration interface {
-	// Inherits Node interface.
-	Node
+	Type
 	// Syntax performs syntax analysis on the declaration.
-	Syntax(p SyntaxParser) io.Error
+	Syntax(p SyntaxParser) (Declaration, io.Error)
 	// LinkParents links parent nodes within the AST for this declaration.
 	LinkParents(p SemanticParser, visitedDecls *data.AsyncSet[Declaration], cycleMap map[string]struct{}) (data.Set[DeclType], io.Error)
 	// LinkFields links parent and child method nodes within the AST for this declaration.
@@ -98,14 +96,6 @@ type Declaration interface {
 
 	// Semantic performs semantic analysis on the declaration.
 	Semantic(p SemanticParser) io.Error
-
-	GenericsMap() map[string]DeclType
-	Generics() []DeclType
-	GenericsCount() int
-
-	SetName(tok token.Token)
-	PutGeneric(name string, generic DeclType) io.Error
-	SetTailed() io.Error
 
 	// Name returns the token representing the declaration's name.
 	Name() *token.Token
@@ -115,11 +105,18 @@ type Declaration interface {
 	Methods() map[string]Method
 	//Declarations returns a map of inner declarations.
 	Declarations() map[string]DeclField
+
+	IsInterface() bool
+	IsAbstract() bool
+	IsClass() bool
+
+	GenericParamIndex(name string) (int, bool)
+	Generics() []Type
 }
 
 type ChildDeclaration interface {
 	Declaration
-	Parents() []Type
+	Parents() data.Set[DeclType]
 }
 
 // Field represents a field within the AST.
@@ -155,7 +152,7 @@ type Expression interface {
 type TypeContext interface {
 	Declaration(tokens []token.Token) (Declaration, io.Error)
 	Dependency(pkg string) (string, bool)
-	Generics() map[string]DeclType
+	TopScope() Declaration
 }
 
 // Type represents a type in the AST, like primitives or composite types.
@@ -163,16 +160,16 @@ type Type interface {
 	Node
 
 	// Extends returns true if the type extends parent.
-	Extends(parent Type) (bool, io.Error)
+	Extends(p SemanticParser, parent Type) (bool, io.Error)
 	// ExtendsAsPointer returns true if the type extends parent as a pointer.
-	ExtendsAsPointer(parent Type) (bool, io.Error)
+	ExtendsAsPointer(p SemanticParser, parent Type) (bool, io.Error)
 	// Equals returns true if the type is the same as other.
-	Equals(other Type) (bool, io.Error)
+	Equals(p SemanticParser, other Type) (bool, io.Error)
 
 	// Key returns a unique string representation of the type.
-	Key() string
+	Key(p SemanticParser) (string, io.Error)
 	// Concretize returns a concrete type, replacing any generics according to the mapping.
-	Concretize(mapping map[string]Type) Type
+	Concretize(mapping []Type) Type
 
 	// IsContant returns true if the type is constant.
 	IsConstant() bool
@@ -201,7 +198,7 @@ type DeclType interface {
 
 	Context() TypeContext
 	// Declaration returns the Declaration associated with the type within a given context.
-	Declaration() (Declaration, io.Error)
+	Declaration(p SemanticParser) (Declaration, io.Error)
 }
 
 // Method represents a method, which is a function associated with a type.

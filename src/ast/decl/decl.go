@@ -2,6 +2,7 @@ package decl
 
 import (
 	"geth-cody/ast"
+	"geth-cody/ast/decl/generics"
 	"geth-cody/ast/type_"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
@@ -166,11 +167,7 @@ func Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	p.WrapScope(declaration)
 	defer p.UnwrapScope()
 
-	if err := declaration.Syntax(p); err != nil {
-		return nil, err
-	}
-
-	return declaration, nil
+	return declaration.Syntax(p)
 }
 
 func (d *BaseDecl) addStaticFields(scope *ast.Scope) io.Error {
@@ -216,10 +213,12 @@ func (d *BaseDecl) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[
 	return nil
 }
 
-func (child *BaseDecl) Extends(p ast.SemanticParser, parent ast.Declaration, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
+func (child *BaseDecl) ExtendsParent(p ast.SemanticParser, methodProviderFunc generics.MethodProviderFunc, parent ast.Declaration, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	for name, parentMethod := range parent.Methods() {
-		if childMethod, exists := child.Methods_[name]; exists {
-			if _, err := type_.MustExtend(childMethod.Type(), parentMethod.Type()); err != nil {
+		if childMethod, exists := methodProviderFunc()[name]; exists {
+			ct := childMethod.Type()
+			pt := parentMethod.Type()
+			if _, err := type_.MustExtend(p, ct, pt); err != nil {
 				return err
 			}
 		} else if parentMethod.HasModifier(ast.MOD_VIRTUAL) && child.IsClass {
@@ -233,5 +232,12 @@ func (child *BaseDecl) Extends(p ast.SemanticParser, parent ast.Declaration, vis
 		}
 	}
 
+	return nil
+}
+func (b *BaseDecl) GenericParamIndex(name string) (int, bool) {
+	return 0, false
+}
+
+func (*BaseDecl) Generics() []ast.Type {
 	return nil
 }

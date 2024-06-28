@@ -13,10 +13,20 @@ import (
 func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	var t ast.Type
 	var err io.Error
-	if p.Peek().Type == token.TOK_IDENTIFIER {
-		t, err = (&Composite{Context_: p.TypeContext()}).Syntax(p)
-		if err != nil {
-			return nil, err
+	if tok := p.Peek(); tok.Type == token.TOK_IDENTIFIER {
+		tc := p.TypeContext()
+		if i, ok := tc.TopScope().GenericParamIndex(tok.Value); ok {
+			t = &Param{
+				Token:    p.Next(),
+				Context_: tc,
+				Decl:     tc.TopScope(),
+				Index:    i,
+			}
+		} else {
+			t, err = (&Lookup{Context_: p.TypeContext()}).Syntax(p)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		t, err = syntaxPrimitive(p)
@@ -156,13 +166,13 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 	}
 }
 
-func MustExtend(child ast.Type, parent ast.Type, parents ...ast.Type) (ast.Type, io.Error) {
+func MustExtend(p ast.SemanticParser, child ast.Type, parent ast.Type, parents ...ast.Type) (ast.Type, io.Error) {
 	parents = append(parents, parent)
-	for _, p := range parents {
-		if extends, err := child.Extends(p); err != nil {
+	for _, parent := range parents {
+		if extends, err := child.Extends(p, parent); err != nil {
 			return nil, err
 		} else if extends {
-			return p, nil
+			return parent, nil
 		}
 	}
 

@@ -101,6 +101,14 @@ func (m *Method) Syntax(p ast.SyntaxParser) io.Error {
 		}
 	}
 
+	if m.Type_.Arity() != len(m.Parameters) {
+		return io.NewError("arity of method does not match number of parameters",
+			zap.Any("name", m.Name()),
+			zap.Any("expected", m.Type_.Arity()),
+			zap.Any("actual", len(m.Parameters)),
+			zap.Any("location", m.Location()),
+		)
+	}
 	m.Stmt, err = p.ParseStmt()
 	return err
 }
@@ -137,9 +145,7 @@ func (m *Method) Semantic(p ast.SemanticParser) io.Error {
 				zap.Any("name", m.Name()),
 				zap.Any("location", m.Location()),
 			).Log(io.Warnf)
-		}
-
-		if _, err := type_.MustExtend(t, m.Type_.ReturnType()); err != nil {
+		} else if _, err := type_.MustExtend(p, t, m.Type_.ReturnType()); err != nil {
 			return err
 		}
 	}

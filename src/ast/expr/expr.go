@@ -23,7 +23,7 @@ func (b *Binary) MustBothExtendOne(p ast.SemanticParser, parent ast.Type, parent
 	if err != nil {
 		return nil, err
 	}
-	t, err := type_.MustExtend(left, parent, parents...)
+	t, err := type_.MustExtend(p, left, parent, parents...)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (b *Binary) MustBothExtendOne(p ast.SemanticParser, parent ast.Type, parent
 	right, err := b.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(right, t); err != nil {
+	} else if _, err := type_.MustExtend(p, right, t); err != nil {
 		return nil, err
 	}
 

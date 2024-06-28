@@ -24,15 +24,25 @@ func (f *Function) String() string {
 	return fmt.Sprintf("Function{ReturnType:%s, ParameterTypes:%s}", f.ReturnType_, strs.Strings(f.ParameterTypes_))
 }
 
-func (f *Function) Key() string {
+func (f *Function) Key(p ast.SemanticParser) (string, io.Error) {
 	var s string
 	var spacer string
 	for _, t := range f.ParameterTypes_ {
-		s += spacer + t.Key()
+		k, err := t.Key(p)
+		if err != nil {
+			return "", err
+		}
+
+		s += spacer + k
 		spacer = ","
 	}
 
-	return fmt.Sprintf("%s(%s)", f.ReturnType_.Key(), s)
+	k, err := f.ReturnType_.Key(p)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s(%s)", k, s), nil
 }
 
 func (f *Function) ReturnType() ast.Type {
@@ -45,23 +55,23 @@ func (f *Function) Arity() int {
 	return len(f.ParameterTypes_)
 }
 
-func (f *Function) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	return f.Equals(parent)
+func (f *Function) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return f.Equals(p, parent)
 }
 
-func (f *Function) Extends(parent ast.Type) (bool, io.Error) {
+func (f *Function) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
 	if fun, ok := parent.(*Function); ok {
 		if f.Arity() != fun.Arity() {
 			return false, nil
 		}
 
-		if ok, err := f.ReturnType_.Extends(fun.ReturnType_); err != nil || !ok {
+		if ok, err := f.ReturnType_.Extends(p, fun.ReturnType_); err != nil || !ok {
 			return false, err
 		}
 
 		for i, childArgType := range f.ParameterTypes_ {
 			parentArgType := fun.ParameterTypes_[i]
-			if ok, err := parentArgType.Extends(childArgType); err != nil || !ok {
+			if ok, err := parentArgType.Extends(p, childArgType); err != nil || !ok {
 				return false, err
 			}
 		}
@@ -70,17 +80,17 @@ func (f *Function) Extends(parent ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (f *Function) Equals(other ast.Type) (bool, io.Error) {
+func (f *Function) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	fOther, ok := other.(*Function)
 	if !ok || f.Arity() != fOther.Arity() {
 		return false, nil
-	} else if ok, err := f.ReturnType_.Equals(fOther.ReturnType_); err != nil || !ok {
+	} else if ok, err := f.ReturnType_.Equals(p, fOther.ReturnType_); err != nil || !ok {
 		return ok, err
 	}
 
 	for i, childArgType := range f.ParameterTypes_ {
 		parentArgType := fOther.ParameterTypes_[i]
-		if ok, err := childArgType.Equals(parentArgType); err != nil || !ok {
+		if ok, err := childArgType.Equals(p, parentArgType); err != nil || !ok {
 			return ok, err
 		}
 	}
@@ -88,7 +98,7 @@ func (f *Function) Equals(other ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (f *Function) Concretize(mapping map[string]ast.Type) ast.Type {
+func (f *Function) Concretize(mapping []ast.Type) ast.Type {
 	concreteParamTypes := make([]ast.Type, len(f.ParameterTypes_))
 	for i, t := range f.ParameterTypes_ {
 		concreteParamTypes[i] = t.Concretize(mapping)

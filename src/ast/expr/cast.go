@@ -27,7 +27,7 @@ func (c *Cast) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	}
 
 	if !type_.CastPrimitive(p, t, c.Type) {
-		if _, err := type_.MustExtend(c.Type, t); err == nil {
+		if _, err := type_.MustExtend(p, c.Type, t); err == nil {
 			return nil, err
 		}
 	}

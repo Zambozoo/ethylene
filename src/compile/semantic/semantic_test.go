@@ -35,11 +35,11 @@ func wrappingDecl() ast.Declaration {
 				Value: "Test",
 			},
 		},
-		GenericDecl: decl.NewGenericDecl(),
 	}
 }
 
 func testParseHelper(t *testing.T, testCases []testCase, syntaxFunc func(*syntax.Parser) (ast.Node, io.Error), semanticFunc func(*Parser, ast.Node) (*bytecode.Bytecodes, io.Error)) {
+	defer io.InitLogger()()
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			filePath := path.File("test.eth")
@@ -135,7 +135,7 @@ func TestParse(t *testing.T) {
 				abstract Abstract <: Interface {
 				}
 
-				class Class {
+				class Class <: Abstract {
 					fun void(int,int) add = (a,b) {
 						return a + b;
 					}
@@ -158,6 +158,69 @@ func TestParse(t *testing.T) {
 				}
 			}`,
 			errFunc: assert.Error,
+		},
+	}
+
+	testParseHelper(t, testCases,
+		func(p *syntax.Parser) (ast.Node, io.Error) {
+			return p.Parse()
+		},
+		func(p *Parser, n ast.Node) (*bytecode.Bytecodes, io.Error) {
+			d := n.(ast.File)
+			if err := d.LinkParents(p, data.NewAsyncSet[ast.Declaration]()); err != nil {
+				return nil, err
+			}
+
+			if err := d.LinkFields(p, data.NewAsyncSet[ast.Declaration]()); err != nil {
+				return nil, err
+			}
+
+			if err := d.Semantic(p); err != nil {
+				return nil, err
+			}
+
+			return p.bytecodes, nil
+		},
+	)
+}
+
+func TestParseGeneric(t *testing.T) {
+	testCases := []testCase{
+		{
+			name:     "valid generic file",
+			input:    `interface Collection[E] {}`,
+			expected: &bytecode.Bytecodes{},
+			errFunc:  assert.NoError,
+		},
+		{
+			name: "valid generic file with parent",
+			input: `interface Example {
+				interface Collection[E] {
+					virtual fun bool(E) contains;
+				}
+				interface List[F] <: Collection[F] {
+				}
+				class ArrList[G] <: List[G] {
+					fun bool(G) contains = (e) {
+					}
+				}
+			}`,
+			expected: &bytecode.Bytecodes{},
+			errFunc:  assert.NoError,
+		},
+		{
+			name: "valid generic file with parent and same token generic args",
+			input: `interface Example {
+				interface Map[K, V] {
+					virtual fun bool(K) contains;
+				}
+				class WeirdSet[K] <: Map[K,K] {
+					fun bool(K) contains = (k) {
+					}
+				}
+			}`,
+			expected: &bytecode.Bytecodes{},
+			errFunc:  assert.NoError,
 		},
 	}
 

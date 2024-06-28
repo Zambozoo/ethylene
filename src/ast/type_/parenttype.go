@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func genericParent(p ast.SyntaxParser, dt *Composite) (*Generic, io.Error) {
+func genericParent(p ast.SyntaxParser, dt *Lookup) (*Generic, io.Error) {
 	var types []ast.Type
 	for {
 		t, err := p.ParseType()
@@ -35,14 +35,14 @@ func genericParent(p ast.SyntaxParser, dt *Composite) (*Generic, io.Error) {
 }
 
 func syntaxParent(p ast.SyntaxParser) (ast.DeclType, io.Error) {
-	t, err := (&Composite{Context_: p.TypeContext()}).Syntax(p)
+	t, err := (&Lookup{Context_: p.TypeContext()}).Syntax(p)
 	if err != nil {
 		return nil, err
 	}
 
 	var dt ast.DeclType = t
 	if p.Match(token.TOK_LEFTBRACKET) {
-		dt, err = genericParent(p, t.(*Composite))
+		dt, err = genericParent(p, t.(*Lookup))
 		if err != nil {
 			return nil, err
 		}

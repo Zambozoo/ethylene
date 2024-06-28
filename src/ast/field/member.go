@@ -75,7 +75,9 @@ func (m *Member) Semantic(p ast.SemanticParser) io.Error {
 		t, err := m.Expr.Semantic(p)
 		if err != nil {
 			return err
-		} else if _, err := type_.MustExtend(t, m.Type_); err != nil {
+		}
+		//TODO: IGNORE CONSTANT
+		if _, err := type_.MustExtend(p, t, m.Type_); err != nil {
 			return err
 		}
 	}
