@@ -6,6 +6,7 @@ import (
 	"geth-cody/ast/decl/generics"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"strings"
 
@@ -101,6 +102,11 @@ func (s *Struct) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 	s.BaseDecl.EndToken = p.Prev()
 
+	s.BaseDecl.Index, err = p.Types().NextStructIndex(s)
+	if err != nil {
+		return nil, err
+	}
+
 	if genericDecl != nil {
 		return genericDecl, nil
 	}
@@ -155,4 +161,7 @@ func (s *Struct) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 
 func (s *Struct) Concretize(mapping []ast.Type) ast.Type {
 	return s
+}
+func (s *Struct) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	return typeid.NewTypeID(parser.Types().StructIndex(s.Index), 0), nil
 }

@@ -32,6 +32,9 @@ type Type interface {
 	IsConstant() bool
 	// SetConstant sets the type to be constant.
 	SetConstant()
+
+	TypeID(SemanticParser) (TypeID, io.Error)
+	IsConcrete() bool
 }
 
 // FunType represents a function type, detailing its return and parameter types.
@@ -57,4 +60,28 @@ type DeclType interface {
 	Context() TypeContext
 	// Declaration returns the Declaration associated with the type within a given context.
 	Declaration(p SemanticParser) (Declaration, io.Error)
+}
+
+type Types interface {
+	NextEnumIndex(d Declaration) (uint32, io.Error)
+	NextStructIndex(d Declaration) (uint32, io.Error)
+	NextClassIndex(d Declaration) (uint32, io.Error)
+	NextAbstractIndex(d Declaration) (uint32, io.Error)
+	NextInterfaceIndex(d Declaration) (uint32, io.Error)
+	NextListIndex(ids []uint64) (uint32, io.Error)
+
+	EnumIndex(index uint32) uint32
+	StructIndex(index uint32) uint32
+	ClassIndex(index uint32) uint32
+	AbstractIndex(index uint32) uint32
+	InterfaceIndex(index uint32) uint32
+	ListIndex(ids []uint64) uint32
+
+	MaxIndex() uint64
+}
+
+type TypeID interface {
+	ID() uint64
+	Index() uint32
+	ListIndex() uint32
 }

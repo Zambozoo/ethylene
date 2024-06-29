@@ -5,6 +5,8 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 // Param is the variable name: `E` in `class List[E]`
@@ -79,4 +81,15 @@ func (p *Param) IsConstant() bool {
 }
 func (p *Param) SetConstant() {
 	p.Constant = true
+}
+
+func (p *Param) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	return nil, io.NewError("generic params do not have type ids",
+		zap.Stringer("location", p.Location()),
+		zap.Stringer("param", &p.Token),
+	)
+}
+
+func (p*Param) IsConcrete() bool {
+	return false
 }

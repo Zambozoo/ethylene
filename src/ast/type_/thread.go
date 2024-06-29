@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 )
 
@@ -49,4 +50,26 @@ func (t *Thread) IsConstant() bool {
 }
 func (t *Thread) SetConstant() {
 	t.Constant = true
+}
+
+func (t *Thread) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	tid, err := t.Type.TypeID(parser)
+	if err != nil {
+		return nil, err
+	}
+
+	lid, err := parser.Types().NextListIndex([]uint64{tid.ID()})
+	if err != nil {
+		return nil, err
+	}
+
+	index := typeid.ID_Thread.Index()
+	if t.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, lid), nil
+}
+
+func (t *Thread) IsConcrete() bool {
+	return t.Type.IsConcrete()
 }

@@ -8,4 +8,5 @@ import (
 type SymbolMap struct {
 	Projects map[string]*path.Project
 	Files    map[string]ast.File
+	Types    ast.Types
 }

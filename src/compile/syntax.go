@@ -5,6 +5,7 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer"
 	"geth-cody/compile/syntax"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"geth-cody/io/path"
 )
@@ -47,6 +48,7 @@ func Syntax(pathProvider path.Provider, mainFilePath path.Path) (syntax.SymbolMa
 	symbolMap := syntax.SymbolMap{
 		Projects: projectFiles.Map(),
 		Files:    map[string]ast.File{},
+		Types: typeid.NewTypes(),
 	}
 
 	unvisitedPaths := data.NewChan[path.Path](io.Env.BufferSize)

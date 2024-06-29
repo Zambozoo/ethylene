@@ -43,3 +43,7 @@ func (p *Parser) Parse() (*bytecode.Bytecodes, io.Error) {
 func (p *Parser) WrapDeclWithGeneric(d ast.Declaration, symbolSlice []ast.Type) ast.Declaration {
 	return generics.NewDecl(d, symbolSlice)
 }
+
+func (p *Parser) Types() ast.Types {
+	return p.symbolMap.Types
+}

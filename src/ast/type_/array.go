@@ -62,3 +62,12 @@ func (a *Array) IsConstant() bool {
 func (a *Array) SetConstant() {
 	a.Constant = true
 }
+
+func (a *Array) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	// TODO: FIGURE OUT SIZE
+	panic("")
+}
+
+func (a *Array) IsConcrete() bool {
+	return a.Type.IsConcrete()
+}
