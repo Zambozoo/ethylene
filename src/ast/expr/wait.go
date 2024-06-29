@@ -18,7 +18,7 @@ type Wait struct {
 }
 
 func (w *Wait) String() string {
-	return fmt.Sprintf("Wait{Expr:%s}", w.Expr.String())
+	return fmt.Sprintf("wait %s", w.Expr.String())
 }
 
 func (w *Wait) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

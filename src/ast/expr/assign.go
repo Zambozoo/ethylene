@@ -18,7 +18,7 @@ type Assign struct {
 }
 
 func (a *Assign) String() string {
-	return fmt.Sprintf("Assign{Left:%s, Right:%s}", a.Left.String(), a.Right.String())
+	return fmt.Sprintf("%s = %s", a.Left.String(), a.Right.String())
 }
 func (a *Assign) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	expr, err := (&Ternary{}).Syntax(p)

@@ -12,7 +12,7 @@ type Negation struct {
 }
 
 func (n *Negation) String() string {
-	return fmt.Sprintf("Negation{Expr:%s}", n.Expr.String())
+	return fmt.Sprintf("-%s", n.Expr.String())
 }
 
 func (n *Negation) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -34,7 +34,7 @@ type Bang struct {
 }
 
 func (b *Bang) String() string {
-	return fmt.Sprintf("Bang{Expr:%s}", b.Expr.String())
+	return fmt.Sprintf("!%s", b.Expr.String())
 }
 
 func (b *Bang) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

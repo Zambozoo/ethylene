@@ -14,7 +14,7 @@ import (
 type RightShift struct{ Binary }
 
 func (r *RightShift) String() string {
-	return fmt.Sprintf("RightShift{Left:%s,Right:%s}", r.Left.String(), r.Right.String())
+	return fmt.Sprintf("%s >> %s", r.Left.String(), r.Right.String())
 }
 
 func (r *RightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -42,7 +42,7 @@ func (r *RightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type LeftShift struct{ Binary }
 
 func (l *LeftShift) String() string {
-	return fmt.Sprintf("LeftShift{Left:%s,Right:%s}", l.Left.String(), l.Right.String())
+	return fmt.Sprintf("%s << %s", l.Left.String(), l.Right.String())
 }
 
 func (l *LeftShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -70,7 +70,7 @@ func (l *LeftShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type UnsignedRightShift struct{ Binary }
 
 func (u *UnsignedRightShift) String() string {
-	return fmt.Sprintf("UnsignedRightShift{Left:%s,Right:%s}", u.Left.String(), u.Right.String())
+	return fmt.Sprintf("%s >>> %s", u.Left.String(), u.Right.String())
 }
 
 func (u *UnsignedRightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

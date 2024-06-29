@@ -23,7 +23,7 @@ func (l *Label) Location() token.Location {
 }
 
 func (l *Label) String() string {
-	return fmt.Sprintf("Label{Label:%s,Stmt:%s}", l.Label.Value, l.Stmt.String())
+	return fmt.Sprintf("label %s: %s", l.Label.Value, l.Stmt.String())
 }
 
 func (l *Label) Syntax(p ast.SyntaxParser) io.Error {

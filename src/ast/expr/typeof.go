@@ -15,7 +15,7 @@ type TypeOf struct {
 }
 
 func (t *TypeOf) String() string {
-	return fmt.Sprintf("TypeOf{Expr:%s}", t.Expr.String())
+	return fmt.Sprintf("@%s", t.Expr.String())
 }
 
 func (to *TypeOf) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

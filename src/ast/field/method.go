@@ -42,12 +42,15 @@ func (m *Method) Location() token.Location {
 }
 
 func (m *Method) String() string {
-	return fmt.Sprintf("Member{Name:%s, Modifiers:%s, Type:%s, Parameters:%s, Stmt:%s}",
-		m.Name(),
+	var stmtString string
+	if m.Stmt != nil {
+		stmtString = fmt.Sprintf(": (%s)\n%s", strs.Strings(m.Parameters, ","), m.Stmt.String())
+	}
+	return fmt.Sprintf("%s fun %s %s%s",
 		m.Modifiers.String(),
 		m.Type_.String(),
-		strs.Strings(m.Parameters),
-		m.Stmt.String(),
+		m.Name(),
+		stmtString,
 	)
 }
 

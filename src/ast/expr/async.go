@@ -21,7 +21,7 @@ func (a *Async) Location() token.Location {
 }
 
 func (a *Async) String() string {
-	return fmt.Sprintf("Async{Expr:%s}", a.CallExpr.String())
+	return fmt.Sprintf("async %s", a.CallExpr.String())
 }
 
 func (a *Async) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

@@ -16,7 +16,7 @@ func (u Union) Location() token.Location {
 }
 
 func (u Union) String() string {
-	return fmt.Sprintf("Union{Types:%s}", strs.Strings(u))
+	return strs.Strings(u, "`")
 }
 
 func (u Union) Key(p ast.SemanticParser) (string, io.Error) {

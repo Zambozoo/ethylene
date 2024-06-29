@@ -14,7 +14,7 @@ type Delete struct {
 }
 
 func (d *Delete) String() string {
-	return fmt.Sprintf("Delete{Expr:%s}", d.Expr.String())
+	return fmt.Sprintf("delete(%s);", d.Expr.String())
 }
 
 func (d *Delete) Syntax(p ast.SyntaxParser) io.Error {

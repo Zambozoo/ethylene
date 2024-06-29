@@ -16,7 +16,7 @@ type Block struct {
 }
 
 func (b *Block) String() string {
-	return fmt.Sprintf("Block{Stmts:%s}", strs.Strings(b.Stmts))
+	return fmt.Sprintf("{\n%s}", strs.Strings(b.Stmts, "\n"))
 }
 
 func (b *Block) Syntax(p ast.SyntaxParser) io.Error {

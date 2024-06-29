@@ -16,7 +16,7 @@ type Cast struct {
 }
 
 func (c *Cast) String() string {
-	return fmt.Sprintf("Cast{Expr:%s}", c.Expr.String())
+	return fmt.Sprintf("%s{%s}", c.Expr.String(), c.Type.String())
 }
 
 func (c *Cast) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

@@ -1,7 +1,6 @@
 package field
 
 import (
-	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
@@ -26,11 +25,7 @@ func (d *Decl) Location() token.Location {
 	return token.LocationBetween(&d.StartToken, d.Declaration_)
 }
 func (d *Decl) String() string {
-	return fmt.Sprintf("Member{Name:%s, Modifiers:%s, Declaration:%s}",
-		d.Name(),
-		d.Modifiers.String(),
-		d.Declaration_.String(),
-	)
+	return d.Declaration_.String()
 }
 
 func (d *Decl) Syntax(p ast.SyntaxParser) io.Error {

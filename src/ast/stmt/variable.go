@@ -25,7 +25,11 @@ func (v *Var) Type() ast.Type {
 }
 
 func (v *Var) String() string {
-	return fmt.Sprintf("Variable{Name:%s,Expr:%s}", v.Name_.Value, v.Expr.String())
+	var exprString string
+	if v.Expr != nil {
+		exprString = fmt.Sprintf(" = %s", v.Expr.String())
+	}
+	return fmt.Sprintf("var %s%s;", v.Name_.Value, exprString)
 }
 
 func (v *Var) Syntax(p ast.SyntaxParser) io.Error {
@@ -45,14 +49,12 @@ func (v *Var) Syntax(p ast.SyntaxParser) io.Error {
 		return err
 	}
 
-	if _, err := p.Consume(token.TOK_ASSIGN); err != nil {
-		return err
-	}
-
-	if p.Peek().Type != token.TOK_SEMICOLON {
-		v.Expr, err = p.ParseExpr()
-		if err != nil {
-			return err
+	if p.Match(token.TOK_ASSIGN) {
+		if p.Peek().Type != token.TOK_SEMICOLON {
+			v.Expr, err = p.ParseExpr()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -63,7 +65,7 @@ func (v *Var) Syntax(p ast.SyntaxParser) io.Error {
 func (v *Var) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	// TODO: Scope and bytecode
 	if v.Expr == nil {
-		return nil, nil
+		return nil, p.Scope().AddVariable(v)
 	}
 
 	t, err := v.Expr.Semantic(p)

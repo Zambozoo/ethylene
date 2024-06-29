@@ -50,7 +50,7 @@ func (f *File) Location() token.Location {
 }
 
 func (f *File) String() string {
-	return fmt.Sprintf("File{Imports:%s, Declaration:%s}", strings.Join(maps.Keys(f.Imports), ","), f.Declaration_.String())
+	return fmt.Sprintf("%s\n%s\n", strings.Join(maps.Keys(f.Imports), "\n"), f.Declaration_.String())
 }
 
 func (f *File) Syntax(p ast.SyntaxParser) io.Error {

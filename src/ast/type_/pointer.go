@@ -19,7 +19,7 @@ func (p *Pointer) Location() token.Location {
 }
 
 func (p *Pointer) String() string {
-	return fmt.Sprintf("Pointer{Type:%s}", p.Type.String())
+	return fmt.Sprintf("%s*", p.Type.String())
 }
 
 func (p *Pointer) Key(parser ast.SemanticParser) (string, io.Error) {
@@ -36,7 +36,7 @@ func (p *Pointer) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (
 
 func (p *Pointer) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
 	if parentPtr, ok := parent.(*Pointer); ok {
-		return p.Type.Extends(parser, parentPtr.Type)
+		return p.Type.ExtendsAsPointer(parser, parentPtr.Type)
 	}
 
 	return false, nil
