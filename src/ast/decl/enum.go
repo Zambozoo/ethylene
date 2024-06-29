@@ -38,12 +38,12 @@ func newEnum() *Enum {
 }
 
 func (e *Enum) String() string {
-	return fmt.Sprintf("Interface{Name: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
+	return fmt.Sprintf("enum %s {\n%s\n%s\n%s\n%s}",
 		e.Name().Value,
-		strings.Join(maps.Keys(e.Methods_), ","),
-		strings.Join(maps.Keys(e.Members_), ","),
-		strings.Join(maps.Keys(e.StaticMembers_), ","),
-		strings.Join(maps.Keys(e.StaticMembers_), ","),
+		strings.Join(maps.Keys(e.Methods_), "\n"),
+		strings.Join(maps.Keys(e.Members_), "\n"),
+		strings.Join(maps.Keys(e.StaticMembers_), "\n"),
+		strings.Join(maps.Keys(e.StaticMembers_), "\n"),
 	)
 }
 

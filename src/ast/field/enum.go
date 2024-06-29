@@ -1,7 +1,6 @@
 package field
 
 import (
-	"fmt"
 	"geth-cody/ast"
 	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
@@ -37,10 +36,10 @@ func (e *Enum) Location() token.Location {
 }
 
 func (e *Enum) String() string {
-	return fmt.Sprintf("EnumField{Name:%s,Expr:%s}",
-		e.Name().String(),
-		e.Expression.String(),
-	)
+	if e.Expression != nil {
+		return e.Expression.String()
+	}
+	return e.Name().Value
 }
 
 func (e *Enum) Syntax(p ast.SyntaxParser) io.Error {

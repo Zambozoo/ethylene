@@ -7,6 +7,7 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/strs"
 
 	"go.uber.org/zap"
 )
@@ -21,6 +22,10 @@ type Arg struct {
 type Decl struct {
 	ast.Declaration
 	SymbolSlice []ast.Type
+}
+
+func (d *Decl) String() string {
+	return fmt.Sprintf("[%s]:%s", strs.Strings(d.SymbolSlice, ","), d.Declaration.String())
 }
 
 func NewDecl(d ast.Declaration, symbolSlice []ast.Type, symbolMap map[string]ast.Type) *Decl {
@@ -83,17 +88,18 @@ func (b *Decl) Concretize_(p ast.SemanticParser, d ast.Declaration, args []ast.T
 	}, nil
 }
 
-func (g *Decl) Parents() (data.Set[ast.DeclType], io.Error) {
+func (g *Decl) Parents() data.Set[ast.DeclType] {
 	decl, ok := g.Declaration.(ast.ChildDeclaration)
+
 	if !ok {
-		return nil, nil
+		return nil
 	}
 	parents := data.Set[ast.DeclType]{}
 	for _, parent := range decl.Parents() {
 		parents.Set(parent.Concretize(g.SymbolSlice).(ast.DeclType))
 	}
 
-	return parents, nil
+	return parents
 }
 
 // TODO: ADD SUPPORT FOR SUB/SUPER
@@ -135,11 +141,7 @@ func (d *Decl) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
 }
 
 func (d *Decl) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
-	ps, err := d.Parents()
-	if err != nil {
-		return false, err
-	}
-	for _, p := range ps {
+	for _, p := range d.Parents() {
 		if equals, err := p.Equals(parser, parent); equals || err != nil {
 			return equals, err
 		}
@@ -199,14 +201,10 @@ func (d *Decl) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast
 	if cd, ok := d.Declaration.(childDecl); ok {
 		return cd.LinkParentsWithProvider(p,
 			func() (data.Set[ast.DeclType], io.Error) {
-				return d.Parents()
+				return d.Parents(), nil
 			},
 			func(parent ast.DeclType) io.Error {
-				ps, err := d.Parents()
-				if err != nil {
-					return err
-				}
-				ps.Set(parent.Concretize(d.SymbolSlice).(ast.DeclType))
+				d.Parents().Set(parent.Concretize(d.SymbolSlice).(ast.DeclType))
 				return nil
 			},
 			visitedDecls,
@@ -219,7 +217,7 @@ func (d *Decl) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.
 	if cd, ok := d.Declaration.(childDecl); ok {
 		return cd.LinkFieldsWithProvider(p,
 			func() (data.Set[ast.DeclType], io.Error) {
-				return d.Parents()
+				return d.Parents(), nil
 			},
 			func() map[string]ast.Method {
 				return d.Methods()

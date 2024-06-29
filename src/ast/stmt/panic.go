@@ -15,7 +15,7 @@ type Panic struct {
 }
 
 func (p *Panic) String() string {
-	return fmt.Sprintf("Panic{Expr:%s}", p.Expr.String())
+	return fmt.Sprintf("panic(%s);", p.Expr.String())
 }
 
 func (p *Panic) Syntax(parser ast.SyntaxParser) io.Error {

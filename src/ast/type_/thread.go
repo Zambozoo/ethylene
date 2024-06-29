@@ -23,7 +23,7 @@ func (t *Thread) Key(p ast.SemanticParser) (string, io.Error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("Thread[%s]", k), nil
+	return fmt.Sprintf("thread[%s]", k), nil
 }
 
 func (t *Thread) Location() token.Location {

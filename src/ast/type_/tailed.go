@@ -27,7 +27,11 @@ func (t *Tailed) Location() token.Location {
 }
 
 func (t *Tailed) String() string {
-	return fmt.Sprintf("Tailed{Type:%s,Size:%d}", t.Type.String(), t.Size)
+	var tail string
+	if t.Size >= 0 {
+		tail = fmt.Sprintf("%d", t.Size)
+	}
+	return fmt.Sprintf("%s~%s", t.Type.String(), tail)
 }
 
 func (t *Tailed) Key(p ast.SemanticParser) (string, io.Error) {

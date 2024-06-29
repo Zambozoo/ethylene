@@ -12,7 +12,7 @@ type Identifier struct {
 }
 
 func (i *Identifier) String() string {
-	return fmt.Sprintf("Identifier{Value:%s}", i.Value)
+	return fmt.Sprintf("%s", i.Value)
 }
 
 func (i *Identifier) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

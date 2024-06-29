@@ -13,7 +13,7 @@ import (
 type LessThan struct{ Binary }
 
 func (e *LessThan) String() string {
-	return fmt.Sprintf("LessThan{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s < %s", e.Left.String(), e.Right.String())
 }
 
 func (l *LessThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -26,7 +26,7 @@ func (l *LessThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type LessThanOrEqual struct{ Binary }
 
 func (e *LessThanOrEqual) String() string {
-	return fmt.Sprintf("LessThanOrEqual{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s <= %s", e.Left.String(), e.Right.String())
 }
 
 func (l *LessThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -39,7 +39,7 @@ func (l *LessThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type GreaterThan struct{ Binary }
 
 func (e *GreaterThan) String() string {
-	return fmt.Sprintf("GreaterThan{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s > %s", e.Left.String(), e.Right.String())
 }
 
 func (g *GreaterThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -52,7 +52,7 @@ func (g *GreaterThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type GreaterThanOrEqual struct{ Binary }
 
 func (e *GreaterThanOrEqual) String() string {
-	return fmt.Sprintf("GreaterThanOrEqual{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s >= %s", e.Left.String(), e.Right.String())
 }
 
 func (g *GreaterThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -65,7 +65,7 @@ func (g *GreaterThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error)
 type Spaceship struct{ Binary }
 
 func (e *Spaceship) String() string {
-	return fmt.Sprintf("Spaceship{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s <=> %s", e.Left.String(), e.Right.String())
 }
 
 func (s *Spaceship) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

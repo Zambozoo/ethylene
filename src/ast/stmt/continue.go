@@ -14,7 +14,11 @@ type Continue struct {
 }
 
 func (c *Continue) String() string {
-	return fmt.Sprintf("Continue{Label:%s}", c.Label.Value)
+	var labelString string
+	if c.Label.Value != "" {
+		labelString = " " + c.Label.Value
+	}
+	return fmt.Sprintf("continue%s;", labelString)
 }
 
 func (c *Continue) Syntax(p ast.SyntaxParser) io.Error {

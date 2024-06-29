@@ -14,7 +14,7 @@ import (
 type Add struct{ Binary }
 
 func (a *Add) String() string {
-	return fmt.Sprintf("Add{Left:%s,Right:%s}", a.Left.String(), a.Right.String())
+	return fmt.Sprintf("%s + %s", a.Left.String(), a.Right.String())
 }
 
 func (a *Add) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -28,7 +28,7 @@ func (a *Add) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type Subtract struct{ Binary }
 
 func (s *Subtract) String() string {
-	return fmt.Sprintf("Substract{Left:%s,Right:%s}", s.Left.String(), s.Right.String())
+	return fmt.Sprintf("%s - %s", s.Left.String(), s.Right.String())
 }
 
 func (s *Subtract) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

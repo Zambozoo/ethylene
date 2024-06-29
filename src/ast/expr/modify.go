@@ -15,7 +15,7 @@ type IncrementPrefix struct {
 }
 
 func (i *IncrementPrefix) String() string {
-	return fmt.Sprintf("IncrementPrefix{Unary:%s}", i.Expr.String())
+	return fmt.Sprintf("++%s", i.Expr.String())
 }
 
 func (i *IncrementPrefix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -40,7 +40,7 @@ type IncrementSuffix struct {
 }
 
 func (i *IncrementSuffix) String() string {
-	return fmt.Sprintf("IncrementSuffix{Unary:%s}", i.Expr.String())
+	return fmt.Sprintf("%s++", i.Expr.String())
 }
 
 func (i *IncrementSuffix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -65,7 +65,7 @@ type DecrementPrefix struct {
 }
 
 func (d *DecrementPrefix) String() string {
-	return fmt.Sprintf("DecrementPrefix{Unary:%s}", d.Expr.String())
+	return fmt.Sprintf("--%s", d.Expr.String())
 }
 
 func (d *DecrementPrefix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -90,7 +90,7 @@ type DecrementSuffix struct {
 }
 
 func (d *DecrementSuffix) String() string {
-	return fmt.Sprintf("DecrementSuffix{Unary:%s}", d.Expr.String())
+	return fmt.Sprintf("%s--", d.Expr.String())
 }
 
 func (d *DecrementSuffix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

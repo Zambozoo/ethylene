@@ -41,18 +41,13 @@ func newStruct() *Struct {
 	}
 }
 
-func (s *Struct) SetTailed() io.Error {
-	s.IsTailed = true
-	return nil
-}
-
 func (s *Struct) String() string {
-	return fmt.Sprintf("Struct{Name: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
+	return fmt.Sprintf("struct %s {\n%s\n%s\n%s\n%s}",
 		s.Name().Value,
-		strings.Join(maps.Keys(s.Methods_), ","),
-		strings.Join(maps.Keys(s.Members_), ","),
-		strings.Join(maps.Keys(s.StaticMembers_), ","),
-		strings.Join(maps.Keys(s.StaticMembers_), ","),
+		strings.Join(maps.Keys(s.Methods_), "\n"),
+		strings.Join(maps.Keys(s.Members_), "\n"),
+		strings.Join(maps.Keys(s.StaticMembers_), "\n"),
+		strings.Join(maps.Keys(s.StaticMembers_), "\n"),
 	)
 }
 

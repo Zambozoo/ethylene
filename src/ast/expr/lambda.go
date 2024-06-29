@@ -21,7 +21,7 @@ func (l *Lambda) Location() token.Location {
 }
 
 func (l *Lambda) String() string {
-	return fmt.Sprintf("Lambda{Type:%s, Parameters:%s, Stmt:%s}", l.Type.String(), l.Parameters, l.Stmt.String())
+	return fmt.Sprintf("lambda %s : (%s)\n%s", l.Type.String(), l.Parameters, l.Stmt.String())
 }
 
 func (l *Lambda) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

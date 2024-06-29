@@ -22,7 +22,7 @@ func (t *Ternary) Location() token.Location {
 }
 
 func (t *Ternary) String() string {
-	return fmt.Sprintf("Ternary{Condition:%s,Then:%s,Else:%s}",
+	return fmt.Sprintf("%s ? %s : %s",
 		t.Condition.String(),
 		t.Then.String(),
 		t.Else.String(),

@@ -1,12 +1,18 @@
 package generics
 
 import (
+	"fmt"
 	"geth-cody/ast"
+	"geth-cody/strs"
 )
 
 type genericMember struct {
 	ast.Member
 	mapping []ast.Type
+}
+
+func (m *genericMember) String() string {
+	return fmt.Sprintf("[%s]:%s", strs.Strings(m.mapping, ","), m.Member.String())
 }
 
 func (g *genericMember) Type() ast.Type {

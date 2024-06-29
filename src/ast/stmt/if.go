@@ -25,7 +25,15 @@ func (i *If) Location() token.Location {
 }
 
 func (i *If) String() string {
-	return fmt.Sprintf("If{Condition:%s,Then:%s,Else:%s}", i.Condition.String(), i.Then.String(), i.Else.String())
+	var elseString string
+	if i.Else != nil {
+		elseString = fmt.Sprintf("\nelse%s", i.Else.String())
+	}
+	return fmt.Sprintf("if(%s)\n%s%s",
+		i.Condition.String(),
+		i.Then.String(),
+		elseString,
+	)
 }
 
 func (i *If) Syntax(p ast.SyntaxParser) io.Error {

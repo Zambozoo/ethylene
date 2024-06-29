@@ -21,8 +21,7 @@ func (p *Primitive[T]) SetConstant() {
 }
 
 func (p *Primitive[T]) String() string {
-	return p.Token.String()
-	return p.Token.String()
+	return p.Token.Value
 }
 
 func (p *Primitive[T]) Key(_ ast.SemanticParser) (string, io.Error) {

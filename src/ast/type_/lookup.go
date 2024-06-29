@@ -1,7 +1,6 @@
 package type_
 
 import (
-	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
@@ -39,7 +38,7 @@ func (l *Lookup) String() string {
 		tokensString += spacer + t.Value
 		spacer = "."
 	}
-	return fmt.Sprintf("Composite{Tokens:%s}", tokensString)
+	return tokensString
 }
 
 func (l *Lookup) Key(p ast.SemanticParser) (string, io.Error) {

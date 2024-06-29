@@ -30,7 +30,7 @@ func (g *Generic) Location() token.Location {
 }
 
 func (g *Generic) String() string {
-	return fmt.Sprintf("Generic{Type:%s,GenericParameters:%s}", g.Type, strs.Strings(g.GenericTypes))
+	return fmt.Sprintf("%s[%s]", g.Type, strs.Strings(g.GenericTypes, ","))
 }
 
 func (g *Generic) Key(p ast.SemanticParser) (string, io.Error) {
@@ -48,7 +48,7 @@ func (g *Generic) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool,
 		return false, err
 	}
 
-	return decl.Concretize(g.Context_.TopScope().Generics()).ExtendsAsPointer(p, parent)
+	return decl.ExtendsAsPointer(p, parent)
 }
 
 func (g *Generic) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {

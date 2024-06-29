@@ -16,7 +16,7 @@ type BitwiseXor struct {
 }
 
 func (b *BitwiseXor) String() string {
-	return fmt.Sprintf("BitwiseXor{Left:%s,Right:%s}", b.Left.String(), b.Right.String())
+	return fmt.Sprintf("%s ^ %s", b.Left.String(), b.Right.String())
 }
 
 func (b *BitwiseXor) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
@@ -57,7 +57,7 @@ type BitwiseAnd struct {
 }
 
 func (b *BitwiseAnd) String() string {
-	return fmt.Sprintf("BitwiseAnd{Left:%s,Right:%s}", b.Left.String(), b.Right.String())
+	return fmt.Sprintf("%s & %s", b.Left.String(), b.Right.String())
 }
 
 func (b *BitwiseAnd) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
@@ -97,7 +97,7 @@ type BitwiseOr struct {
 }
 
 func (b *BitwiseOr) String() string {
-	return fmt.Sprintf("BitwiseOr{Left:%s,Right:%s}", b.Left.String(), b.Right.String())
+	return fmt.Sprintf("%s | %s", b.Left.String(), b.Right.String())
 }
 
 func (b *BitwiseOr) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
