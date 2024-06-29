@@ -122,6 +122,7 @@ func (d *BaseDecl) Semantic(p ast.SemanticParser) io.Error {
 	}
 
 	d.addStaticFields(p.Scope())
+	p.Scope().Wrap(ast.WithDeclaration(nil))
 	for _, member := range d.StaticMembers_ {
 		if err := member.Semantic(p); err != nil {
 			return err
@@ -133,6 +134,7 @@ func (d *BaseDecl) Semantic(p ast.SemanticParser) io.Error {
 			return err
 		}
 	}
+	p.Scope().Unwrap()
 
 	d.addFields(p.Scope())
 	for _, member := range d.Members_ {
@@ -246,4 +248,8 @@ func (*BaseDecl) Generics() []ast.Type {
 
 func (*BaseDecl) IsConcrete() bool {
 	return true
+}
+
+func (*BaseDecl) IsTailed() bool {
+	return false
 }

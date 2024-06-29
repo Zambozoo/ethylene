@@ -47,7 +47,6 @@ func (n *Nullary) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (n *Nullary) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := n.Left.Semantic(p)
 	if err != nil {
 		return nil, err

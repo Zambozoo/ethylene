@@ -1,6 +1,8 @@
 package typeid
 
-import "geth-cody/ast"
+import (
+	"geth-cody/ast"
+)
 
 var (
 	ID_Void   = &TypeID{index: 0}
@@ -43,15 +45,27 @@ func (tid *TypeID) Index() uint32 {
 	return tid.index
 }
 
+func (tid *TypeID) DeclIndex() uint32 {
+	return (tid.index << 8) >> 8
+}
+
 func (tid *TypeID) ListIndex() uint32 {
 	return tid.listIndex
 }
 
 // ID is the 64-bit identifier for a concrete type.
 func (tid *TypeID) ID() uint64 {
-	return (uint64(tid.index) << 32) | uint64(tid.listIndex)
+	return (uint64(tid.index) << 31) | uint64(tid.listIndex)
+}
+
+func (tid *TypeID) IsConstant() bool {
+	return tid.index>>31 != 0
+}
+
+func (tid *TypeID) PointerDepth() uint8 {
+	return uint8(tid.index>>24) & 0x7f
 }
 
 func (tid *TypeID) IsMarkable(c *Types) bool {
-	return tid.index > ID_TypeID.index+uint32(len(c.Enums)+len(c.Structs))
+	return tid.DeclIndex() > ID_TypeID.index+uint32(len(c.Enums)+len(c.Structs))
 }

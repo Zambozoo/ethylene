@@ -83,5 +83,5 @@ func (l *Lambda) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (l *Lambda) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	return l.Type, nil
 }

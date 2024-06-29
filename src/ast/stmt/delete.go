@@ -34,6 +34,5 @@ func (d *Delete) Syntax(p ast.SyntaxParser) io.Error {
 }
 
 func (d *Delete) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return nil, nil
 }

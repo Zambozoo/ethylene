@@ -39,7 +39,6 @@ func (r *Return) Syntax(p ast.SyntaxParser) io.Error {
 }
 
 func (r *Return) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	if r.Expr == nil {
 		return nil, nil
 	}

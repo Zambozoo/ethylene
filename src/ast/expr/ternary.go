@@ -63,7 +63,6 @@ func (t *Ternary) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (t *Ternary) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	cond, err := t.Condition.Semantic(p)
 	if err != nil {
 		return nil, err

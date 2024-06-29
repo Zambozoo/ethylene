@@ -44,7 +44,6 @@ func (a *Async) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (a *Async) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := a.CallExpr.Semantic(p)
 	if err != nil {
 		return nil, err

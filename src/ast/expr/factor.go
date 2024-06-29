@@ -18,7 +18,6 @@ func (m *Multiply) String() string {
 }
 
 func (m *Multiply) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return m.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
 }
 
@@ -28,7 +27,6 @@ func (m *Multiply) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type Divide struct{ Binary }
 
 func (d *Divide) String() string {
-	// TODO: Scope and bytecode
 	return fmt.Sprintf("%s / %s", d.Left.String(), d.Right.String())
 }
 
@@ -46,7 +44,6 @@ func (m *Modulo) String() string {
 }
 
 func (m *Modulo) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return m.Binary.MustBothExtendOne(p, &type_.Integer{})
 }
 

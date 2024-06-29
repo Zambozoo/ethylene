@@ -5,6 +5,8 @@ import (
 	"geth-cody/ast"
 	"geth-cody/ast/type_"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 // Reference represents expressions of the form
@@ -19,7 +21,6 @@ func (r *Reference) String() string {
 }
 
 func (r *Reference) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := r.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -36,7 +37,23 @@ type Dereference struct {
 }
 
 func (d *Dereference) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	t, err := d.Expr.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if p, ok := t.(*type_.Pointer); ok {
+		t = p.Type
+	} else if a, ok := t.(*type_.Array); ok {
+		t = a.Type
+	} else {
+		return nil, io.NewError("deference of non-pointer and non-array type",
+			zap.Stringer("location", d.Location()),
+			zap.Stringer("type", t),
+		)
+	}
+
+	return t, nil
 }
 
 func (d *Dereference) String() string {

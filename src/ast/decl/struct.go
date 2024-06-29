@@ -17,7 +17,7 @@ import (
 type Struct struct {
 	BaseDecl
 
-	IsTailed bool
+	IsTailed_ bool
 }
 
 func (*Struct) IsInterface() bool {
@@ -70,7 +70,7 @@ func (s *Struct) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 
 	if p.Match(token.TOK_TILDE) {
-		s.IsTailed = true
+		s.IsTailed_ = true
 	}
 
 	if _, err := p.Consume(token.TOK_LEFTBRACE); err != nil {
@@ -132,7 +132,8 @@ func (s *Struct) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[as
 }
 
 func (s *Struct) Semantic(p ast.SemanticParser) io.Error {
-	// TODO: Handle generic constraints
+	p.Scope().Wrap(ast.WithDeclaration(s))
+	defer p.Scope().Unwrap()
 	return s.BaseDecl.Semantic(p)
 }
 
@@ -164,4 +165,8 @@ func (s *Struct) Concretize(mapping []ast.Type) ast.Type {
 }
 func (s *Struct) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
 	return typeid.NewTypeID(parser.Types().StructIndex(s.Index), 0), nil
+}
+
+func (s *Struct) IsTailed() bool {
+	return s.IsTailed_
 }

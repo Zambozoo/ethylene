@@ -3,6 +3,7 @@ package expr
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/io"
 )
 
@@ -18,5 +19,5 @@ func (h *Hash) String() string {
 }
 
 func (h *Hash) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	return &type_.Integer{}, nil
 }

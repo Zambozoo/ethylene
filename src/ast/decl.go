@@ -25,6 +25,10 @@ type Declaration interface {
 	Members() map[string]Member
 	// Methods returns a map of method names to Method objects.
 	Methods() map[string]Method
+	// StaticMethods returns a map of method names to static Method objects.
+	StaticMethods() map[string]Method
+	// StaticMember returns a map of method names to static Member objects.
+	StaticMembers() map[string]Member
 	//Declarations returns a map of inner declarations.
 	Declarations() map[string]DeclField
 
@@ -34,6 +38,7 @@ type Declaration interface {
 	IsAbstract() bool
 	// IsClass returns true if the declaration is a class
 	IsClass() bool
+	IsTailed() bool
 
 	// GenericParamIndex returns the index of a given genericParam for the declaration and an existence flag
 	GenericParamIndex(name string) (int, bool)
@@ -45,4 +50,6 @@ type ChildDeclaration interface {
 	Declaration
 	// Parents returns the child declaration's parents
 	Parents() data.Set[DeclType]
+
+	Super() (DeclType, bool)
 }

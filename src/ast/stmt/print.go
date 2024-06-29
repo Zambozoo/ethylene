@@ -35,7 +35,6 @@ func (p *Print) Syntax(parser ast.SyntaxParser) io.Error {
 }
 
 func (p *Print) Semantic(parser ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := p.Expr.Semantic(parser)
 	if err != nil {
 		return nil, err

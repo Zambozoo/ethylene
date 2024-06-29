@@ -27,10 +27,14 @@ import (
 type Class struct {
 	BaseDecl
 
-	IsTailed bool
+	IsTailed_ bool
 
 	SuperClass ast.DeclType           // Optional
 	Parents_   data.Set[ast.DeclType] // Interfaces this decl implements
+}
+
+func (c *Class) Super() (ast.DeclType, bool) {
+	return c.SuperClass, c.SuperClass != nil
 }
 
 func (c *Class) Parents() data.Set[ast.DeclType] {
@@ -95,7 +99,7 @@ func (c *Class) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 
 	if p.Match(token.TOK_TILDE) {
-		c.IsTailed = true
+		c.IsTailed_ = true
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
@@ -191,6 +195,12 @@ func (c *Class) LinkParentsWithProvider(
 					zap.Stringer("location", c.Location()),
 					zap.Stringer("parent", parentDecl.Name()),
 				)
+			} else if parentDecl.IsTailed() && len(c.Members_) != 0 {
+				return nil, io.NewError("concrete is tailed and child has new methods",
+					zap.Stringer("abstract", c.Name()),
+					zap.Stringer("location", c.Location()),
+					zap.Stringer("parent", parentDecl.Name()),
+				)
 			}
 			c.SuperClass = parent
 		} else if !parentDecl.IsInterface() {
@@ -263,7 +273,8 @@ func (c *Class) LinkFieldsWithProvider(p ast.SemanticParser, parentProviderFunc 
 }
 
 func (c *Class) Semantic(p ast.SemanticParser) io.Error {
-	// TODO: Handle generic constraints
+	p.Scope().Wrap(ast.WithDeclaration(c))
+	defer p.Scope().Unwrap()
 	return c.BaseDecl.Semantic(p)
 }
 
@@ -304,4 +315,8 @@ func (c *Class) Concretize(mapping []ast.Type) ast.Type {
 
 func (c *Class) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
 	return typeid.NewTypeID(parser.Types().ClassIndex(c.Index), 0), nil
+}
+
+func (c *Class) IsTailed() bool {
+	return c.IsTailed_
 }

@@ -16,7 +16,6 @@ func (n *Negation) String() string {
 }
 
 func (n *Negation) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecodes
 	t, err := n.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -38,7 +37,6 @@ func (b *Bang) String() string {
 }
 
 func (b *Bang) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := b.Expr.Semantic(p)
 	if err != nil {
 		return nil, err

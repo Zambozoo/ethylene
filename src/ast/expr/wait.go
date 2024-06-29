@@ -37,7 +37,6 @@ func (w *Wait) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (w *Wait) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := w.Expr.Semantic(p)
 	if err != nil {
 		return nil, err

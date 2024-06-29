@@ -3,6 +3,7 @@ package semantic
 import (
 	"geth-cody/ast"
 	"geth-cody/ast/decl"
+	"geth-cody/ast/file"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer"
 	"geth-cody/compile/lexer/token"
@@ -62,7 +63,7 @@ func testParseHelper(t *testing.T, testCases []testCase, syntaxFunc func(*syntax
 				t.Fatal(err)
 			}
 
-			var file ast.File
+			file := &file.File{}
 			semanticParser := NewParser(file, symbolMap)
 			bytecodes, err := semanticFunc(semanticParser, node)
 			tt.errFunc(t, err)

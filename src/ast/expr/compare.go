@@ -3,8 +3,11 @@ package expr
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 // LessThan represents expressions of the form
@@ -17,7 +20,21 @@ func (e *LessThan) String() string {
 }
 
 func (l *LessThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := l.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := l.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Boolean{}, nil
 }
 
 // LessThanOrEqual represents expressions of the form
@@ -30,7 +47,21 @@ func (e *LessThanOrEqual) String() string {
 }
 
 func (l *LessThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := l.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := l.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Boolean{}, nil
 }
 
 // GreaterThan represents expressions of the form
@@ -43,7 +74,21 @@ func (e *GreaterThan) String() string {
 }
 
 func (g *GreaterThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := g.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := g.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Boolean{}, nil
 }
 
 // GreaterThanOrEqual represents expressions of the form
@@ -56,7 +101,21 @@ func (e *GreaterThanOrEqual) String() string {
 }
 
 func (g *GreaterThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := g.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := g.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Boolean{}, nil
 }
 
 // Spaceship represents expressions of the form
@@ -69,7 +128,21 @@ func (e *Spaceship) String() string {
 }
 
 func (s *Spaceship) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := s.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := s.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Integer{}, nil
 }
 
 func syntaxCompare(p ast.SyntaxParser) (ast.Expression, io.Error) {
@@ -80,6 +153,32 @@ func syntaxCompare(p ast.SyntaxParser) (ast.Expression, io.Error) {
 
 	for {
 		switch t := p.Peek(); t.Type {
+		case token.TOK_SUBTYPE:
+			p.Next()
+			r, err := syntaxShift(p)
+			if err != nil {
+				return nil, err
+			}
+
+			expr = &SuperType{
+				Binary: Binary{
+					Left:  expr,
+					Right: r,
+				},
+			}
+		case token.TOK_SUPERTYPE:
+			p.Next()
+			r, err := syntaxShift(p)
+			if err != nil {
+				return nil, err
+			}
+
+			expr = &SubType{
+				Binary: Binary{
+					Left:  expr,
+					Right: r,
+				},
+			}
 		case token.TOK_SPACESHIP:
 			p.Next()
 			r, err := syntaxShift(p)
@@ -149,4 +248,17 @@ func syntaxCompare(p ast.SyntaxParser) (ast.Expression, io.Error) {
 			return expr, nil
 		}
 	}
+}
+
+func compareTypeCheck(p ast.SemanticParser, left, right ast.Type) io.Error {
+	if eq, err := left.Equals(p, right); err != nil {
+		return err
+	} else if !eq {
+		return io.NewError("compare type mismatch",
+			zap.Stringer("left", left),
+			zap.Stringer("right", right),
+		)
+	}
+
+	return nil
 }

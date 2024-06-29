@@ -60,6 +60,7 @@ type DeclType interface {
 	Context() TypeContext
 	// Declaration returns the Declaration associated with the type within a given context.
 	Declaration(p SemanticParser) (Declaration, io.Error)
+	IsFieldable() bool
 }
 
 type Types interface {
