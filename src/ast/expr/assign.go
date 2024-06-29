@@ -41,7 +41,7 @@ func (a *Assign) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 			}
 
 			if !assignable(a.Left) {
-				return nil, io.NewError("invalid target for assign expresion", zap.Any("location", a.Left.Location()))
+				return nil, io.NewError("invalid target for assign expresion", zap.Stringer("location", a.Left.Location()))
 			}
 
 			expr = a
@@ -67,7 +67,7 @@ func (a *Assign) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	if err != nil {
 		return nil, err
 	} else if left.IsConstant() {
-		return nil, io.NewError("cannot assign to constant", zap.Any("location", a.Left.Location()))
+		return nil, io.NewError("cannot assign to constant", zap.Stringer("location", a.Left.Location()))
 	}
 
 	right, err := a.Right.Semantic(p)

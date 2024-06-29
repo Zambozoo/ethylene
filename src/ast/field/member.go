@@ -26,7 +26,7 @@ func (m *Member) Type() ast.Type {
 	return m.Type_
 }
 
-func (m *Member) Location() token.Location {
+func (m *Member) Location() *token.Location {
 	return token.LocationBetween(&m.StartToken, &m.EndToken)
 }
 func (m *Member) String() string {

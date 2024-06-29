@@ -86,7 +86,7 @@ func (e *Enum) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 		if err != nil {
 			return nil, err
 		} else if f.HasModifier(ast.MOD_VIRTUAL) {
-			return nil, io.NewError("virtual fields are not allowed in enums", zap.Any("field", f.Name()))
+			return nil, io.NewError("virtual fields are not allowed in enums", zap.Stringer("field", f.Name()))
 		}
 		if err := e.AddField(f); err != nil {
 			return nil, err
@@ -140,11 +140,6 @@ func (e *Enum) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	}
 
 	return false, nil
-}
-
-func (e *Enum) Key(_ ast.SemanticParser) (string, io.Error) {
-	l := e.Location()
-	return fmt.Sprintf("%s:%s", l.String(), e.Name_.Value), nil
 }
 
 func (e *Enum) Concretize(mapping []ast.Type) ast.Type {

@@ -20,7 +20,7 @@ func main() {
 		return
 	}
 	pathProvider := path.DefaultProvider{}
-	io.Infof("running Ethylene bytecode transpiler", zap.Any("args", args))
+	io.Infof("running Ethylene bytecode transpiler", zap.Stringer("args", args))
 
 	io.Infof("[Syntax] Start")
 	symbolMap, err := compile.Syntax(&pathProvider, args.InputFilePath)

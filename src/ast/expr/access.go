@@ -19,7 +19,7 @@ type Access struct {
 	EndToken token.Token
 }
 
-func (a *Access) Location() token.Location {
+func (a *Access) Location() *token.Location {
 	return token.LocationBetween(a.Left, &a.EndToken)
 }
 
@@ -37,7 +37,7 @@ func (a *Access) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	} else if arr, ok := left.(*type_.Array); ok {
 		t = arr.Type
 	} else {
-		return nil, io.NewError("left expression of access must be a pointer or array", zap.Any("location", a.Location()))
+		return nil, io.NewError("left expression of access must be a pointer or array", zap.Stringer("location", a.Location()))
 	}
 
 	right, err := a.Right.Semantic(p)

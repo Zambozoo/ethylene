@@ -52,14 +52,14 @@ func (n *Nullary) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	if err != nil {
 		return nil, err
 	} else if _, ok := left.(*type_.Pointer); !ok {
-		return nil, io.NewError("left operand of nullary operator must be a pointer", zap.Any("location", n.Left.Location()))
+		return nil, io.NewError("left operand of nullary operator must be a pointer", zap.Stringer("location", n.Left.Location()))
 	}
 
 	right, err := n.Right.Semantic(p)
 	if err != nil {
 		return nil, err
 	} else if _, ok := right.(*type_.Pointer); !ok {
-		return nil, io.NewError("right operand of nullary operator must be a pointer", zap.Any("location", n.Left.Location()))
+		return nil, io.NewError("right operand of nullary operator must be a pointer", zap.Stringer("location", n.Left.Location()))
 	}
 
 	return type_.Union{right, left}, nil

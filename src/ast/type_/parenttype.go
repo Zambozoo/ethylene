@@ -79,7 +79,7 @@ func SyntaxParents(p ast.SyntaxParser) (data.Set[ast.DeclType], io.Error) {
 		}
 
 		if !parents.Set(t) {
-			return nil, io.NewError("duplicate parent type", zap.Any("type", t.String()))
+			return nil, io.NewError("duplicate parent type", zap.Stringer("type", t))
 		}
 
 		if p.Match(token.TOK_RIGHTBRACKET) {

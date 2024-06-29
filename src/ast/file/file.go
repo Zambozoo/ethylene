@@ -37,7 +37,7 @@ func (f *File) Declaration() ast.Declaration {
 	return f.Declaration_
 }
 
-func (f *File) Location() token.Location {
+func (f *File) Location() *token.Location {
 	var locatable token.Locatable = f.Declaration_
 	if len(f.Imports) > 0 {
 		for _, v := range f.Imports {
@@ -61,10 +61,9 @@ func (f *File) Syntax(p ast.SyntaxParser) io.Error {
 		}
 		name := i.FilePath.Name()
 		if _, ok := f.Imports[name]; ok {
-			l := i.Location()
 			return io.NewError("duplicate import",
-				zap.String("path", i.FilePath.String()),
-				zap.Any("location", l.String()),
+				zap.Stringer("path", i.FilePath),
+				zap.Stringer("location", i.Location()),
 			)
 		}
 		f.Imports[name] = i

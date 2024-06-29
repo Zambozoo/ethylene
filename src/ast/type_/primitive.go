@@ -24,12 +24,7 @@ func (p *Primitive[T]) String() string {
 	return p.Token.Value
 }
 
-func (p *Primitive[T]) Key(_ ast.SemanticParser) (string, io.Error) {
-	return p.Token.Value, nil
-}
-
-func (p *Primitive[T]) Location() token.Location {
-	return p.Token.Location()
+func (p *Primitive[T]) Location() *token.Location {
 	return p.Token.Location()
 }
 
@@ -182,30 +177,22 @@ func syntaxPrimitive(p ast.SyntaxParser) (ast.Type, io.Error) {
 	switch t := p.Peek(); t.Type {
 	case token.TOK_TYPEINT:
 		return &Integer{Primitive: Primitive[Integer]{Token: p.Next()}}, nil
-		return &Integer{Primitive: Primitive[Integer]{Token: p.Next()}}, nil
 	case token.TOK_TYPEFLT:
-		return &Float{Primitive: Primitive[Float]{Token: p.Next()}}, nil
 		return &Float{Primitive: Primitive[Float]{Token: p.Next()}}, nil
 	case token.TOK_TYPEWORD:
 		return &Word{Primitive: Primitive[Word]{Token: p.Next()}}, nil
-		return &Word{Primitive: Primitive[Word]{Token: p.Next()}}, nil
 	case token.TOK_TYPE:
-		return &TypeID{Primitive: Primitive[TypeID]{Token: p.Next()}}, nil
 		return &TypeID{Primitive: Primitive[TypeID]{Token: p.Next()}}, nil
 	case token.TOK_TYPESTR:
 		return &String{Primitive: Primitive[String]{Token: p.Next()}}, nil
-		return &String{Primitive: Primitive[String]{Token: p.Next()}}, nil
 	case token.TOK_TYPECHAR:
-		return &Character{Primitive: Primitive[Character]{Token: p.Next()}}, nil
 		return &Character{Primitive: Primitive[Character]{Token: p.Next()}}, nil
 	case token.TOK_TYPEBOOL:
 		return &Boolean{Primitive: Primitive[Boolean]{Token: p.Next()}}, nil
-		return &Boolean{Primitive: Primitive[Boolean]{Token: p.Next()}}, nil
 	case token.TOK_TYPEVOID:
 		return &Void{Primitive: Primitive[Void]{Token: p.Next()}}, nil
-		return &Void{Primitive: Primitive[Void]{Token: p.Next()}}, nil
 	default:
-		return nil, io.NewError("expected type", zap.String("token", t.String()))
+		return nil, io.NewError("expected type", zap.Stringer("token", &t))
 	}
 }
 

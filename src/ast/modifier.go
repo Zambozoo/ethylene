@@ -47,8 +47,8 @@ func SyntaxModifiers(p SyntaxParser) (map[Modifier]struct{}, io.Error) {
 			if accessModiferCount > 1 {
 				endT := p.Prev()
 				return nil, io.NewError("multiple access modifiers",
-					zap.Any("modifiers", maps.Keys(modifiers)),
-					zap.Any("location", token.LocationBetween(&startT, &endT)),
+					zap.Stringers("modifiers", maps.Keys(modifiers)),
+					zap.Stringer("location", token.LocationBetween(&startT, &endT)),
 				)
 			}
 
@@ -58,8 +58,8 @@ func SyntaxModifiers(p SyntaxParser) (map[Modifier]struct{}, io.Error) {
 				endT := p.Prev()
 
 				return nil, io.NewError("virtual methods cannot be static or native",
-					zap.Any("modifiers", maps.Keys(modifiers)),
-					zap.Any("location", token.LocationBetween(&startT, &endT)),
+					zap.Stringers("modifiers", maps.Keys(modifiers)),
+					zap.Stringer("location", token.LocationBetween(&startT, &endT)),
 				)
 			}
 

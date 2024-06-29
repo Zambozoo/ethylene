@@ -25,7 +25,7 @@ func NewProject(fp Path) (*Project, io.Error) {
 	var p Project
 	if err := yaml.Unmarshal([]byte(str), &p); err != nil {
 		return nil, io.NewError("couldn't unmarshal project file",
-			zap.Any("path", fp),
+			zap.Stringer("path", fp),
 			zap.Error(err),
 		)
 	}

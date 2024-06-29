@@ -17,7 +17,7 @@ type Ternary struct {
 	Else      ast.Expression
 }
 
-func (t *Ternary) Location() token.Location {
+func (t *Ternary) Location() *token.Location {
 	return token.LocationBetween(t.Condition, t.Else)
 }
 

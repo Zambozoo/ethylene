@@ -33,5 +33,5 @@ func mainProjectPath(fp Path) (Path, io.Error) {
 		}
 	}
 
-	return nil, io.NewError("main project path not found", zap.Any("path", fp))
+	return nil, io.NewError("main project path not found", zap.Stringer("path", fp))
 }

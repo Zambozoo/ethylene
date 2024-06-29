@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 
@@ -8,6 +9,7 @@ import (
 )
 
 type Variable interface {
+	fmt.Stringer
 	Name() *token.Token
 	Type() Type
 }
@@ -15,8 +17,8 @@ type Variable interface {
 func (s *Scope) AddVariable(variable Variable) io.Error {
 	if oldVar, ok := s.Variables[variable.Name().Value]; ok {
 		return io.NewError("variable already declared in this scope",
-			zap.Any("old variable", oldVar),
-			zap.Any("new variable", variable.Name()),
+			zap.Stringer("old variable", oldVar),
+			zap.Stringer("new variable", variable.Name()),
 		)
 	}
 
@@ -31,5 +33,5 @@ func (s *Scope) GetVariable(tok token.Token) (variable Variable, isCaptured bool
 		}
 	}
 
-	return nil, false, io.NewError("variable not found", zap.String("token", tok.String()))
+	return nil, false, io.NewError("variable not found", zap.Stringer("token", &tok))
 }

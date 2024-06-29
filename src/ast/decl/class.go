@@ -29,11 +29,11 @@ type Class struct {
 	IsTailed bool
 
 	SuperClass ast.DeclType           // Optional
-	Implements data.Set[ast.DeclType] // Interfaces this decl implements
+	Parents_   data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
 func (c *Class) Parents() data.Set[ast.DeclType] {
-	return c.Implements
+	return c.Parents_
 }
 
 func (*Class) IsInterface() bool {
@@ -62,8 +62,8 @@ func newClass() *Class {
 
 func (c *Class) String() string {
 	var parentsString string
-	if len(c.Implements) > 0 {
-		parentsString = "<: [" + strings.Join(maps.Keys(c.Implements), ",") + "]"
+	if len(c.Parents_) > 0 {
+		parentsString = "<: [" + strings.Join(maps.Keys(c.Parents_), ",") + "]"
 	}
 	return fmt.Sprintf("class %s%s {\n%s\n%s\n%s\n%s}",
 		c.Name().Value,
@@ -98,7 +98,7 @@ func (c *Class) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		if c.Implements, err = p.ParseParentTypes(); err != nil {
+		if c.Parents_, err = p.ParseParentTypes(); err != nil {
 			return nil, err
 		}
 	}
@@ -115,13 +115,13 @@ func (c *Class) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 			if genericDecl != nil {
 				if _, ok := genericDecl.GenericParamIndex(f.Name().Value); ok {
 					return nil, io.NewError("inner decl name duplicates generic type",
-						zap.Any("decl", f.Name()),
-						zap.Any("location", f.Location()),
+						zap.Stringer("decl", f.Name()),
+						zap.Stringer("location", f.Location()),
 					)
 				}
 			}
 		} else if f.HasModifier(ast.MOD_VIRTUAL) {
-			return nil, io.NewError("virtual fields are not allowed in classes", zap.Any("field", f.Name()))
+			return nil, io.NewError("virtual fields are not allowed in classes", zap.Stringer("field", f.Name()))
 		}
 
 		if err := c.AddField(f); err != nil {
@@ -139,10 +139,10 @@ func (c *Class) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 func (c *Class) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
 	return c.LinkParentsWithProvider(p,
 		func() (data.Set[ast.DeclType], io.Error) {
-			return c.Implements, nil
+			return c.Parents_, nil
 		},
 		func(parent ast.DeclType) io.Error {
-			c.Implements.Set(parent)
+			c.Parents_.Set(parent)
 			return nil
 		},
 		visitedDecls, cycleMap)
@@ -156,14 +156,14 @@ func (c *Class) LinkParentsWithProvider(
 	cycleMap map[string]struct{},
 ) (data.Set[ast.DeclType], io.Error) {
 	if _, exists := visitedDecls.Get(c); exists {
-		return c.Implements, nil
+		return c.Parents_, nil
 	}
 
 	l := c.Location()
 	if _, isCyclical := cycleMap[l.String()]; isCyclical {
 		return nil, io.NewError("cyclical inheritance",
-			zap.Any("class", c.Name()),
-			zap.Any("location", l),
+			zap.Stringer("class", c.Name()),
+			zap.Stringer("location", l),
 		)
 	}
 	cycleMap[l.String()] = struct{}{}
@@ -181,17 +181,17 @@ func (c *Class) LinkParentsWithProvider(
 		if parentDecl.IsClass() || parentDecl.IsAbstract() {
 			if c.SuperClass != nil {
 				return nil, io.NewError("class cannot implement multiple concrete parents",
-					zap.Any("class", c.Name()),
-					zap.Any("location", c.Location()),
-					zap.Any("parent", parentDecl.Name()),
+					zap.Stringer("class", c.Name()),
+					zap.Stringer("location", c.Location()),
+					zap.Stringer("parent", parentDecl.Name()),
 				)
 			}
 			c.SuperClass = parent
 		} else if !parentDecl.IsInterface() {
 			return nil, io.NewError("class cannot implement struct or enum parents",
-				zap.Any("class", c.Name()),
-				zap.Any("location", c.Location()),
-				zap.Any("parent", parentDecl.Name()),
+				zap.Stringer("class", c.Name()),
+				zap.Stringer("location", c.Location()),
+				zap.Stringer("parent", parentDecl.Name()),
 			)
 		}
 
@@ -214,7 +214,7 @@ func (c *Class) LinkParentsWithProvider(
 func (c *Class) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	return c.LinkFieldsWithProvider(p,
 		func() (data.Set[ast.DeclType], io.Error) {
-			return c.Implements, nil
+			return c.Parents_, nil
 		},
 		func() map[string]ast.Method {
 			return c.Methods_
@@ -266,7 +266,7 @@ func (c *Class) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) 
 }
 
 func (c *Class) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
-	for _, p := range c.Implements {
+	for _, p := range c.Parents_ {
 		if equals, err := p.Equals(parser, parent); equals || err != nil {
 			return equals, err
 		}
@@ -290,11 +290,6 @@ func (c *Class) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	}
 
 	return false, nil
-}
-
-func (c *Class) Key(_ ast.SemanticParser) (string, io.Error) {
-	l := c.Location()
-	return fmt.Sprintf("%s:%s", l.String(), c.Name_.Value), nil
 }
 
 func (c *Class) Concretize(mapping []ast.Type) ast.Type {

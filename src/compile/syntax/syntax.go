@@ -71,8 +71,8 @@ func (p *Parser) AddPath(dependency, filePath string) (path.Path, io.Error) {
 		if !ok {
 			return nil, io.NewError("couldn't find dependency in project",
 				zap.String("dependency", dependency),
-				zap.Any("path", p.path),
-				zap.Any("project", p.project),
+				zap.Stringer("path", p.path),
+				zap.Stringer("project", p.project),
 			)
 		}
 		zipFileName := fmt.Sprintf("pkgs/%s~%s.zip", dependency, version)
@@ -123,8 +123,8 @@ func (p *Parser) Consume(t token.Type) (token.Token, io.Error) {
 	}
 
 	return token.Token{}, io.NewError("expected token type",
-		zap.Any("expected", t),
-		zap.Any("actual", p.tokens[p.curTokenIndex]),
+		zap.Stringer("expected", t),
+		zap.Stringer("actual", &p.tokens[p.curTokenIndex]),
 	)
 }
 

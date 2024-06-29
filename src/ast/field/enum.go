@@ -31,7 +31,7 @@ func (e *Enum) Type() ast.Type {
 	return e.Type_
 }
 
-func (e *Enum) Location() token.Location {
+func (e *Enum) Location() *token.Location {
 	return token.LocationBetween(&e.StartToken, &e.EndToken)
 }
 

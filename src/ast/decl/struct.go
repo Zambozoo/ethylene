@@ -84,15 +84,15 @@ func (s *Struct) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 			if genericDecl != nil {
 				if _, ok := genericDecl.GenericParamIndex(f.Name().Value); ok {
 					return nil, io.NewError("inner decl name duplicates generic type",
-						zap.Any("decl", f.Name()),
-						zap.Any("location", f.Location()),
+						zap.Stringer("decl", f.Name()),
+						zap.Stringer("location", f.Location()),
 					)
 				}
 			}
 		} else if f.HasModifier(ast.MOD_VIRTUAL) {
 			return nil, io.NewError("virtual fields are not allowed in structs",
-				zap.Any("field", f.Name()),
-				zap.Any("location", f.Location()),
+				zap.Stringer("field", f.Name()),
+				zap.Stringer("location", f.Location()),
 			)
 		}
 		if err := s.AddField(f); err != nil {
@@ -151,11 +151,6 @@ func (s *Struct) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	}
 
 	return false, nil
-}
-
-func (s *Struct) Key(_ ast.SemanticParser) (string, io.Error) {
-	l := s.Location()
-	return fmt.Sprintf("%s:%s", l.String(), s.Name_.Value), nil
 }
 
 func (s *Struct) Concretize(mapping []ast.Type) ast.Type {

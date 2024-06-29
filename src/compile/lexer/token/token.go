@@ -13,8 +13,8 @@ type Token struct {
 	Loc Location
 }
 
-func (t *Token) Location() Location {
-	return t.Loc
+func (t *Token) Location() *Location {
+	return &t.Loc
 }
 
 func (t *Token) String() string {

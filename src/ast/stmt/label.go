@@ -18,7 +18,7 @@ type Label struct {
 	Stmt       ast.Statement
 }
 
-func (l *Label) Location() token.Location {
+func (l *Label) Location() *token.Location {
 	return token.LocationBetween(&l.StartToken, l.Stmt)
 }
 
@@ -51,8 +51,8 @@ func (l *Label) Syntax(p ast.SyntaxParser) io.Error {
 	_, ifFor1 := l.Stmt.(*For1)
 	if !ifFor0 && !ifFor1 {
 		return io.NewError("label statement must be followed by a for0 statement",
-			zap.Any("label", l.Label.Value),
-			zap.Any("location", l.Location()),
+			zap.String("label", l.Label.Value),
+			zap.Stringer("location", l.Location()),
 		)
 	}
 

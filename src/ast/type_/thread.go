@@ -18,15 +18,7 @@ func (t *Thread) String() string {
 	return fmt.Sprintf("Thread{Type:%s}", t.Type.String())
 }
 
-func (t *Thread) Key(p ast.SemanticParser) (string, io.Error) {
-	k, err := t.Type.Key(p)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("thread[%s]", k), nil
-}
-
-func (t *Thread) Location() token.Location {
+func (t *Thread) Location() *token.Location {
 	return t.Type.Location()
 }
 

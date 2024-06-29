@@ -7,7 +7,7 @@ import (
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 
 	"go.uber.org/zap"
 )
@@ -25,10 +25,10 @@ type Decl struct {
 }
 
 func (d *Decl) String() string {
-	return fmt.Sprintf("[%s]:%s", strs.Strings(d.SymbolSlice, ","), d.Declaration.String())
+	return fmt.Sprintf("[%s]:%s", stringers.Join(d.SymbolSlice, ","), d.Declaration.String())
 }
 
-func NewDecl(d ast.Declaration, symbolSlice []ast.Type, symbolMap map[string]ast.Type) *Decl {
+func NewDecl(d ast.Declaration, symbolSlice []ast.Type) *Decl {
 	b := &Decl{
 		Declaration: d,
 		SymbolSlice: symbolSlice,
@@ -56,7 +56,7 @@ func (b *Decl) Concretize_(p ast.SemanticParser, d ast.Declaration, args []ast.T
 		return nil, io.NewError("Incorrect number of generic arguments",
 			zap.Int("expected", b.Arity()),
 			zap.Int("actual", len(args)),
-			zap.Any("location", d.Location()),
+			zap.Stringer("location", d.Location()),
 		)
 	}
 	for i, arg := range args {
@@ -164,20 +164,6 @@ func (d *Decl) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	}
 
 	return false, nil
-}
-
-func (d *Decl) Key(p ast.SemanticParser) (string, io.Error) {
-	l := d.Location()
-	var keys string
-	var spacer string
-	for _, t := range d.SymbolSlice {
-		k, err := t.Key(p)
-		if err != nil {
-			return "", err
-		}
-		keys += spacer + k
-	}
-	return fmt.Sprintf("%s:%s[%s]", l.String(), d.Name().Value, keys), nil
 }
 
 func (d *Decl) Concretize(mapping []ast.Type) ast.Type {

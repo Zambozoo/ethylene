@@ -16,7 +16,7 @@ type If struct {
 	Else       ast.Statement
 }
 
-func (i *If) Location() token.Location {
+func (i *If) Location() *token.Location {
 	endLocatable := i.Then
 	if i.Else != nil {
 		endLocatable = i.Else

@@ -16,7 +16,7 @@ type New struct {
 	TailLengthExpr  ast.Expression
 }
 
-func (n *New) Location() token.Location {
+func (n *New) Location() *token.Location {
 	return token.LocationBetween(&n.StartToken, &n.EndToken)
 }
 

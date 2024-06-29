@@ -22,7 +22,7 @@ func (f *File) Read() (string, io.Error) {
 	fileBytes, err := os.ReadFile(string(*f))
 	if err != nil {
 		return "", io.NewError("couldn't read file",
-			zap.Any("file path", f),
+			zap.Stringer("file path", f),
 			zap.Error(err),
 		)
 	}
@@ -35,7 +35,7 @@ func (f *File) Stat() io.Error {
 	_, err := os.Stat(string(*f))
 	if err != nil {
 		return io.NewError("couldn't stat file",
-			zap.Any("file path", f),
+			zap.Stringer("file path", f),
 			zap.Error(err),
 		)
 	}

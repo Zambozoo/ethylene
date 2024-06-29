@@ -15,21 +15,12 @@ type Array struct {
 	EndToken token.Token
 }
 
-func (a *Array) Location() token.Location {
+func (a *Array) Location() *token.Location {
 	return token.LocationBetween(a.Type, &a.EndToken)
 }
 
 func (a *Array) String() string {
 	return fmt.Sprintf("%s[%d]", a.Type.String(), a.Size)
-}
-
-func (a *Array) Key(p ast.SemanticParser) (string, io.Error) {
-	k, err := a.Type.Key(p)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s[%d]", k, a.Size), nil
 }
 
 func (a *Array) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {

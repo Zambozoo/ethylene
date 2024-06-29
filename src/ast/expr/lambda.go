@@ -16,7 +16,7 @@ type Lambda struct {
 	Stmt       ast.Statement
 }
 
-func (l *Lambda) Location() token.Location {
+func (l *Lambda) Location() *token.Location {
 	return token.LocationBetween(&l.StartToken, l.Stmt)
 }
 
@@ -38,7 +38,7 @@ func (l *Lambda) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	}
 
 	if l.Type, ok = t.(ast.FunType); !ok {
-		return nil, io.NewError("expected a function type for lambda", zap.Any("location", t.Location()))
+		return nil, io.NewError("expected a function type for lambda", zap.Stringer("location", t.Location()))
 	}
 
 	if _, err := p.Consume(token.TOK_COLON); err != nil {
@@ -68,9 +68,9 @@ func (l *Lambda) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 
 	if l.Type.Arity() != len(l.Parameters) {
 		return nil, io.NewError("arity of lambda does not match number of parameters",
-			zap.Any("expected", l.Type.Arity()),
-			zap.Any("actual", len(l.Parameters)),
-			zap.Any("location", l.Location()),
+			zap.Int("expected", l.Type.Arity()),
+			zap.Int("actual", len(l.Parameters)),
+			zap.Stringer("location", l.Location()),
 		)
 	}
 

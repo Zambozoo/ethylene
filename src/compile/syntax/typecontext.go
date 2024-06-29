@@ -16,18 +16,10 @@ type TypeContext struct {
 	SymbolMap SymbolMap
 }
 
-func (tc *TypeContext) Dependency(pkg string) (string, bool) {
-	if version, ok := tc.Project.Packages[pkg]; ok {
-		return version, ok
-	}
-
-	return "", false
-}
-
 func (tc *TypeContext) Declaration(tokens []token.Token) (ast.Declaration, io.Error) {
 	if len(tokens) == 1 {
 		if _, ok := tc.TopScope().GenericParamIndex(tokens[0].Value); ok {
-			return nil, io.NewError("generic argument doesn't have declaration", zap.Any("token", tokens[0]))
+			return nil, io.NewError("generic argument doesn't have declaration", zap.Stringer("token", &tokens[0]))
 		}
 	}
 
@@ -37,11 +29,11 @@ func (tc *TypeContext) Declaration(tokens []token.Token) (ast.Declaration, io.Er
 		for i := 1; i < len(tokens); i++ {
 			decl, ok := d.Declarations()[tokens[i].Value]
 			if !ok {
-				return nil, io.NewError("missing declaration", zap.Any("location", tokens[0].Location()))
+				return nil, io.NewError("missing declaration", zap.Stringer("location", tokens[0].Location()))
 			}
 
 			if !decl.HasModifier(ast.MOD_PUBLIC) {
-				return nil, io.NewError("inaccessible declaration", zap.Any("location", tokens[0].Location()))
+				return nil, io.NewError("inaccessible declaration", zap.Stringer("location", tokens[0].Location()))
 			}
 
 			d = decl.Declaration()
@@ -69,7 +61,7 @@ scope:
 		return decl, nil
 	}
 
-	return nil, io.NewError("missing declaration", zap.Any("location", tokens[0].Location()))
+	return nil, io.NewError("missing declaration", zap.Stringer("location", tokens[0].Location()))
 }
 
 func (tc *TypeContext) TopScope() ast.Declaration {

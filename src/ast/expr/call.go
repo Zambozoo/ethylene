@@ -5,7 +5,7 @@ import (
 	"geth-cody/ast"
 	"geth-cody/ast/type_"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 
 	"go.uber.org/zap"
 )
@@ -19,7 +19,7 @@ type Call struct {
 }
 
 func (c *Call) String() string {
-	return fmt.Sprintf("%s(%s)", c.Expr.String(), strs.Strings(c.Exprs, ","))
+	return fmt.Sprintf("%s(%s)", c.Expr.String(), stringers.Join(c.Exprs, ","))
 }
 
 func (c *Call) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -31,11 +31,11 @@ func (c *Call) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 
 	ft, ok := left.(*type_.Function)
 	if !ok {
-		return nil, io.NewError("left expression of call must be a function", zap.Any("location", c.Location()))
+		return nil, io.NewError("left expression of call must be a function", zap.Stringer("location", c.Location()))
 	}
 
 	if ft.Arity() != len(c.Exprs) {
-		return nil, io.NewError("number of arguments does not match function signature", zap.Any("location", c.Location()))
+		return nil, io.NewError("number of arguments does not match function signature", zap.Stringer("location", c.Location()))
 	}
 
 	for i, expr := range c.Exprs {
