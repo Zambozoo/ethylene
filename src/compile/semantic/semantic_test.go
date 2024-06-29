@@ -8,6 +8,7 @@ import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/compile/semantic/bytecode"
 	"geth-cody/compile/syntax"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"geth-cody/io/path"
 	"reflect"
@@ -51,8 +52,8 @@ func testParseHelper(t *testing.T, testCases []testCase, syntaxFunc func(*syntax
 				project     path.Project
 				channel     mockChan[path.Path]
 				mainDirPath path.File
-				symbolMap   syntax.SymbolMap
 			)
+			symbolMap := syntax.SymbolMap{Types: typeid.NewTypes()}
 
 			syntaxParser := syntax.NewParser(tokens, &project, &filePath, &mainDirPath, &path.DefaultProvider{}, &channel, symbolMap)
 			syntaxParser.WrapScope(wrappingDecl())

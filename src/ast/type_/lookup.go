@@ -3,6 +3,7 @@ package type_
 import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 )
 
@@ -103,4 +104,24 @@ func (l *Lookup) Syntax(p ast.SyntaxParser) (ast.DeclType, io.Error) {
 	}
 
 	return l, nil
+}
+
+func (l *Lookup) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	d, _ := l.Declaration(nil)
+
+	tid, err := d.TypeID(parser)
+	if err != nil {
+		return nil, err
+	}
+
+	index := tid.Index()
+	if l.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, tid.ListIndex()), nil
+}
+
+func (l *Lookup) IsConcrete() bool {
+	d, _ := l.Declaration(nil)
+	return d.IsConcrete()
 }

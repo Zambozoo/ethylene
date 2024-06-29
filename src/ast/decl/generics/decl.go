@@ -6,6 +6,7 @@ import (
 	"geth-cody/ast/type_"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"geth-cody/stringers"
 
@@ -221,4 +222,32 @@ func (d *Decl) GenericParamIndex(name string) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+func (d *Decl) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	ids := make([]uint64, len(d.SymbolSlice))
+	for _, t := range d.SymbolSlice {
+		id, err := t.TypeID(parser)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id.ID())
+	}
+
+	tid, err := d.Declaration.TypeID(parser)
+	if err != nil {
+		return nil, err
+	}
+
+	return typeid.NewTypeID(tid.Index(), parser.Types().ListIndex(ids)), nil
+}
+
+func (d *Decl) IsConcrete() bool {
+	for _, t := range d.SymbolSlice {
+		if !t.IsConcrete() {
+			return false
+		}
+	}
+
+	return true
 }

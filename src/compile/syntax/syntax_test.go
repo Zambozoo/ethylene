@@ -10,6 +10,7 @@ import (
 	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"geth-cody/io/path"
 	"reflect"
@@ -62,8 +63,9 @@ func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.No
 				project     path.Project
 				channel     mockChan[path.Path]
 				mainDirPath path.File
-				symbolMap   SymbolMap
 			)
+			symbolMap := SymbolMap{Types: typeid.NewTypes()}
+
 			parser := NewParser(tokens, &project, filePath, &mainDirPath, &path.DefaultProvider{}, &channel, symbolMap)
 			parser.WrapScope(wrappingDecl())
 
@@ -71,7 +73,7 @@ func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.No
 			tt.errFunc(t, err)
 
 			if !reflect.DeepEqual(node, tt.expected) {
-				diff := cmp.Diff(node, tt.expected, cmpopts.IgnoreUnexported(path.Project{}))
+				diff := cmp.Diff(node, tt.expected, cmpopts.IgnoreUnexported(path.Project{}, typeid.Types{}))
 				if diff == "" {
 					diff = "an unexported field differed"
 				}
@@ -205,6 +207,9 @@ func TestParseDecl(t *testing.T) {
 						Context_: &TypeContext{
 							Project: &path.Project{},
 							Scope:   []ast.Declaration{wrappingDecl(), c},
+							SymbolMap: SymbolMap{
+								Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+							},
 						},
 						Token: lookup.Tokens[0],
 						Decl:  &d,
@@ -250,6 +255,9 @@ func TestParseDecl(t *testing.T) {
 				Context_: &TypeContext{
 					Project: &path.Project{},
 					Scope:   []ast.Declaration{wrappingDecl(), c},
+					SymbolMap: SymbolMap{
+						Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+					},
 				},
 				Tokens: []token.Token{
 					{
@@ -265,6 +273,9 @@ func TestParseDecl(t *testing.T) {
 						Context_: &TypeContext{
 							Project: &path.Project{},
 							Scope:   []ast.Declaration{wrappingDecl(), c},
+							SymbolMap: SymbolMap{
+								Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+							},
 						},
 						Token: lookup.Tokens[0],
 						Decl:  &d,
@@ -2077,6 +2088,9 @@ func TestParseExpr(t *testing.T) {
 					Context_: &TypeContext{
 						Project: &path.Project{},
 						Scope:   []ast.Declaration{wrappingDecl()},
+						SymbolMap: SymbolMap{
+							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+						},
 					},
 					Tokens: []token.Token{
 						{
@@ -2448,6 +2462,9 @@ func TestParseExpr(t *testing.T) {
 					Context_: &TypeContext{
 						Project: &path.Project{},
 						Scope:   []ast.Declaration{wrappingDecl()},
+						SymbolMap: SymbolMap{
+							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+						},
 					},
 					Tokens: []token.Token{
 						{
@@ -3168,11 +3185,17 @@ func TestParseType(t *testing.T) {
 				Context_: &TypeContext{
 					Project: &path.Project{},
 					Scope:   []ast.Declaration{wrappingDecl()},
+					SymbolMap: SymbolMap{
+						Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+					},
 				},
 				Type: &type_.Lookup{
 					Context_: &TypeContext{
 						Project: &path.Project{},
 						Scope:   []ast.Declaration{wrappingDecl()},
+						SymbolMap: SymbolMap{
+							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+						},
 					},
 					Tokens: []token.Token{
 						{
@@ -3218,11 +3241,17 @@ func TestParseType(t *testing.T) {
 				Context_: &TypeContext{
 					Project: &path.Project{},
 					Scope:   []ast.Declaration{wrappingDecl()},
+					SymbolMap: SymbolMap{
+						Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+					},
 				},
 				Type: &type_.Lookup{
 					Context_: &TypeContext{
 						Project: &path.Project{},
 						Scope:   []ast.Declaration{wrappingDecl()},
+						SymbolMap: SymbolMap{
+							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+						},
 					},
 					Tokens: []token.Token{
 						{
@@ -3308,6 +3337,9 @@ func TestParseType(t *testing.T) {
 					Context_: &TypeContext{
 						Project: &path.Project{},
 						Scope:   []ast.Declaration{wrappingDecl()},
+						SymbolMap: SymbolMap{
+							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+						},
 					},
 					Tokens: []token.Token{
 						{
@@ -3341,6 +3373,9 @@ func TestParseType(t *testing.T) {
 					Context_: &TypeContext{
 						Project: &path.Project{},
 						Scope:   []ast.Declaration{wrappingDecl()},
+						SymbolMap: SymbolMap{
+							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+						},
 					},
 					Tokens: []token.Token{
 						{

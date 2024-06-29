@@ -25,6 +25,8 @@ type BaseDecl struct {
 	StaticMembers_ map[string]ast.Member
 
 	Declarations_ map[string]ast.DeclField
+
+	Index uint32
 }
 
 func newDecl() BaseDecl {
@@ -240,4 +242,8 @@ func (b *BaseDecl) GenericParamIndex(name string) (int, bool) {
 
 func (*BaseDecl) Generics() []ast.Type {
 	return nil
+}
+
+func (*BaseDecl) IsConcrete() bool {
+	return true
 }

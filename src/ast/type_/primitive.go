@@ -3,6 +3,7 @@ package type_
 import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 
 	"go.uber.org/zap"
@@ -28,6 +29,10 @@ func (p *Primitive[T]) Location() *token.Location {
 	return p.Token.Location()
 }
 
+func (p *Primitive[T]) IsConcrete() bool {
+	return true
+}
+
 type Integer struct{ Primitive[Integer] }
 
 func (p *Integer) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
@@ -42,6 +47,13 @@ func (p *Integer) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Er
 }
 func (p *Integer) Concretize([]ast.Type) ast.Type {
 	return p
+}
+func (p *Integer) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Int.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
 }
 
 type Float struct{ Primitive[Float] }
@@ -59,6 +71,13 @@ func (p *Float) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Erro
 func (p *Float) Concretize([]ast.Type) ast.Type {
 	return p
 }
+func (p *Float) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Float.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
+}
 
 type Word struct{ Primitive[Word] }
 
@@ -74,6 +93,13 @@ func (p *Word) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error
 }
 func (p *Word) Concretize([]ast.Type) ast.Type {
 	return p
+}
+func (p *Word) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Word.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
 }
 
 type Character struct{ Primitive[Character] }
@@ -91,6 +117,13 @@ func (p *Character) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.
 func (p *Character) Concretize([]ast.Type) ast.Type {
 	return p
 }
+func (p *Character) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Char.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
+}
 
 type String struct{ Primitive[String] }
 
@@ -106,6 +139,13 @@ func (p *String) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Err
 }
 func (p *String) Concretize([]ast.Type) ast.Type {
 	return p
+}
+func (p *String) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Str.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
 }
 
 type Boolean struct{ Primitive[Boolean] }
@@ -123,6 +163,13 @@ func (p *Boolean) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Er
 func (p *Boolean) Concretize([]ast.Type) ast.Type {
 	return p
 }
+func (p *Boolean) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Bool.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
+}
 
 type Void struct{ Primitive[Void] }
 
@@ -138,6 +185,13 @@ func (p *Void) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error
 }
 func (p *Void) Concretize([]ast.Type) ast.Type {
 	return p
+}
+func (p *Void) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_Void.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
 }
 
 type TypeID struct{ Primitive[TypeID] }
@@ -155,6 +209,13 @@ func (p *TypeID) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Err
 func (p *TypeID) Concretize([]ast.Type) ast.Type {
 	return p
 }
+func (p *TypeID) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	index := typeid.ID_TypeID.Index()
+	if p.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, 0), nil
+}
 
 type Null struct{ Primitive[Null] }
 
@@ -171,6 +232,9 @@ func (p *Null) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error
 }
 func (p *Null) Concretize([]ast.Type) ast.Type {
 	return p
+}
+func (p *Null) TypeID(ast.SemanticParser) (ast.TypeID, io.Error) {
+	return nil, io.NewError("null does not have a type id", zap.Stringer("location", p.Location()))
 }
 
 func syntaxPrimitive(p ast.SyntaxParser) (ast.Type, io.Error) {

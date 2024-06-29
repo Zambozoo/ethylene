@@ -72,3 +72,11 @@ func (t *Tailed) IsConstant() bool {
 func (t *Tailed) SetConstant() {
 	t.Constant = true
 }
+
+func (t *Tailed) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	panic("FIGURE OUT TAILED SIZE")
+}
+
+func (t *Tailed) IsConcrete() bool {
+	return t.Type.IsConcrete()
+}

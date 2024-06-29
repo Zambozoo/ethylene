@@ -97,3 +97,17 @@ func (Union) IsConstant() bool {
 func (Union) SetConstant() {
 	panic("unreachable ")
 }
+
+func (Union) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	panic("unreachable")
+}
+
+func (u Union) IsConcrete() bool {
+	for _, t := range u {
+		if !t.IsConcrete() {
+			return false
+		}
+	}
+
+	return true
+}

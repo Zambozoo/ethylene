@@ -6,6 +6,7 @@ import (
 	"geth-cody/ast/field"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"strings"
 
@@ -94,6 +95,11 @@ func (e *Enum) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 	e.BaseDecl.EndToken = p.Prev()
 
+	e.BaseDecl.Index, err = p.Types().NextEnumIndex(e)
+	if err != nil {
+		return nil, err
+	}
+
 	return e, nil
 }
 
@@ -144,4 +150,7 @@ func (e *Enum) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 
 func (e *Enum) Concretize(mapping []ast.Type) ast.Type {
 	return e
+}
+func (e *Enum) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	return typeid.NewTypeID(parser.Types().EnumIndex(e.Index), 0), nil
 }

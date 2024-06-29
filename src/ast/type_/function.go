@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"geth-cody/stringers"
 )
@@ -96,4 +97,38 @@ func (f *Function) IsConstant() bool {
 }
 func (f *Function) SetConstant() {
 	f.Constant = true
+}
+
+func (f *Function) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
+	ids := make([]uint64, len(f.ParameterTypes_)+1)
+	rid, err := f.ReturnType_.TypeID(parser)
+	if err != nil {
+		return nil, err
+	}
+	ids = append(ids, rid.ID())
+
+	for _, t := range f.ParameterTypes_ {
+		id, err := t.TypeID(parser)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id.ID())
+	}
+
+	index := uint32(0)
+	if f.Constant {
+		index |= 1 << 31
+	}
+
+	return typeid.NewTypeID(index, parser.Types().ListIndex(ids)), nil
+}
+
+func (f *Function) IsConcrete() bool {
+	for _, t := range f.ParameterTypes_ {
+		if !t.IsConcrete() {
+			return false
+		}
+	}
+
+	return f.ReturnType_.IsConcrete()
 }

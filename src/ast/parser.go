@@ -56,6 +56,8 @@ type SyntaxParser interface {
 	ParseStmt() (Statement, io.Error)
 	// ParseExpr parses and returns an Expression.
 	ParseExpr() (Expression, io.Error)
+
+	Types() Types
 }
 
 // SemanticParser defines an interface for semantic analysis of parsed elements.
@@ -66,4 +68,6 @@ type SemanticParser interface {
 	Scope() *Scope
 	// WrapDeclWithGeneric wraps the declaration with a mapping.
 	WrapDeclWithGeneric(d Declaration, slice []Type) Declaration
+	
+	Types() Types
 }

@@ -5,6 +5,8 @@ import (
 	"geth-cody/ast"
 	"geth-cody/ast/type_"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 // TypeOf represents expressions of the form
@@ -20,9 +22,15 @@ func (t *TypeOf) String() string {
 
 func (to *TypeOf) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	// TODO: Scope and bytecode
-	_, err := to.Expr.Semantic(p)
+	t, err := to.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
+	}
+
+	if ok, err := t.Extends(p, &type_.Null{}); err != nil {
+		return nil, err
+	} else if ok {
+		return nil, io.NewError("typeof expression cannot be called on null type", zap.Stringer("location", to.Location()))
 	}
 
 	return &type_.TypeID{}, nil

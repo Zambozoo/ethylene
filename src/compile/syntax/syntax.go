@@ -178,3 +178,7 @@ func (p *Parser) ParseStmt() (ast.Statement, io.Error) {
 func (p *Parser) ParseExpr() (ast.Expression, io.Error) {
 	return expr.Syntax(p)
 }
+
+func (p *Parser) Types() ast.Types {
+	return p.symbolMap.Types
+}
