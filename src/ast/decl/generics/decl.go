@@ -251,3 +251,15 @@ func (d *Decl) IsConcrete() bool {
 
 	return true
 }
+
+func (d *Decl) Super() (ast.DeclType, bool) {
+	cd, ok := d.Declaration.(ast.ChildDeclaration)
+	if !ok {
+		return nil, ok
+	}
+	return cd.Super()
+}
+
+func (d *Decl) IsTailed() bool {
+	return d.Declaration.IsTailed()
+}

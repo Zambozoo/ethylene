@@ -19,7 +19,6 @@ func (i *IncrementPrefix) String() string {
 }
 
 func (i *IncrementPrefix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := i.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -44,7 +43,6 @@ func (i *IncrementSuffix) String() string {
 }
 
 func (i *IncrementSuffix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := i.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -69,7 +67,6 @@ func (d *DecrementPrefix) String() string {
 }
 
 func (d *DecrementPrefix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := d.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -94,7 +91,6 @@ func (d *DecrementSuffix) String() string {
 }
 
 func (d *DecrementSuffix) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := d.Expr.Semantic(p)
 	if err != nil {
 		return nil, err

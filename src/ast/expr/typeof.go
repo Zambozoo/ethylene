@@ -21,7 +21,6 @@ func (t *TypeOf) String() string {
 }
 
 func (to *TypeOf) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := to.Expr.Semantic(p)
 	if err != nil {
 		return nil, err

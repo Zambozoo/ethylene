@@ -97,7 +97,7 @@ func (c *Types) NextListIndex(ids []uint64) (uint32, io.Error) {
 	}
 
 	c.ListsMap[key] = nextList
-	c.Lists = append(c.Lists, ids)
+	c.Lists = append(append(c.Lists, []uint64{uint64(len(ids))}), ids)
 
 	return nextList, nil
 }

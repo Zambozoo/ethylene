@@ -18,7 +18,6 @@ func (r *RightShift) String() string {
 }
 
 func (r *RightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := r.Left.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -46,7 +45,6 @@ func (l *LeftShift) String() string {
 }
 
 func (l *LeftShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := l.Left.Semantic(p)
 	if err != nil {
 		return nil, err
@@ -74,7 +72,6 @@ func (u *UnsignedRightShift) String() string {
 }
 
 func (u *UnsignedRightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := u.Left.Semantic(p)
 	if err != nil {
 		return nil, err

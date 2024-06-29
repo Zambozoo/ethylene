@@ -162,6 +162,9 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 			}
 			t.SetConstant()
 		default:
+			if tailed, ok := t.(*Tailed); ok && tailed.Size == -1 {
+				return nil, io.NewError("tailed types without specified size must be pointed to", zap.Stringer("location", t.Location()))
+			}
 			return t, nil
 		}
 	}

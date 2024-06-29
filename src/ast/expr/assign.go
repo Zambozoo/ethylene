@@ -61,7 +61,6 @@ func assignable(e ast.Expression) bool {
 }
 
 func (a *Assign) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := a.Left.Semantic(p)
 	var t ast.Type
 	if err != nil {

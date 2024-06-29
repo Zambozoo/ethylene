@@ -3,6 +3,7 @@ package expr
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 )
@@ -70,5 +71,5 @@ func (n *New) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (n *New) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	return &type_.Pointer{Type: n.Type}, nil
 }

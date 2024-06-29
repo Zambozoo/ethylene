@@ -45,7 +45,6 @@ func (a *And) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (a *And) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return a.Binary.MustBothExtendOne(p, &type_.Boolean{})
 }
 
@@ -85,6 +84,5 @@ func (o *Or) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (o *Or) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return o.Binary.MustBothExtendOne(p, &type_.Boolean{})
 }

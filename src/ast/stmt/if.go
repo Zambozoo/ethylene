@@ -72,7 +72,6 @@ func (i *If) Syntax(p ast.SyntaxParser) io.Error {
 }
 
 func (i *If) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := i.Condition.Semantic(p)
 	if err != nil {
 		return nil, err

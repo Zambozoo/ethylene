@@ -9,7 +9,6 @@ import (
 
 // Array represents an array of elements of another type
 type Array struct {
-	Constant bool
 	Type     ast.Type
 	Size     int64
 	EndToken token.Token
@@ -49,7 +48,6 @@ func (a *Array) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 
 func (a *Array) Concretize(mapping []ast.Type) ast.Type {
 	return &Array{
-		Constant: a.Constant,
 		Type:     a.Type.Concretize(mapping),
 		Size:     a.Size,
 		EndToken: a.EndToken,
@@ -57,15 +55,12 @@ func (a *Array) Concretize(mapping []ast.Type) ast.Type {
 }
 
 func (a *Array) IsConstant() bool {
-	return a.Constant
+	return true
 }
-func (a *Array) SetConstant() {
-	a.Constant = true
-}
+func (a *Array) SetConstant() {}
 
 func (a *Array) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
-	// TODO: FIGURE OUT SIZE
-	panic("")
+	return (&Pointer{Type: a.Type, Constant: true}).TypeID(parser)
 }
 
 func (a *Array) IsConcrete() bool {

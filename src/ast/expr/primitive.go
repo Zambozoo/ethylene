@@ -15,7 +15,6 @@ func (i *Integer) String() string {
 	return fmt.Sprintf("%d", i.Integer)
 }
 func (i *Integer) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.Integer{}, nil
 }
 
@@ -26,7 +25,6 @@ func (f *Float) String() string {
 	return fmt.Sprintf("%f", f.Float)
 }
 func (f *Float) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.Float{}, nil
 }
 
@@ -37,7 +35,6 @@ func (c *Character) String() string {
 	return fmt.Sprintf("%c", c.Rune)
 }
 func (c *Character) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.Character{}, nil
 }
 
@@ -48,7 +45,6 @@ func (s *String) String() string {
 	return s.Value
 }
 func (s *String) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.String{}, nil
 }
 
@@ -59,7 +55,6 @@ func (t *True) String() string {
 	return "true"
 }
 func (t *True) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.Boolean{}, nil
 }
 
@@ -70,7 +65,6 @@ func (f *False) String() string {
 	return "false"
 }
 func (f *False) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.Boolean{}, nil
 }
 
@@ -81,6 +75,5 @@ func (n *Null) String() string {
 	return "null"
 }
 func (n *Null) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return &type_.Null{}, nil
 }

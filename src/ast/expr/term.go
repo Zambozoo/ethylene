@@ -18,7 +18,6 @@ func (a *Add) String() string {
 }
 
 func (a *Add) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return a.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
 }
 
@@ -32,7 +31,6 @@ func (s *Subtract) String() string {
 }
 
 func (s *Subtract) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	return s.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
 }
 

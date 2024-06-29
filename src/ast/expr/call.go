@@ -23,7 +23,6 @@ func (c *Call) String() string {
 }
 
 func (c *Call) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := c.Expr.Semantic(p)
 	if err != nil {
 		return nil, err

@@ -230,7 +230,8 @@ func (i *Interface) LinkFieldsWithProvider(p ast.SemanticParser, parentProviderF
 }
 
 func (i *Interface) Semantic(p ast.SemanticParser) io.Error {
-	// TODO: Handle generic constraints
+	p.Scope().Wrap(ast.WithDeclaration(i))
+	defer p.Scope().Unwrap()
 	return i.BaseDecl.Semantic(p)
 }
 

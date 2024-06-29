@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
+	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 )
 
@@ -35,7 +36,16 @@ func (t *Tailed) String() string {
 }
 
 func (t *Tailed) ExtendsAsPointer(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
-	panic("not implemented")
+	if otherTailed, ok := other.(*Tailed); ok && otherTailed.Size != -1 && t.Size != otherTailed.Size {
+		return false, nil
+	}
+
+	d, err := t.Declaration(p)
+	if err != nil {
+		return false, err
+	}
+
+	return d.ExtendsAsPointer(p, other)
 }
 
 func (t *Tailed) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
@@ -74,9 +84,31 @@ func (t *Tailed) SetConstant() {
 }
 
 func (t *Tailed) TypeID(parser ast.SemanticParser) (ast.TypeID, io.Error) {
-	panic("FIGURE OUT TAILED SIZE")
+	tid, err := t.Type.TypeID(parser)
+	if err != nil {
+		return nil, err
+	}
+
+	if t.Size == -1 {
+		return tid, nil
+	}
+
+	lid, err := parser.Types().NextListIndex([]uint64{uint64(tid.ListIndex()), uint64(t.Size)})
+	if err != nil {
+		return nil, err
+	}
+
+	index := typeid.ID_Thread.Index()
+	if t.Constant {
+		index |= 1 << 31
+	}
+	return typeid.NewTypeID(index, lid), nil
 }
 
 func (t *Tailed) IsConcrete() bool {
 	return t.Type.IsConcrete()
+}
+
+func (t *Tailed) IsFieldable() bool {
+	return t.Size == -1 && t.Type.IsFieldable()
 }

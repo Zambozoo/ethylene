@@ -122,6 +122,8 @@ func (e *Enum) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.
 }
 
 func (e *Enum) Semantic(p ast.SemanticParser) io.Error {
+	p.Scope().Wrap(ast.WithDeclaration(e))
+	defer p.Scope().Unwrap()
 	return e.BaseDecl.Semantic(p)
 }
 

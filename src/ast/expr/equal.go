@@ -3,6 +3,7 @@ package expr
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 )
@@ -19,7 +20,21 @@ func (e *Equal) String() string {
 }
 
 func (e *Equal) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := e.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := e.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Boolean{}, nil
 }
 
 // BangEqual represents expressions of the form
@@ -34,7 +49,21 @@ func (e *BangEqual) String() string {
 }
 
 func (b *BangEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	panic("implement me")
+	left, err := b.Left.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := b.Right.Semantic(p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := compareTypeCheck(p, left, right); err != nil {
+		return nil, err
+	}
+
+	return &type_.Boolean{}, nil
 }
 
 func syntaxEqual(p ast.SyntaxParser) (ast.Expression, io.Error) {

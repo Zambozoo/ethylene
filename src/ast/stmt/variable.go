@@ -63,7 +63,6 @@ func (v *Var) Syntax(p ast.SyntaxParser) io.Error {
 }
 
 func (v *Var) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	if v.Expr == nil {
 		return nil, p.Scope().AddVariable(v)
 	}

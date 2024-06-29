@@ -125,3 +125,7 @@ func (l *Lookup) IsConcrete() bool {
 	d, _ := l.Declaration(nil)
 	return d.IsConcrete()
 }
+
+func (*Lookup) IsFieldable() bool {
+	return true
+}

@@ -5,6 +5,8 @@ import (
 	"geth-cody/ast"
 	"geth-cody/ast/type_"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 // Cast represents expressions of the form
@@ -20,15 +22,23 @@ func (c *Cast) String() string {
 }
 
 func (c *Cast) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := c.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
 	}
 
 	if !type_.CastPrimitive(p, t, c.Type) {
-		if _, err := type_.MustExtend(p, c.Type, t); err == nil {
+		if extends, err := c.Type.Extends(p, t); err == nil {
 			return nil, err
+		} else if !extends {
+			if extends, err := t.Extends(p, c.Type); err == nil {
+				return nil, err
+			} else if !extends {
+				return nil, io.NewError("cast type mismatch",
+					zap.Stringer("source", c.Type),
+					zap.Stringer("target", t),
+				)
+			}
 		}
 	}
 

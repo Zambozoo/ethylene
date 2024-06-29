@@ -17,7 +17,7 @@ type Parser struct {
 
 func NewParser(file ast.File, symbolMap syntax.SymbolMap) *Parser {
 	return &Parser{
-		scope:     ast.NewScope(),
+		scope:     ast.NewScope(file.Declaration()),
 		bytecodes: &bytecode.Bytecodes{},
 		File_:     file,
 		symbolMap: symbolMap,

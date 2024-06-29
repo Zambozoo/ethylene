@@ -33,7 +33,6 @@ func (e *Expr) Syntax(p ast.SyntaxParser) io.Error {
 }
 
 func (e *Expr) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	t, err := e.Expr.Semantic(p)
 	if err != nil {
 		return nil, err

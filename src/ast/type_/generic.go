@@ -144,3 +144,7 @@ func (g *Generic) IsConcrete() bool {
 
 	return true
 }
+
+func (*Generic) IsFieldable() bool {
+	return false
+}

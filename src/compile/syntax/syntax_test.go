@@ -158,7 +158,7 @@ func TestParseDecl(t *testing.T) {
 					StaticMethods_: map[string]ast.Method{},
 					Declarations_:  map[string]ast.DeclField{},
 				},
-				IsTailed: true,
+				IsTailed_: true,
 			},
 			errFunc: assert.NoError,
 		},
@@ -248,7 +248,7 @@ func TestParseDecl(t *testing.T) {
 					StaticMethods_: map[string]ast.Method{},
 					Declarations_:  map[string]ast.DeclField{},
 				},
-				IsTailed: true,
+				IsTailed_: true,
 			}
 			var d generics.Decl
 			lookup := &type_.Lookup{
@@ -2104,7 +2104,7 @@ func TestParseExpr(t *testing.T) {
 						},
 					},
 				},
-				FieldName: token.Token{
+				Token: token.Token{
 					Type:  token.TOK_IDENTIFIER,
 					Value: "right",
 					Loc: token.Location{
@@ -3331,34 +3331,44 @@ func TestParseType(t *testing.T) {
 		},
 		{
 			name:  "tailed",
-			input: `Node~`,
-			expected: &type_.Tailed{
-				Type: &type_.Lookup{
-					Context_: &TypeContext{
-						Project: &path.Project{},
-						Scope:   []ast.Declaration{wrappingDecl()},
-						SymbolMap: SymbolMap{
-							Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+			input: `Node~*`,
+			expected: &type_.Pointer{
+				Type: &type_.Tailed{
+					Type: &type_.Lookup{
+						Context_: &TypeContext{
+							Project: &path.Project{},
+							Scope:   []ast.Declaration{wrappingDecl()},
+							SymbolMap: SymbolMap{
+								Types: &typeid.Types{ListsMap: map[typeid.ListKey]uint32{}},
+							},
 						},
-					},
-					Tokens: []token.Token{
-						{
-							Type:  token.TOK_IDENTIFIER,
-							Value: "Node",
-							Loc: token.Location{
-								StartColumn: 0,
-								EndColumn:   4,
-								Path_:       testFile(),
+						Tokens: []token.Token{
+							{
+								Type:  token.TOK_IDENTIFIER,
+								Value: "Node",
+								Loc: token.Location{
+									StartColumn: 0,
+									EndColumn:   4,
+									Path_:       testFile(),
+								},
 							},
 						},
 					},
+					Size: -1,
+					EndToken: token.Token{
+						Type: token.TOK_TILDE,
+						Loc: token.Location{
+							StartColumn: 4,
+							EndColumn:   5,
+							Path_:       testFile(),
+						},
+					},
 				},
-				Size: -1,
 				EndToken: token.Token{
-					Type: token.TOK_TILDE,
+					Type: token.TOK_STAR,
 					Loc: token.Location{
-						StartColumn: 4,
-						EndColumn:   5,
+						StartColumn: 5,
+						EndColumn:   6,
 						Path_:       testFile(),
 					},
 				},
