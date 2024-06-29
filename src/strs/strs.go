@@ -4,11 +4,12 @@ import (
 	"fmt"
 )
 
-func Strings[T fmt.Stringer](stringers []T) string {
-	var result, spacer string
+func Strings[T fmt.Stringer](stringers []T, spacer string) string {
+	var result string
+	var sspacer string
 	for _, s := range stringers {
-		result += spacer + s.String()
-		spacer = ","
+		result += sspacer + s.String()
+		sspacer = spacer
 	}
 
 	return fmt.Sprintf("[%s]", result)

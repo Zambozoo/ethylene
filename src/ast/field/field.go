@@ -22,7 +22,7 @@ func (ms *Modifiers) HasModifier(m ast.Modifier) bool {
 }
 
 func (ms *Modifiers) String() string {
-	return strs.Strings(maps.Keys(*ms))
+	return strs.Strings(maps.Keys(*ms), " ")
 }
 
 func Syntax(p ast.SyntaxParser) (ast.Field, io.Error) {

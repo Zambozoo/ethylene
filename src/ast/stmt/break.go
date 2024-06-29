@@ -14,7 +14,11 @@ type Break struct {
 }
 
 func (b *Break) String() string {
-	return fmt.Sprintf("Break{Label:%s}", b.Label.Value)
+	var labelString string
+	if b.Label.Value != "" {
+		labelString = " " + b.Label.Value
+	}
+	return fmt.Sprintf("break%s;", labelString)
 }
 
 func (b *Break) Syntax(p ast.SyntaxParser) io.Error {

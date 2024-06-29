@@ -30,12 +30,11 @@ func (m *Member) Location() token.Location {
 	return token.LocationBetween(&m.StartToken, &m.EndToken)
 }
 func (m *Member) String() string {
-	return fmt.Sprintf("Member{Name:%s, Modifiers:%s, Type:%s, Expr:%s}",
-		m.Name(),
-		m.Modifiers.String(),
-		m.Type_.String(),
-		m.Expr.String(),
-	)
+	var exprString string
+	if m.Expr != nil {
+		exprString = " = " + m.Expr.String()
+	}
+	return fmt.Sprintf("%s var %s%s;", m.Modifiers.String(), m.Type_.String(), exprString)
 }
 
 func (m *Member) Syntax(p ast.SyntaxParser) io.Error {

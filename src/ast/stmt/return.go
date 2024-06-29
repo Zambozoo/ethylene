@@ -13,8 +13,11 @@ type Return struct {
 	Expr ast.Expression
 }
 
-func (p *Return) String() string {
-	return fmt.Sprintf("Return{Expr:%s}", p.Expr.String())
+func (r *Return) String() string {
+	if r.Expr == nil {
+		return "return;"
+	}
+	return fmt.Sprintf("return %s;", r.Expr.String())
 }
 
 func (r *Return) Syntax(p ast.SyntaxParser) io.Error {

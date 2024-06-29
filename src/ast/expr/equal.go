@@ -15,7 +15,7 @@ type Equal struct {
 }
 
 func (e *Equal) String() string {
-	return fmt.Sprintf("Equal{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s == %s", e.Left.String(), e.Right.String())
 }
 
 func (e *Equal) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -30,7 +30,7 @@ type BangEqual struct {
 }
 
 func (e *BangEqual) String() string {
-	return fmt.Sprintf("BangEqual{Left:%s,Right:%s}", e.Left.String(), e.Right.String())
+	return fmt.Sprintf("%s != %s", e.Left.String(), e.Right.String())
 }
 
 func (b *BangEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

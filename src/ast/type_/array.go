@@ -20,7 +20,7 @@ func (a *Array) Location() token.Location {
 }
 
 func (a *Array) String() string {
-	return fmt.Sprintf("Array{Type:%s,Size:%d}", a.Type.String(), a.Size)
+	return fmt.Sprintf("%s[%d]", a.Type.String(), a.Size)
 }
 
 func (a *Array) Key(p ast.SemanticParser) (string, io.Error) {

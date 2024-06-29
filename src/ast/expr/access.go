@@ -24,11 +24,10 @@ func (a *Access) Location() token.Location {
 }
 
 func (a *Access) String() string {
-	return fmt.Sprintf("Access{Left:%s,Right:%s}", a.Left.String(), a.Right.String())
+	return fmt.Sprintf("%s[%s]", a.Left.String(), a.Right.String())
 }
 
 func (a *Access) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	// TODO: Scope and bytecode
 	left, err := a.Left.Semantic(p)
 	var t ast.Type
 	if err != nil {

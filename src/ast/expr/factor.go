@@ -14,7 +14,7 @@ import (
 type Multiply struct{ Binary }
 
 func (m *Multiply) String() string {
-	return fmt.Sprintf("Multiply{Left:%s,Right:%s}", m.Left.String(), m.Right.String())
+	return fmt.Sprintf("%s * %s", m.Left.String(), m.Right.String())
 }
 
 func (m *Multiply) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -29,7 +29,7 @@ type Divide struct{ Binary }
 
 func (d *Divide) String() string {
 	// TODO: Scope and bytecode
-	return fmt.Sprintf("Divide{Left:%s,Right:%s}", d.Left.String(), d.Right.String())
+	return fmt.Sprintf("%s / %s", d.Left.String(), d.Right.String())
 }
 
 func (d *Divide) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -42,7 +42,7 @@ func (d *Divide) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 type Modulo struct{ Binary }
 
 func (m *Modulo) String() string {
-	return fmt.Sprintf("Modulo{Left:%s,Right:%s}", m.Left.String(), m.Right.String())
+	return fmt.Sprintf("%s %% %s", m.Left.String(), m.Right.String())
 }
 
 func (m *Modulo) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

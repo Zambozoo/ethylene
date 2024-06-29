@@ -21,7 +21,14 @@ func (n *New) Location() token.Location {
 }
 
 func (n *New) String() string {
-	return fmt.Sprintf("New{Type:%s, ArrayLengthExpr:%s, TailLengthExpr:%s}", n.Type.String(), n.ArrayLengthExpr.String(), n.TailLengthExpr.String())
+	var argsString string
+	if n.TailLengthExpr != nil {
+		argsString = fmt.Sprintf(", %s, %s", n.TailLengthExpr.String(), n.ArrayLengthExpr.String())
+	} else if n.ArrayLengthExpr != nil {
+		argsString = fmt.Sprintf(", %s", n.ArrayLengthExpr.String())
+
+	}
+	return fmt.Sprintf("new(%s%s)", n.Type.String(), argsString)
 }
 
 func (n *New) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

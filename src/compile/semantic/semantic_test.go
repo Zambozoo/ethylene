@@ -204,6 +204,11 @@ func TestParseGeneric(t *testing.T) {
 					fun bool(G) contains = (e) {
 					}
 				}
+				static fun void(str*) main = (args) {
+					var List[int]* l;
+					var ArrList[int]* a;
+					l = a;
+				}
 			}`,
 			expected: &bytecode.Bytecodes{},
 			errFunc:  assert.NoError,

@@ -25,10 +25,14 @@ func (f *For1) Location() token.Location {
 }
 
 func (f *For1) String() string {
-	return fmt.Sprintf("For1{Condition:%s,Then:%s,Else:%s}",
+	var elseString string
+	if f.Else != nil {
+		elseString = fmt.Sprintf("\nelse%s", f.Else.String())
+	}
+	return fmt.Sprintf("for(%s)\n%s%s",
 		f.Condition.String(),
 		f.Then.String(),
-		f.Else.String(),
+		elseString,
 	)
 }
 
@@ -53,7 +57,7 @@ func (f *For0) Location() token.Location {
 }
 
 func (f *For0) String() string {
-	return fmt.Sprintf("For0{Then:%s}", f.Stmt.String())
+	return fmt.Sprintf("for\n%s", f.Stmt.String())
 }
 
 func (f *For1) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

@@ -15,7 +15,7 @@ type Reference struct {
 }
 
 func (r *Reference) String() string {
-	return fmt.Sprintf("Reference{Expr:%s}", r.Expr.String())
+	return fmt.Sprintf("%s&", r.Expr.String())
 }
 
 func (r *Reference) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -40,5 +40,5 @@ func (d *Dereference) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 }
 
 func (d *Dereference) String() string {
-	return fmt.Sprintf("Dereference{Expr:%s}", d.Expr.String())
+	return fmt.Sprintf("%s*", d.Expr.String())
 }

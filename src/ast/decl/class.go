@@ -60,19 +60,18 @@ func newClass() *Class {
 	}
 }
 
-func (c *Class) SetTailed() io.Error {
-	c.IsTailed = true
-	return nil
-}
-
 func (c *Class) String() string {
-	return fmt.Sprintf("Class{Name: %s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
+	var parentsString string
+	if len(c.Implements) > 0 {
+		parentsString = "<: [" + strings.Join(maps.Keys(c.Implements), ",") + "]"
+	}
+	return fmt.Sprintf("class %s%s {\n%s\n%s\n%s\n%s}",
 		c.Name().Value,
-		maps.Keys(c.Implements),
-		strings.Join(maps.Keys(c.Methods_), ","),
-		strings.Join(maps.Keys(c.Members_), ","),
-		strings.Join(maps.Keys(c.StaticMembers_), ","),
-		strings.Join(maps.Keys(c.StaticMembers_), ","),
+		parentsString,
+		strings.Join(maps.Keys(c.Methods_), "\n"),
+		strings.Join(maps.Keys(c.Members_), "\n"),
+		strings.Join(maps.Keys(c.StaticMembers_), "\n"),
+		strings.Join(maps.Keys(c.StaticMembers_), "\n"),
 	)
 }
 

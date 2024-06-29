@@ -16,7 +16,7 @@ type And struct {
 }
 
 func (a *And) String() string {
-	return fmt.Sprintf("And{Left:%s,Right:%s}", a.Left.String(), a.Right.String())
+	return fmt.Sprintf("%s && %s", a.Left.String(), a.Right.String())
 }
 
 func (a *And) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
@@ -57,7 +57,7 @@ type Or struct {
 }
 
 func (o *Or) String() string {
-	return fmt.Sprintf("Or{Left:%s,Right:%s}", o.Left.String(), o.Right.String())
+	return fmt.Sprintf("%s || %s", o.Left.String(), o.Right.String())
 }
 func (o *Or) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	expr, err := (&And{}).Syntax(p)

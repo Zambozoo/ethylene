@@ -17,6 +17,10 @@ type Param struct {
 	Index    int
 }
 
+func (p *Param) String() string {
+	return p.Token.Value
+}
+
 func (p *Param) Declarations() map[string]ast.DeclField {
 	return nil
 }

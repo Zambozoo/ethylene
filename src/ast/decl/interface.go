@@ -45,18 +45,18 @@ func newInterface() *Interface {
 	}
 }
 
-func (i *Interface) SetTailed() io.Error {
-	return io.NewError("interfaces cannot be tailed", zap.Any("location", i.Name_.Location()))
-}
-
-func (a *Interface) String() string {
-	return fmt.Sprintf("Interface{Name: %s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
-		a.Name().Value,
-		maps.Keys(a.Implements),
-		strings.Join(maps.Keys(a.Methods_), ","),
-		strings.Join(maps.Keys(a.Members_), ","),
-		strings.Join(maps.Keys(a.StaticMembers_), ","),
-		strings.Join(maps.Keys(a.StaticMembers_), ","),
+func (i *Interface) String() string {
+	var parentsString string
+	if len(i.Implements) > 0 {
+		parentsString = "<: [" + strings.Join(maps.Keys(i.Implements), ",") + "]"
+	}
+	return fmt.Sprintf("interface %s%s {\n%s\n%s\n%s\n%s}",
+		i.Name().Value,
+		parentsString,
+		strings.Join(maps.Keys(i.Methods_), "\n"),
+		strings.Join(maps.Keys(i.Members_), "\n"),
+		strings.Join(maps.Keys(i.StaticMembers_), "\n"),
+		strings.Join(maps.Keys(i.StaticMembers_), "\n"),
 	)
 }
 

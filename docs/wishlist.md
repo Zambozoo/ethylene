@@ -11,9 +11,7 @@ This is a wishlist of features for Ethylene.
 
 ## Semantic
 * Enums can extend classes, abstracts, and implement interfaces
-* Type Checking
-* Generics
-* Tailed Declarations
+* Wildcards and type constraints
 * Bytecode
 * Generic Structs use no meta data
 

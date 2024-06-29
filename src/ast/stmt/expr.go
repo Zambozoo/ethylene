@@ -18,7 +18,7 @@ func (e *Expr) Location() token.Location {
 }
 
 func (e *Expr) String() string {
-	return fmt.Sprintf("Expr{Expr:%s;}", e.Expr.String())
+	return fmt.Sprintf("%s;", e.Expr.String())
 }
 
 func (e *Expr) Syntax(p ast.SyntaxParser) io.Error {

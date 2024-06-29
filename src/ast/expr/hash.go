@@ -14,7 +14,7 @@ type Hash struct {
 }
 
 func (h *Hash) String() string {
-	return fmt.Sprintf("Hash{Expr:%s}", h.Expr.String())
+	return fmt.Sprintf("#%s", h.Expr.String())
 }
 
 func (h *Hash) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

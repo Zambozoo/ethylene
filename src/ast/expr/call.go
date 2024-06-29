@@ -19,7 +19,7 @@ type Call struct {
 }
 
 func (c *Call) String() string {
-	return fmt.Sprintf("Call{Expr:%s, Exprs:%s}", c.Expr.String(), strs.Strings(c.Exprs))
+	return fmt.Sprintf("%s(%s)", c.Expr.String(), strs.Strings(c.Exprs, ","))
 }
 
 func (c *Call) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {

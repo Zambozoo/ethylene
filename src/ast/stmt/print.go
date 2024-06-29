@@ -15,7 +15,7 @@ type Print struct {
 }
 
 func (p *Print) String() string {
-	return fmt.Sprintf("Print{Expr:%s}", p.Expr.String())
+	return fmt.Sprintf("print(%s);", p.Expr.String())
 }
 
 func (p *Print) Syntax(parser ast.SyntaxParser) io.Error {

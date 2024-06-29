@@ -18,7 +18,7 @@ type Nullary struct {
 }
 
 func (n *Nullary) String() string {
-	return fmt.Sprintf("Nullary{Left:%s,Right:%s}", n.Left.String(), n.Right.String())
+	return fmt.Sprintf("%s ?? %s", n.Left.String(), n.Right.String())
 }
 
 func (n *Nullary) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

@@ -26,11 +26,6 @@ func (a *Abstract) Parents() data.Set[ast.DeclType] {
 	return a.Implements
 }
 
-func (a *Abstract) SetTailed() io.Error {
-	a.IsTailed = true
-	return nil
-}
-
 func (*Abstract) IsInterface() bool {
 	return false
 }
@@ -54,13 +49,17 @@ func newAbstract() *Abstract {
 }
 
 func (a *Abstract) String() string {
-	return fmt.Sprintf("Abstract{Name: %s, Parents: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
+	var parentsString string
+	if len(a.Implements) > 0 {
+		parentsString = "<: [" + strings.Join(maps.Keys(a.Implements), ",") + "]"
+	}
+	return fmt.Sprintf("abstract %s%s {\n%s\n%s\n%s\n%s}",
 		a.Name().Value,
-		maps.Keys(a.Implements),
-		strings.Join(maps.Keys(a.Methods_), ","),
-		strings.Join(maps.Keys(a.Members_), ","),
-		strings.Join(maps.Keys(a.StaticMembers_), ","),
-		strings.Join(maps.Keys(a.StaticMembers_), ","),
+		parentsString,
+		strings.Join(maps.Keys(a.Methods_), "\n"),
+		strings.Join(maps.Keys(a.Members_), "\n"),
+		strings.Join(maps.Keys(a.StaticMembers_), "\n"),
+		strings.Join(maps.Keys(a.StaticMembers_), "\n"),
 	)
 }
 

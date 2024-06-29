@@ -15,7 +15,7 @@ type Field struct {
 }
 
 func (f *Field) String() string {
-	return fmt.Sprintf("Field{Expr:%s,Value:%s}", f.Expr.String(), f.Token.Value)
+	return fmt.Sprintf("%s.%s", f.Expr.String(), f.Token.Value)
 }
 
 func (f *Field) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -36,7 +36,11 @@ func (t *TypeField) Location() token.Location {
 }
 
 func (t *TypeField) String() string {
-	return fmt.Sprintf("TypeField{Type:%s, FieldName:%s}", t.Type.String(), t.FieldName.String())
+	fieldString := t.FieldName.String()
+	if fieldString != "" {
+		fieldString = "." + fieldString
+	}
+	return fmt.Sprintf("type(%s)%s", t.Type.String(), fieldString)
 }
 
 func (t *TypeField) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
@@ -59,13 +63,11 @@ func (t *TypeField) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 		return nil, err
 	}
 
-	if _, err := p.Consume(token.TOK_PERIOD); err != nil {
-		return nil, err
-	}
-
-	t.FieldName, err = p.Consume(token.TOK_IDENTIFIER)
-	if err != nil {
-		return nil, err
+	if p.Match(token.TOK_PERIOD) {
+		t.FieldName, err = p.Consume(token.TOK_IDENTIFIER)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return t, nil
