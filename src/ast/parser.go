@@ -69,5 +69,5 @@ type SemanticParser interface {
 	// WrapDeclWithGeneric wraps the declaration with a mapping.
 	WrapDeclWithGeneric(d Declaration, slice []Type) Declaration
 	
-	Types() Types
+  Types() Types
 }
