@@ -13,7 +13,6 @@ import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 	"geth-cody/io/path"
-	"maps"
 	"slices"
 
 	"go.uber.org/zap"
@@ -143,11 +142,10 @@ func (p *Parser) Scope() []ast.Declaration {
 
 func (p *Parser) TypeContext() ast.TypeContext {
 	return &TypeContext{
-		file:      p.file,
-		project:   p.project,
-		scope:     slices.Clone(p.scope),
-		symbolMap: p.symbolMap,
-		generics:  maps.Clone(p.scope[len(p.scope)-1].GenericsMap()),
+		File:      p.file,
+		Project:   p.project,
+		Scope:     slices.Clone(p.scope),
+		SymbolMap: p.symbolMap,
 	}
 }
 
@@ -162,10 +160,6 @@ func (p *Parser) Parse() (ast.File, io.Error) {
 
 func (p *Parser) ParseType() (ast.Type, io.Error) {
 	return type_.Syntax(p)
-}
-
-func (p *Parser) ParseDeclType(d ast.Declaration) (ast.DeclType, io.Error) {
-	return type_.SyntaxDecl(p, d)
 }
 
 func (p *Parser) ParseParentTypes() (data.Set[ast.DeclType], io.Error) {

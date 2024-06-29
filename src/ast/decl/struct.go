@@ -3,6 +3,7 @@ package decl
 import (
 	"fmt"
 	"geth-cody/ast"
+	"geth-cody/ast/decl/generics"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
@@ -14,15 +15,29 @@ import (
 
 type Struct struct {
 	BaseDecl
-	GenericDecl
 
 	IsTailed bool
 }
 
+func (*Struct) IsInterface() bool {
+	return false
+}
+func (*Struct) IsAbstract() bool {
+	return false
+}
+func (*Struct) IsClass() bool {
+	return false
+}
+
+func (*Struct) IsConstant() bool {
+	return false
+}
+
+func (*Struct) SetConstant() {}
+
 func newStruct() *Struct {
 	return &Struct{
-		BaseDecl:    newDecl(),
-		GenericDecl: NewGenericDecl(),
+		BaseDecl: newDecl(),
 	}
 }
 
@@ -32,9 +47,8 @@ func (s *Struct) SetTailed() io.Error {
 }
 
 func (s *Struct) String() string {
-	return fmt.Sprintf("Struct{Name: %s%s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
+	return fmt.Sprintf("Struct{Name: %s, Members: %s, Methods: %s, StaticMembers: %s, StaticMethods: %s}",
 		s.Name().Value,
-		s.TypesMap,
 		strings.Join(maps.Keys(s.Methods_), ","),
 		strings.Join(maps.Keys(s.Members_), ","),
 		strings.Join(maps.Keys(s.StaticMembers_), ","),
@@ -42,44 +56,60 @@ func (s *Struct) String() string {
 	)
 }
 
-func (s *Struct) Syntax(p ast.SyntaxParser) io.Error {
+func (s *Struct) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	var err io.Error
 	if s.BaseDecl.StartToken, err = p.Consume(token.TOK_STRUCT); err != nil {
-		return err
+		return nil, err
 	}
 
-	if _, err := p.ParseDeclType(s); err != nil {
-		return err
+	if s.Name_, err = p.Consume(token.TOK_IDENTIFIER); err != nil {
+		return nil, err
+	}
+	genericDecl, err := generics.Syntax(s, p)
+	if err != nil {
+		return nil, err
+	} else if genericDecl != nil {
+		p.UnwrapScope()
+		p.WrapScope(genericDecl)
+	}
+
+	if p.Match(token.TOK_TILDE) {
+		s.IsTailed = true
 	}
 
 	if _, err := p.Consume(token.TOK_LEFTBRACE); err != nil {
-		return err
+		return nil, err
 	}
 
 	for !p.Match(token.TOK_RIGHTBRACE) {
 		f, err := p.ParseField()
 		if err != nil {
-			return err
+			return nil, err
 		} else if _, ok := f.(ast.DeclField); ok {
-			if _, exists := s.TypesMap[f.Name().Value]; exists {
-				return io.NewError("inner decl name duplicates generic type",
-					zap.Any("decl", f.Name()),
-					zap.Any("location", f.Location()),
-				)
+			if genericDecl != nil {
+				if _, ok := genericDecl.GenericParamIndex(f.Name().Value); ok {
+					return nil, io.NewError("inner decl name duplicates generic type",
+						zap.Any("decl", f.Name()),
+						zap.Any("location", f.Location()),
+					)
+				}
 			}
 		} else if f.HasModifier(ast.MOD_VIRTUAL) {
-			return io.NewError("virtual fields are not allowed in structs",
+			return nil, io.NewError("virtual fields are not allowed in structs",
 				zap.Any("field", f.Name()),
 				zap.Any("location", f.Location()),
 			)
 		}
 		if err := s.AddField(f); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	s.BaseDecl.EndToken = p.Prev()
 
-	return nil
+	if genericDecl != nil {
+		return genericDecl, nil
+	}
+	return s, nil
 }
 
 func (s *Struct) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], _ map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
@@ -103,4 +133,36 @@ func (s *Struct) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[as
 func (s *Struct) Semantic(p ast.SemanticParser) io.Error {
 	// TODO: Handle generic constraints
 	return s.BaseDecl.Semantic(p)
+}
+
+func (s *Struct) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return s.Equals(p, parent)
+}
+
+func (s *Struct) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return s.Equals(p, parent)
+}
+
+func (s *Struct) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	if otherStruct, ok := other.(*Struct); ok {
+		return s == otherStruct, nil
+	} else if otherDeclType, ok := other.(ast.DeclType); ok {
+		otherDeclaration, err := otherDeclType.Declaration(p)
+		if err != nil {
+			return false, err
+		} else if otherStruct, ok := otherDeclaration.(*Struct); ok {
+			return s == otherStruct, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (s *Struct) Key(_ ast.SemanticParser) (string, io.Error) {
+	l := s.Location()
+	return fmt.Sprintf("%s:%s", l.String(), s.Name_.Value), nil
+}
+
+func (s *Struct) Concretize(mapping []ast.Type) ast.Type {
+	return s
 }

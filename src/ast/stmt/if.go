@@ -68,7 +68,7 @@ func (i *If) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	t, err := i.Condition.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(t, &type_.Boolean{}); err != nil {
+	} else if _, err := type_.MustExtend(p, t, &type_.Boolean{}); err != nil {
 		return nil, err
 	}
 

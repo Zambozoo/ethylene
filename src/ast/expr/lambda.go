@@ -66,6 +66,14 @@ func (l *Lambda) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 		}
 	}
 
+	if l.Type.Arity() != len(l.Parameters) {
+		return nil, io.NewError("arity of lambda does not match number of parameters",
+			zap.Any("expected", l.Type.Arity()),
+			zap.Any("actual", len(l.Parameters)),
+			zap.Any("location", l.Location()),
+		)
+	}
+
 	l.Stmt, err = p.ParseStmt()
 	if err != nil {
 		return nil, err

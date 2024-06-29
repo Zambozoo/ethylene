@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"geth-cody/ast"
+	"geth-cody/ast/decl/generics"
 	"geth-cody/compile/semantic/bytecode"
 	"geth-cody/compile/syntax"
 	"geth-cody/io"
@@ -37,4 +38,8 @@ func (p *Parser) Parse() (*bytecode.Bytecodes, io.Error) {
 	}
 
 	return p.bytecodes, nil
+}
+
+func (p *Parser) NewGenericDecl(d ast.Declaration, symbolSlice []ast.Type, symbolMap map[string]ast.Type) ast.Declaration {
+	return generics.NewDecl(d, symbolSlice, symbolMap)
 }

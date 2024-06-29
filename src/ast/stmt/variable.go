@@ -69,7 +69,10 @@ func (v *Var) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	t, err := v.Expr.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(t, v.Type_); err != nil {
+	}
+
+	//TODO: IGNORE CONSTANT
+	if _, err := type_.MustExtend(p, t, v.Type_); err != nil {
 		return nil, err
 	}
 

@@ -3,6 +3,7 @@ package syntax
 import (
 	"geth-cody/ast"
 	"geth-cody/ast/decl"
+	"geth-cody/ast/decl/generics"
 	"geth-cody/ast/expr"
 	"geth-cody/ast/field"
 	"geth-cody/ast/stmt"
@@ -18,6 +19,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 )
+
+func testFile() path.Path {
+	f := path.File("test.eth")
+	return &f
+}
 
 type testCase struct {
 	name     string
@@ -37,9 +43,6 @@ func wrappingDecl() ast.Declaration {
 				Value: "Test",
 			},
 		},
-		GenericDecl: decl.GenericDecl{
-			TypesMap: make(map[string]ast.DeclType),
-		},
 	}
 }
 
@@ -49,25 +52,26 @@ func testParseHelper(t *testing.T, testCases []testCase, f func(*Parser) (ast.No
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tokens, err := lexer.NewLexer(tt.input, nil).Lex()
+			filePath := testFile()
+			tokens, err := lexer.NewLexer(tt.input, filePath).Lex()
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			var (
-				project               path.Project
-				channel               mockChan[path.Path]
-				filePath, mainDirPath path.File
-				symbolMap             SymbolMap
+				project     path.Project
+				channel     mockChan[path.Path]
+				mainDirPath path.File
+				symbolMap   SymbolMap
 			)
-			parser := NewParser(tokens, &project, &filePath, &mainDirPath, &path.DefaultProvider{}, &channel, symbolMap)
+			parser := NewParser(tokens, &project, filePath, &mainDirPath, &path.DefaultProvider{}, &channel, symbolMap)
 			parser.WrapScope(wrappingDecl())
 
 			node, err := f(parser)
 			tt.errFunc(t, err)
 
 			if !reflect.DeepEqual(node, tt.expected) {
-				diff := cmp.Diff(node, tt.expected, cmpopts.IgnoreUnexported(TypeContext{}))
+				diff := cmp.Diff(node, tt.expected, cmpopts.IgnoreUnexported(path.Project{}))
 				if diff == "" {
 					diff = "an unexported field differed"
 				}
@@ -103,22 +107,19 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty class",
 			input: `class Class {}`,
 			expected: &decl.Class{
-				GenericDecl: decl.GenericDecl{
-					TypesMap: map[string]ast.DeclType{},
-				},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
-						Loc:  token.Location{EndColumn: 5},
+						Loc:  token.Location{EndColumn: 5, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 13, EndColumn: 14},
+						Loc:  token.Location{StartColumn: 13, EndColumn: 14, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Class",
-						Loc:   token.Location{StartColumn: 6, EndColumn: 11},
+						Loc:   token.Location{StartColumn: 6, EndColumn: 11, Path_: testFile()},
 					},
 					IsClass:        true,
 					Members_:       map[string]ast.Member{},
@@ -134,22 +135,19 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty tailed class",
 			input: `class Class~ {}`,
 			expected: &decl.Class{
-				GenericDecl: decl.GenericDecl{
-					TypesMap: map[string]ast.DeclType{},
-				},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
-						Loc:  token.Location{EndColumn: 5},
+						Loc:  token.Location{EndColumn: 5, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 14, EndColumn: 15},
+						Loc:  token.Location{StartColumn: 14, EndColumn: 15, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Class",
-						Loc:   token.Location{StartColumn: 6, EndColumn: 11},
+						Loc:   token.Location{StartColumn: 6, EndColumn: 11, Path_: testFile()},
 					},
 					IsClass:        true,
 					Members_:       map[string]ast.Member{},
@@ -163,42 +161,21 @@ func TestParseDecl(t *testing.T) {
 			errFunc: assert.NoError,
 		},
 		func() testCase {
-			var c decl.Class
-			composite := &type_.Composite{
-				Context_: &TypeContext{
-					project:  &path.Project{},
-					scope:    []ast.Declaration{wrappingDecl(), &c},
-					generics: map[string]ast.DeclType{},
-				},
-				Tokens: []token.Token{
-					{
-						Type:  token.TOK_IDENTIFIER,
-						Value: "T",
-						Loc:   token.Location{StartColumn: 12, EndColumn: 13},
-					},
-				},
-			}
-			c = decl.Class{
-				GenericDecl: decl.GenericDecl{
-					TypesMap: map[string]ast.DeclType{
-						"T": composite,
-					},
-					Types:      []ast.DeclType{composite},
-					TypesCount: 1,
-				},
+			c := &decl.Class{
+
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
-						Loc:  token.Location{EndColumn: 5},
+						Loc:  token.Location{EndColumn: 5, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 16, EndColumn: 17},
+						Loc:  token.Location{StartColumn: 16, EndColumn: 17, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Class",
-						Loc:   token.Location{StartColumn: 6, EndColumn: 11},
+						Loc:   token.Location{StartColumn: 6, EndColumn: 11, Path_: testFile()},
 					},
 					IsClass:        true,
 					Members_:       map[string]ast.Member{},
@@ -208,50 +185,56 @@ func TestParseDecl(t *testing.T) {
 					Declarations_:  map[string]ast.DeclField{},
 				},
 			}
-			return testCase{
-				name:     "valid empty generic class",
-				input:    `class Class[T] {}`,
-				expected: &c,
-				errFunc:  assert.NoError,
-			}
-		}(),
-		func() testCase {
-			var c decl.Class
-			composite := &type_.Composite{
+			var d generics.Decl
+			lookup := &type_.Lookup{
 				Context_: &TypeContext{
-					project:  &path.Project{},
-					scope:    []ast.Declaration{wrappingDecl(), &c},
-					generics: map[string]ast.DeclType{},
+					Project: &path.Project{},
+					Scope:   []ast.Declaration{wrappingDecl(), c},
 				},
 				Tokens: []token.Token{
 					{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "T",
-						Loc:   token.Location{StartColumn: 12, EndColumn: 13},
+						Loc:   token.Location{StartColumn: 12, EndColumn: 13, Path_: testFile()},
 					},
 				},
 			}
-			c = decl.Class{
-				GenericDecl: decl.GenericDecl{
-					TypesMap: map[string]ast.DeclType{
-						"T": composite,
+			d = generics.Decl{
+				SymbolSlice: []ast.Type{
+					&type_.Param{
+						Context_: &TypeContext{
+							Project: &path.Project{},
+							Scope:   []ast.Declaration{wrappingDecl(), c},
+						},
+						Token: lookup.Tokens[0],
+						Decl:  &d,
 					},
-					Types:      []ast.DeclType{composite},
-					TypesCount: 1,
 				},
+				Declaration: c,
+			}
+
+			return testCase{
+				name:     "valid empty generic class",
+				input:    `class Class[T] {}`,
+				expected: &d,
+				errFunc:  assert.NoError,
+			}
+		}(),
+		func() testCase {
+			c := &decl.Class{
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_CLASS,
-						Loc:  token.Location{EndColumn: 5},
+						Loc:  token.Location{EndColumn: 5, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 17, EndColumn: 18},
+						Loc:  token.Location{StartColumn: 17, EndColumn: 18, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Class",
-						Loc:   token.Location{StartColumn: 6, EndColumn: 11},
+						Loc:   token.Location{StartColumn: 6, EndColumn: 11, Path_: testFile()},
 					},
 					IsClass:        true,
 					Members_:       map[string]ast.Member{},
@@ -262,10 +245,37 @@ func TestParseDecl(t *testing.T) {
 				},
 				IsTailed: true,
 			}
+			var d generics.Decl
+			lookup := &type_.Lookup{
+				Context_: &TypeContext{
+					Project: &path.Project{},
+					Scope:   []ast.Declaration{wrappingDecl(), c},
+				},
+				Tokens: []token.Token{
+					{
+						Type:  token.TOK_IDENTIFIER,
+						Value: "T",
+						Loc:   token.Location{StartColumn: 12, EndColumn: 13, Path_: testFile()},
+					},
+				},
+			}
+			d = generics.Decl{
+				SymbolSlice: []ast.Type{
+					&type_.Param{
+						Context_: &TypeContext{
+							Project: &path.Project{},
+							Scope:   []ast.Declaration{wrappingDecl(), c},
+						},
+						Token: lookup.Tokens[0],
+						Decl:  &d,
+					},
+				},
+				Declaration: c,
+			}
 			return testCase{
 				name:     "valid empty tailed generic class",
 				input:    `class Class[T]~ {}`,
-				expected: &c,
+				expected: &d,
 				errFunc:  assert.NoError,
 			}
 		}(),
@@ -273,22 +283,19 @@ func TestParseDecl(t *testing.T) {
 			name:  "valid empty abstract",
 			input: `abstract Abstract {}`,
 			expected: &decl.Abstract{
-				GenericDecl: decl.GenericDecl{
-					TypesMap: map[string]ast.DeclType{},
-				},
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_ABSTRACT,
-						Loc:  token.Location{EndColumn: 8},
+						Loc:  token.Location{EndColumn: 8, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 19, EndColumn: 20},
+						Loc:  token.Location{StartColumn: 19, EndColumn: 20, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Abstract",
-						Loc:   token.Location{StartColumn: 9, EndColumn: 17},
+						Loc:   token.Location{StartColumn: 9, EndColumn: 17, Path_: testFile()},
 					},
 					Members_:       map[string]ast.Member{},
 					Methods_:       map[string]ast.Method{},
@@ -302,22 +309,20 @@ func TestParseDecl(t *testing.T) {
 		{
 			name:  "valid empty interface",
 			input: `interface Interface {}`,
-			expected: &decl.Interface{GenericDecl: decl.GenericDecl{
-				TypesMap: map[string]ast.DeclType{},
-			},
+			expected: &decl.Interface{
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_INTERFACE,
-						Loc:  token.Location{EndColumn: 9},
+						Loc:  token.Location{EndColumn: 9, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 21, EndColumn: 22},
+						Loc:  token.Location{StartColumn: 21, EndColumn: 22, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Interface",
-						Loc:   token.Location{StartColumn: 10, EndColumn: 19},
+						Loc:   token.Location{StartColumn: 10, EndColumn: 19, Path_: testFile()},
 					},
 					Members_:       map[string]ast.Member{},
 					Methods_:       map[string]ast.Method{},
@@ -331,22 +336,20 @@ func TestParseDecl(t *testing.T) {
 		{
 			name:  "valid empty struct",
 			input: `struct Struct {}`,
-			expected: &decl.Struct{GenericDecl: decl.GenericDecl{
-				TypesMap: map[string]ast.DeclType{},
-			},
+			expected: &decl.Struct{
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_STRUCT,
-						Loc:  token.Location{EndColumn: 6},
+						Loc:  token.Location{EndColumn: 6, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 15, EndColumn: 16},
+						Loc:  token.Location{StartColumn: 15, EndColumn: 16, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Struct",
-						Loc:   token.Location{StartColumn: 7, EndColumn: 13},
+						Loc:   token.Location{StartColumn: 7, EndColumn: 13, Path_: testFile()},
 					},
 					Members_:       map[string]ast.Member{},
 					Methods_:       map[string]ast.Method{},
@@ -363,16 +366,16 @@ func TestParseDecl(t *testing.T) {
 				BaseDecl: decl.BaseDecl{
 					StartToken: token.Token{
 						Type: token.TOK_ENUM,
-						Loc:  token.Location{EndColumn: 4},
+						Loc:  token.Location{EndColumn: 4, Path_: testFile()},
 					},
 					EndToken: token.Token{
 						Type: token.TOK_RIGHTBRACE,
-						Loc:  token.Location{StartColumn: 15, EndColumn: 16},
+						Loc:  token.Location{StartColumn: 15, EndColumn: 16, Path_: testFile()},
 					},
 					Name_: token.Token{
 						Type:  token.TOK_IDENTIFIER,
 						Value: "Enum",
-						Loc:   token.Location{StartColumn: 5, EndColumn: 9},
+						Loc:   token.Location{StartColumn: 5, EndColumn: 9, Path_: testFile()},
 					},
 					Members_: map[string]ast.Member{},
 					Methods_: map[string]ast.Method{},
@@ -381,31 +384,18 @@ func TestParseDecl(t *testing.T) {
 							StartToken: token.Token{
 								Type:  token.TOK_IDENTIFIER,
 								Value: "ONE",
-								Loc:   token.Location{StartColumn: 11, EndColumn: 14},
+								Loc:   token.Location{StartColumn: 11, EndColumn: 14, Path_: testFile()},
 							},
 							EndToken: token.Token{
 								Type: token.TOK_SEMICOLON,
-								Loc:  token.Location{StartColumn: 14, EndColumn: 15},
+								Loc:  token.Location{StartColumn: 14, EndColumn: 15, Path_: testFile()},
 							},
-							Type_: &type_.Composite{
-								Context_: &TypeContext{
-									project:  &path.Project{},
-									scope:    []ast.Declaration{wrappingDecl(), &enum},
-									generics: map[string]ast.DeclType{},
-								},
-								Tokens: []token.Token{
-									{
-										Type:  token.TOK_IDENTIFIER,
-										Value: "Enum",
-										Loc:   token.Location{StartColumn: 5, EndColumn: 9},
-									},
-								},
-							},
+							Type_: &enum,
 							Expression: &expr.Identifier{
 								Token: token.Token{
 									Type:  token.TOK_IDENTIFIER,
 									Value: "ONE",
-									Loc:   token.Location{StartColumn: 11, EndColumn: 14},
+									Loc:   token.Location{StartColumn: 11, EndColumn: 14, Path_: testFile()},
 								},
 							},
 						},
@@ -444,6 +434,7 @@ func TestParseField(t *testing.T) {
 					Type: token.TOK_VAR,
 					Loc: token.Location{
 						EndColumn: 3,
+						Path_:     testFile(),
 					},
 				},
 				EndToken: token.Token{
@@ -451,6 +442,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 9,
 						EndColumn:   10,
+						Path_:       testFile(),
 					},
 				},
 				Type_: &type_.Integer{
@@ -460,6 +452,7 @@ func TestParseField(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 4,
 								EndColumn:   7,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -470,6 +463,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 8,
 						EndColumn:   9,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -484,6 +478,7 @@ func TestParseField(t *testing.T) {
 					Type: token.TOK_VAR,
 					Loc: token.Location{
 						EndColumn: 3,
+						Path_:     testFile(),
 					},
 				},
 				EndToken: token.Token{
@@ -491,6 +486,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 13,
 						EndColumn:   14,
+						Path_:       testFile(),
 					},
 				},
 				Type_: &type_.Integer{
@@ -500,6 +496,7 @@ func TestParseField(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 4,
 								EndColumn:   7,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -510,6 +507,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 8,
 						EndColumn:   9,
+						Path_:       testFile(),
 					},
 				},
 				Expr: &expr.Integer{
@@ -520,6 +518,7 @@ func TestParseField(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 12,
 							EndColumn:   13,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -535,6 +534,7 @@ func TestParseField(t *testing.T) {
 					Type: token.TOK_FUN,
 					Loc: token.Location{
 						EndColumn: 3,
+						Path_:     testFile(),
 					},
 				},
 				EndToken: token.Token{
@@ -542,6 +542,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 12,
 						EndColumn:   13,
+						Path_:       testFile(),
 					},
 				},
 				Name_: token.Token{
@@ -550,6 +551,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 11,
 						EndColumn:   12,
+						Path_:       testFile(),
 					},
 				},
 				Type_: &type_.Function{
@@ -561,6 +563,7 @@ func TestParseField(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 4,
 									EndColumn:   8,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -570,6 +573,7 @@ func TestParseField(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 9,
 							EndColumn:   10,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -585,6 +589,7 @@ func TestParseField(t *testing.T) {
 					Type: token.TOK_FUN,
 					Loc: token.Location{
 						EndColumn: 3,
+						Path_:     testFile(),
 					},
 				},
 				Name_: token.Token{
@@ -593,6 +598,7 @@ func TestParseField(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 11,
 						EndColumn:   12,
+						Path_:       testFile(),
 					},
 				},
 				Type_: &type_.Function{
@@ -604,6 +610,7 @@ func TestParseField(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 4,
 									EndColumn:   8,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -613,6 +620,7 @@ func TestParseField(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 9,
 							EndColumn:   10,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -623,6 +631,7 @@ func TestParseField(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 17,
 								EndColumn:   18,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -630,6 +639,7 @@ func TestParseField(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 18,
 								EndColumn:   19,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -660,6 +670,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   1,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -667,6 +678,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 1,
 							EndColumn:   2,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -683,6 +695,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   5,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -690,6 +703,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -706,6 +720,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   5,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -713,6 +728,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 7,
 							EndColumn:   8,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -722,6 +738,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 6,
 						EndColumn:   7,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -737,6 +754,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   8,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -744,6 +762,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 8,
 							EndColumn:   9,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -760,6 +779,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   8,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -767,6 +787,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 10,
 							EndColumn:   11,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -776,6 +797,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 9,
 						EndColumn:   10,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -791,6 +813,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -798,6 +821,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 8,
 							EndColumn:   9,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -808,6 +832,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 7,
 							EndColumn:   8,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -825,6 +850,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   1,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -833,6 +859,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 1,
 						EndColumn:   2,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -847,6 +874,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   3,
+						Path_:       testFile(),
 					},
 				},
 				Stmt: &stmt.Block{
@@ -856,6 +884,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 4,
 								EndColumn:   5,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -863,6 +892,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   6,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -879,6 +909,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   3,
+						Path_:       testFile(),
 					},
 				},
 				Condition: &expr.Identifier{
@@ -888,6 +919,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -898,6 +930,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 8,
 								EndColumn:   9,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -905,6 +938,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 9,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -916,6 +950,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 16,
 								EndColumn:   17,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -923,6 +958,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 17,
 								EndColumn:   18,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -940,6 +976,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   3,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -947,6 +984,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 37,
 							EndColumn:   38,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -958,6 +996,7 @@ func TestParseStmt(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 5,
 									EndColumn:   8,
+									Path_:       testFile(),
 								},
 							},
 							EndToken: token.Token{
@@ -965,6 +1004,7 @@ func TestParseStmt(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 18,
 									EndColumn:   19,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -975,6 +1015,7 @@ func TestParseStmt(t *testing.T) {
 									Loc: token.Location{
 										StartColumn: 9,
 										EndColumn:   12,
+										Path_:       testFile(),
 									},
 								},
 							},
@@ -985,6 +1026,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 13,
 								EndColumn:   14,
+								Path_:       testFile(),
 							},
 						},
 						Expr: &expr.Integer{
@@ -994,6 +1036,7 @@ func TestParseStmt(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 17,
 									EndColumn:   18,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -1004,6 +1047,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 						Condition: &expr.Identifier{
@@ -1013,6 +1057,7 @@ func TestParseStmt(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 20,
 									EndColumn:   21,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -1023,6 +1068,7 @@ func TestParseStmt(t *testing.T) {
 									Loc: token.Location{
 										StartColumn: 28,
 										EndColumn:   29,
+										Path_:       testFile(),
 									},
 								},
 								EndToken: token.Token{
@@ -1030,6 +1076,7 @@ func TestParseStmt(t *testing.T) {
 									Loc: token.Location{
 										StartColumn: 37,
 										EndColumn:   38,
+										Path_:       testFile(),
 									},
 								},
 							},
@@ -1041,6 +1088,7 @@ func TestParseStmt(t *testing.T) {
 											Loc: token.Location{
 												StartColumn: 28,
 												EndColumn:   29,
+												Path_:       testFile(),
 											},
 										},
 										EndToken: token.Token{
@@ -1048,6 +1096,7 @@ func TestParseStmt(t *testing.T) {
 											Loc: token.Location{
 												StartColumn: 29,
 												EndColumn:   30,
+												Path_:       testFile(),
 											},
 										},
 									},
@@ -1060,6 +1109,7 @@ func TestParseStmt(t *testing.T) {
 												Loc: token.Location{
 													StartColumn: 24,
 													EndColumn:   26,
+													Path_:       testFile(),
 												},
 											},
 											Expr: &expr.Identifier{
@@ -1069,6 +1119,7 @@ func TestParseStmt(t *testing.T) {
 													Loc: token.Location{
 														StartColumn: 23,
 														EndColumn:   24,
+														Path_:       testFile(),
 													},
 												},
 											},
@@ -1079,6 +1130,7 @@ func TestParseStmt(t *testing.T) {
 										Loc: token.Location{
 											StartColumn: 24,
 											EndColumn:   26,
+											Path_:       testFile(),
 										},
 									},
 								},
@@ -1091,6 +1143,7 @@ func TestParseStmt(t *testing.T) {
 									Loc: token.Location{
 										StartColumn: 36,
 										EndColumn:   37,
+										Path_:       testFile(),
 									},
 								},
 								EndToken: token.Token{
@@ -1098,6 +1151,7 @@ func TestParseStmt(t *testing.T) {
 									Loc: token.Location{
 										StartColumn: 37,
 										EndColumn:   38,
+										Path_:       testFile(),
 									},
 								},
 							},
@@ -1116,6 +1170,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   2,
+						Path_:       testFile(),
 					},
 				},
 				Condition: &expr.Identifier{
@@ -1125,6 +1180,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 4,
 							EndColumn:   5,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1135,6 +1191,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 7,
 								EndColumn:   8,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -1142,6 +1199,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 8,
 								EndColumn:   9,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1153,6 +1211,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 15,
 								EndColumn:   16,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -1160,6 +1219,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 16,
 								EndColumn:   17,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1176,6 +1236,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   5,
+						Path_:       testFile(),
 					},
 				},
 				Label: token.Token{
@@ -1184,6 +1245,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 6,
 						EndColumn:   7,
+						Path_:       testFile(),
 					},
 				},
 				Stmt: &stmt.For0{
@@ -1192,6 +1254,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 10,
 							EndColumn:   13,
+							Path_:       testFile(),
 						},
 					},
 					Stmt: &stmt.Block{
@@ -1201,6 +1264,7 @@ func TestParseStmt(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 14,
 									EndColumn:   15,
+									Path_:       testFile(),
 								},
 							},
 							EndToken: token.Token{
@@ -1208,6 +1272,7 @@ func TestParseStmt(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 15,
 									EndColumn:   16,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -1226,6 +1291,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   5,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -1233,6 +1299,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 14,
 							EndColumn:   15,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1243,6 +1310,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 6,
 							EndColumn:   13,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1259,6 +1327,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   5,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -1266,6 +1335,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 14,
 							EndColumn:   15,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1276,6 +1346,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 6,
 							EndColumn:   13,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1292,6 +1363,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -1299,6 +1371,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 6,
 							EndColumn:   7,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1315,6 +1388,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -1322,6 +1396,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 8,
 							EndColumn:   9,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1332,6 +1407,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 7,
 							EndColumn:   8,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1348,6 +1424,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   3,
+							Path_:       testFile(),
 						},
 					},
 					EndToken: token.Token{
@@ -1355,6 +1432,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 13,
 							EndColumn:   14,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1365,6 +1443,7 @@ func TestParseStmt(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 4,
 								EndColumn:   7,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1375,6 +1454,7 @@ func TestParseStmt(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 8,
 						EndColumn:   9,
+						Path_:       testFile(),
 					},
 				},
 				Expr: &expr.Integer{
@@ -1384,6 +1464,7 @@ func TestParseStmt(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 12,
 							EndColumn:   13,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1414,6 +1495,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   4,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1424,6 +1506,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   10,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1432,6 +1515,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 10,
 						EndColumn:   11,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -1449,6 +1533,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1459,6 +1544,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1475,6 +1561,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   5,
+						Path_:       testFile(),
 					},
 				},
 				CallExpr: &expr.Call{
@@ -1486,6 +1573,7 @@ func TestParseExpr(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 6,
 									EndColumn:   7,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -1494,6 +1582,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 8,
 								EndColumn:   9,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1513,6 +1602,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1523,6 +1613,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1542,6 +1633,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1552,6 +1644,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1571,6 +1664,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1581,6 +1675,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1599,6 +1694,7 @@ func TestParseExpr(t *testing.T) {
 							Value: "f",
 							Loc: token.Location{
 								EndColumn: 1,
+								Path_:     testFile(),
 							},
 						},
 					},
@@ -1607,6 +1703,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 3,
 							EndColumn:   4,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1618,6 +1715,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 2,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1637,6 +1735,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1647,6 +1746,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1666,6 +1766,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1676,6 +1777,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1695,6 +1797,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1705,6 +1808,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1724,6 +1828,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1734,6 +1839,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1753,6 +1859,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1763,6 +1870,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 7,
 								EndColumn:   12,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1782,6 +1890,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1792,6 +1901,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1811,6 +1921,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1821,6 +1932,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1840,6 +1952,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1850,6 +1963,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1869,6 +1983,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1879,6 +1994,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1898,6 +2014,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1908,6 +2025,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1927,6 +2045,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1936,6 +2055,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   10,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -1950,13 +2070,13 @@ func TestParseExpr(t *testing.T) {
 					Type: token.TOK_TYPE,
 					Loc: token.Location{
 						EndColumn: 4,
+						Path_:     testFile(),
 					},
 				},
-				Type: &type_.Composite{
+				Type: &type_.Lookup{
 					Context_: &TypeContext{
-						project:  &path.Project{},
-						scope:    []ast.Declaration{wrappingDecl()},
-						generics: map[string]ast.DeclType{},
+						Project: &path.Project{},
+						Scope:   []ast.Declaration{wrappingDecl()},
 					},
 					Tokens: []token.Token{
 						{
@@ -1965,6 +2085,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   9,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -1975,6 +2096,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 11,
 						EndColumn:   16,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -1989,6 +2111,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_HASHTAG,
 						Loc: token.Location{
 							EndColumn: 1,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -1998,6 +2121,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 1,
 								EndColumn:   5,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2015,6 +2139,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   1,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2029,6 +2154,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_MINUS,
 						Loc: token.Location{
 							EndColumn: 1,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2038,6 +2164,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 1,
 								EndColumn:   2,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2054,6 +2181,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_BANG,
 						Loc: token.Location{
 							EndColumn: 1,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2063,6 +2191,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 1,
 								EndColumn:   2,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2078,6 +2207,7 @@ func TestParseExpr(t *testing.T) {
 					Type: token.TOK_LAMBDA,
 					Loc: token.Location{
 						EndColumn: 6,
+						Path_:     testFile(),
 					},
 				},
 				Type: &type_.Function{
@@ -2088,6 +2218,7 @@ func TestParseExpr(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 7,
 									EndColumn:   11,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -2097,6 +2228,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 12,
 							EndColumn:   13,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2107,6 +2239,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 19,
 								EndColumn:   20,
+								Path_:       testFile(),
 							},
 						},
 						EndToken: token.Token{
@@ -2114,6 +2247,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 20,
 								EndColumn:   21,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2133,6 +2267,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2143,6 +2278,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2162,6 +2298,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2172,6 +2309,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2188,6 +2326,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_INC,
 						Loc: token.Location{
 							EndColumn: 2,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2197,6 +2336,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 2,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2213,6 +2353,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_DEC,
 						Loc: token.Location{
 							EndColumn: 2,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2222,6 +2363,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 2,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2240,6 +2382,7 @@ func TestParseExpr(t *testing.T) {
 							Value: "i",
 							Loc: token.Location{
 								EndColumn: 1,
+								Path_:     testFile(),
 							},
 						},
 					},
@@ -2248,6 +2391,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 1,
 							EndColumn:   3,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2265,6 +2409,7 @@ func TestParseExpr(t *testing.T) {
 							Value: "i",
 							Loc: token.Location{
 								EndColumn: 1,
+								Path_:     testFile(),
 							},
 						},
 					},
@@ -2273,6 +2418,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 1,
 							EndColumn:   3,
+							Path_:       testFile(),
 						},
 					}},
 			},
@@ -2287,6 +2433,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   3,
+						Path_:       testFile(),
 					},
 				},
 				EndToken: token.Token{
@@ -2294,13 +2441,13 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 14,
 						EndColumn:   15,
+						Path_:       testFile(),
 					},
 				},
-				Type: &type_.Composite{
+				Type: &type_.Lookup{
 					Context_: &TypeContext{
-						project:  &path.Project{},
-						scope:    []ast.Declaration{wrappingDecl()},
-						generics: map[string]ast.DeclType{},
+						Project: &path.Project{},
+						Scope:   []ast.Declaration{wrappingDecl()},
 					},
 					Tokens: []token.Token{
 						{
@@ -2309,6 +2456,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 4,
 								EndColumn:   8,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2321,6 +2469,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 10,
 							EndColumn:   11,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2332,6 +2481,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 13,
 							EndColumn:   14,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2350,6 +2500,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2360,6 +2511,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2376,6 +2528,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   4,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2390,6 +2543,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   5,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2404,6 +2558,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_STAR,
 						Loc: token.Location{
 							EndColumn: 1,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2413,6 +2568,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 1,
 								EndColumn:   2,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2429,6 +2585,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_BITAND,
 						Loc: token.Location{
 							EndColumn: 1,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2438,6 +2595,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 1,
 								EndColumn:   2,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2456,6 +2614,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   1,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2472,6 +2631,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   3,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2488,6 +2648,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   3,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2503,6 +2664,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   3,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2517,6 +2679,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   4,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2531,6 +2694,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   5,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2545,6 +2709,7 @@ func TestParseExpr(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 0,
 						EndColumn:   4,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2562,6 +2727,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2572,6 +2738,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2591,6 +2758,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2601,6 +2769,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 6,
 								EndColumn:   11,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2620,6 +2789,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2630,6 +2800,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 7,
 								EndColumn:   12,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2649,6 +2820,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2659,6 +2831,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2678,6 +2851,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2688,6 +2862,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   10,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2706,6 +2881,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   4,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2716,6 +2892,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   9,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2726,6 +2903,7 @@ func TestParseExpr(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 10,
 							EndColumn:   15,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2741,6 +2919,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_AT,
 						Loc: token.Location{
 							EndColumn: 1,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2750,6 +2929,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 1,
 								EndColumn:   2,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2766,6 +2946,7 @@ func TestParseExpr(t *testing.T) {
 						Type: token.TOK_WAIT,
 						Loc: token.Location{
 							EndColumn: 4,
+							Path_:     testFile(),
 						},
 					},
 					Expr: &expr.Identifier{
@@ -2775,6 +2956,7 @@ func TestParseExpr(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 5,
 								EndColumn:   6,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2806,6 +2988,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2816,6 +2999,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 5,
 						EndColumn:   6,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2833,6 +3017,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 0,
 									EndColumn:   3,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -2843,6 +3028,7 @@ func TestParseType(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2852,6 +3038,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 8,
 						EndColumn:   9,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2868,6 +3055,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2877,6 +3065,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 5,
 						EndColumn:   6,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2893,6 +3082,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2905,6 +3095,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 5,
 									EndColumn:   8,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -2916,6 +3107,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 10,
 									EndColumn:   13,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -2926,6 +3118,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 13,
 						EndColumn:   14,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2943,6 +3136,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 0,
 									EndColumn:   4,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -2952,6 +3146,7 @@ func TestParseType(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 5,
 							EndColumn:   6,
+							Path_:       testFile(),
 						},
 					},
 				},
@@ -2960,6 +3155,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 7,
 						EndColumn:   8,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -2970,15 +3166,13 @@ func TestParseType(t *testing.T) {
 			input: `List[int]`,
 			expected: &type_.Generic{
 				Context_: &TypeContext{
-					project:  &path.Project{},
-					scope:    []ast.Declaration{wrappingDecl()},
-					generics: map[string]ast.DeclType{},
+					Project: &path.Project{},
+					Scope:   []ast.Declaration{wrappingDecl()},
 				},
-				Type: &type_.Composite{
+				Type: &type_.Lookup{
 					Context_: &TypeContext{
-						project:  &path.Project{},
-						scope:    []ast.Declaration{wrappingDecl()},
-						generics: map[string]ast.DeclType{},
+						Project: &path.Project{},
+						Scope:   []ast.Declaration{wrappingDecl()},
 					},
 					Tokens: []token.Token{
 						{
@@ -2987,6 +3181,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -2999,6 +3194,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 5,
 									EndColumn:   8,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -3009,6 +3205,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 8,
 						EndColumn:   9,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -3019,15 +3216,13 @@ func TestParseType(t *testing.T) {
 			input: `Map[str, int]`,
 			expected: &type_.Generic{
 				Context_: &TypeContext{
-					project:  &path.Project{},
-					scope:    []ast.Declaration{wrappingDecl()},
-					generics: map[string]ast.DeclType{},
+					Project: &path.Project{},
+					Scope:   []ast.Declaration{wrappingDecl()},
 				},
-				Type: &type_.Composite{
+				Type: &type_.Lookup{
 					Context_: &TypeContext{
-						project:  &path.Project{},
-						scope:    []ast.Declaration{wrappingDecl()},
-						generics: map[string]ast.DeclType{},
+						Project: &path.Project{},
+						Scope:   []ast.Declaration{wrappingDecl()},
 					},
 					Tokens: []token.Token{
 						{
@@ -3036,6 +3231,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -3048,6 +3244,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 4,
 									EndColumn:   7,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -3059,6 +3256,7 @@ func TestParseType(t *testing.T) {
 								Loc: token.Location{
 									StartColumn: 9,
 									EndColumn:   12,
+									Path_:       testFile(),
 								},
 							},
 						},
@@ -3069,6 +3267,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 12,
 						EndColumn:   13,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -3085,6 +3284,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   3,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -3094,6 +3294,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 3,
 						EndColumn:   4,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -3103,11 +3304,10 @@ func TestParseType(t *testing.T) {
 			name:  "tailed",
 			input: `Node~`,
 			expected: &type_.Tailed{
-				Type: &type_.Composite{
+				Type: &type_.Lookup{
 					Context_: &TypeContext{
-						project:  &path.Project{},
-						scope:    []ast.Declaration{wrappingDecl()},
-						generics: map[string]ast.DeclType{},
+						Project: &path.Project{},
+						Scope:   []ast.Declaration{wrappingDecl()},
 					},
 					Tokens: []token.Token{
 						{
@@ -3116,6 +3316,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -3126,6 +3327,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 4,
 						EndColumn:   5,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -3135,11 +3337,10 @@ func TestParseType(t *testing.T) {
 			name:  "tailed with size",
 			input: `Node~8`,
 			expected: &type_.Tailed{
-				Type: &type_.Composite{
+				Type: &type_.Lookup{
 					Context_: &TypeContext{
-						project:  &path.Project{},
-						scope:    []ast.Declaration{wrappingDecl()},
-						generics: map[string]ast.DeclType{},
+						Project: &path.Project{},
+						Scope:   []ast.Declaration{wrappingDecl()},
 					},
 					Tokens: []token.Token{
 						{
@@ -3148,6 +3349,7 @@ func TestParseType(t *testing.T) {
 							Loc: token.Location{
 								StartColumn: 0,
 								EndColumn:   4,
+								Path_:       testFile(),
 							},
 						},
 					},
@@ -3160,6 +3362,7 @@ func TestParseType(t *testing.T) {
 					Loc: token.Location{
 						StartColumn: 5,
 						EndColumn:   6,
+						Path_:       testFile(),
 					},
 				},
 			},
@@ -3176,6 +3379,7 @@ func TestParseType(t *testing.T) {
 						Loc: token.Location{
 							StartColumn: 0,
 							EndColumn:   3,
+							Path_:       testFile(),
 						},
 					},
 				},

@@ -10,16 +10,14 @@ import (
 )
 
 type TypeContext struct {
-	file      ast.File
-	project   *path.Project
-	scope     []ast.Declaration
-	symbolMap SymbolMap
-
-	generics map[string]ast.DeclType
+	File      ast.File
+	Project   *path.Project
+	Scope     []ast.Declaration
+	SymbolMap SymbolMap
 }
 
 func (tc *TypeContext) Dependency(pkg string) (string, bool) {
-	if version, ok := tc.project.Packages[pkg]; ok {
+	if version, ok := tc.Project.Packages[pkg]; ok {
 		return version, ok
 	}
 
@@ -27,8 +25,14 @@ func (tc *TypeContext) Dependency(pkg string) (string, bool) {
 }
 
 func (tc *TypeContext) Declaration(tokens []token.Token) (ast.Declaration, io.Error) {
-	if i, ok := tc.file.GetImport(tokens[0].Value); ok {
-		file := tc.symbolMap.Files[i.Path().String()]
+	if len(tokens) == 1 {
+		if _, ok := tc.TopScope().GenericParamIndex(tokens[0].Value); ok {
+			return nil, io.NewError("generic argument doesn't have declaration", zap.Any("token", tokens[0]))
+		}
+	}
+
+	if i, ok := tc.File.GetImport(tokens[0].Value); ok {
+		file := tc.SymbolMap.Files[i.Path().String()]
 		d := file.Declaration()
 		for i := 1; i < len(tokens); i++ {
 			decl, ok := d.Declarations()[tokens[i].Value]
@@ -47,18 +51,19 @@ func (tc *TypeContext) Declaration(tokens []token.Token) (ast.Declaration, io.Er
 	}
 
 scope:
-	for i := len(tc.scope) - len(tokens); i >= 0; i-- {
-		decl := tc.scope[i]
+	for i := len(tc.Scope) - len(tokens); i >= 0; i-- {
+		decl := tc.Scope[i]
 		if d, ok := decl.Declarations()[tokens[0].Value]; ok {
 			decl = d.Declaration()
 		}
 
+		d := decl
 		for j, token := range tokens {
-			if decl.Name().Value != token.Value {
+			if d.Name().Value != token.Value {
 				continue scope
 			}
 
-			decl = tc.scope[i+j]
+			d = tc.Scope[i+j]
 		}
 
 		return decl, nil
@@ -67,6 +72,6 @@ scope:
 	return nil, io.NewError("missing declaration", zap.Any("location", tokens[0].Location()))
 }
 
-func (tc *TypeContext) Generics() map[string]ast.DeclType {
-	return tc.generics
+func (tc *TypeContext) TopScope() ast.Declaration {
+	return tc.Scope[len(tc.Scope)-1]
 }

@@ -6,8 +6,6 @@ import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
 	"geth-cody/strs"
-
-	"go.uber.org/zap"
 )
 
 // GenericType represents a type with generic type parameters
@@ -35,73 +33,39 @@ func (g *Generic) String() string {
 	return fmt.Sprintf("Generic{Type:%s,GenericParameters:%s}", g.Type, strs.Strings(g.GenericTypes))
 }
 
-func (g *Generic) Key() string {
-	var s string
-	var spacer string
-	for _, t := range g.GenericTypes {
-		s += spacer + t.Key()
-		spacer = ","
+func (g *Generic) Key(p ast.SemanticParser) (string, io.Error) {
+	decl, err := g.Declaration(p)
+	if err != nil {
+		return "", err
 	}
 
-	return fmt.Sprintf("%s[%s]", g.Type.Key(), s)
+	return decl.Concretize(g.Context_.TopScope().Generics()).Key(p)
 }
 
-func (g *Generic) ExtendsAsPointer(parent ast.Type) (bool, io.Error) {
-	cDecl, err := g.Declaration()
+func (g *Generic) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	decl, err := g.Declaration(p)
 	if err != nil {
 		return false, err
 	}
-	cChildDecl, ok := cDecl.(ast.ChildDeclaration)
-	if !ok {
-		return false, nil
-	}
 
-	cChildDeclGenerics := cChildDecl.Generics()
-	if len(g.GenericTypes) != len(cChildDeclGenerics) {
-		return false, io.NewError("generic type and declaration have differing generic type counts",
-			zap.Int("expected", len(cChildDeclGenerics)),
-			zap.Int("actual", len(g.GenericTypes)),
-		)
-	}
-
-	mapping := map[string]ast.Type{}
-	for i, t := range cChildDeclGenerics {
-		gt := g.GenericTypes[i]
-		if c, ok := gt.(*Composite); !ok || !c.IsGeneric() {
-			mapping[t.Name().Value] = gt
-		}
-	}
-
-	pDecl, ok := parent.(ast.DeclType)
-	if ok {
-		return false, nil
-	}
-
-	for _, parentType := range cChildDecl.Parents() {
-		concreteParentType := parentType.Concretize(mapping)
-		if ok, err := concreteParentType.ExtendsAsPointer(pDecl); err != nil || ok {
-			return ok, err
-		}
-	}
-
-	return false, nil
+	return decl.Concretize(g.Context_.TopScope().Generics()).ExtendsAsPointer(p, parent)
 }
 
-func (g *Generic) Extends(parent ast.Type) (bool, io.Error) {
-	return g.Equals(parent)
+func (g *Generic) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return g.Equals(p, parent)
 }
 
-func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
+func (g *Generic) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	gOther, ok := other.(*Generic)
 	if !ok {
 		return false, nil
-	} else if ok, err := g.Type.Equals(gOther.Type); err != nil || !ok {
+	} else if ok, err := g.Type.Equals(p, gOther.Type); err != nil || !ok {
 		return false, err
 	}
 
 	for i, childGenericArg := range g.GenericTypes {
 		parentGenericArg := gOther.GenericTypes[i]
-		if ok, err := childGenericArg.Equals(parentGenericArg); err != nil || !ok {
+		if ok, err := childGenericArg.Equals(p, parentGenericArg); err != nil || !ok {
 			return false, err
 		}
 	}
@@ -109,13 +73,22 @@ func (g *Generic) Equals(other ast.Type) (bool, io.Error) {
 	return true, nil
 }
 
-func (g *Generic) Declaration() (ast.Declaration, io.Error) {
-	d, err := g.Type.Declaration()
+func (g *Generic) Declaration(p ast.SemanticParser) (ast.Declaration, io.Error) {
+	d, err := g.Type.Declaration(p)
 	if err != nil {
 		return nil, err
 	}
 
-	return newGenericDecl(g, d), nil
+	mapping := map[string]ast.Type{}
+	for _, t := range g.GenericTypes {
+		k, err := t.Key(p)
+		if err != nil {
+			return nil, err
+		}
+		mapping[k] = t
+	}
+
+	return p.NewGenericDecl(d, g.GenericTypes, mapping), nil
 }
 
 func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {
@@ -140,7 +113,7 @@ func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {
 	return nil
 }
 
-func (g *Generic) Concretize(mapping map[string]ast.Type) ast.Type {
+func (g *Generic) Concretize(mapping []ast.Type) ast.Type {
 	genericTypes := make([]ast.Type, len(g.GenericTypes))
 	for i, t := range g.GenericTypes {
 		genericTypes[i] = t.Concretize(mapping)

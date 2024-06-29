@@ -67,6 +67,6 @@ func (e *Enum) Semantic(p ast.SemanticParser) io.Error {
 		return err
 	}
 
-	_, err = type_.MustExtend(t, &type_.Void{})
+	_, err = type_.MustExtend(p, t, &type_.Void{})
 	return err
 }

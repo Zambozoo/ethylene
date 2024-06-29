@@ -13,13 +13,6 @@ type Primitive[T any] struct {
 	token.Token
 }
 
-func (p *Primitive[T]) Equals(other ast.Type) (bool, io.Error)           { panic("") }
-func (p *Primitive[T]) Extends(other ast.Type) (bool, io.Error)          { panic("") }
-func (p *Primitive[T]) ExtendsAsPointer(other ast.Type) (bool, io.Error) { panic("") }
-func (p *Primitive[T]) Concretize(map[string]ast.Type) ast.Type {
-	return p
-}
-
 func (p *Primitive[T]) IsConstant() bool {
 	return p.Constant
 }
@@ -29,114 +22,188 @@ func (p *Primitive[T]) SetConstant() {
 
 func (p *Primitive[T]) String() string {
 	return p.Token.String()
+	return p.Token.String()
 }
 
-func (p *Primitive[T]) Key() string {
-	return p.Token.Value
+func (p *Primitive[T]) Key(_ ast.SemanticParser) (string, io.Error) {
+	return p.Token.Value, nil
 }
 
 func (p *Primitive[T]) Location() token.Location {
+	return p.Token.Location()
 	return p.Token.Location()
 }
 
 type Integer struct{ Primitive[Integer] }
 
-func (p *Integer) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Integer) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Integer) Equals(other ast.Type) (bool, io.Error) {
+func (p *Integer) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Integer) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Integer) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
 	_, ok := other.(*Integer)
 	return ok, nil
+}
+func (p *Integer) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type Float struct{ Primitive[Float] }
 
-func (p *Float) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Float) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Float) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *Float) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Float) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Float) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*Float)
 	return ok, nil
+}
+func (p *Float) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type Word struct{ Primitive[Word] }
 
-func (p *Word) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Word) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Word) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *Word) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Word) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Word) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*Word)
 	return ok, nil
+}
+func (p *Word) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type Character struct{ Primitive[Character] }
 
-func (p *Character) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Character) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Character) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *Character) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Character) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Character) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*Character)
 	return ok, nil
+}
+func (p *Character) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type String struct{ Primitive[String] }
 
-func (p *String) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *String) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *String) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *String) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *String) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *String) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*String)
 	return ok, nil
+}
+func (p *String) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type Boolean struct{ Primitive[Boolean] }
 
-func (p *Boolean) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Boolean) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Boolean) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *Boolean) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Boolean) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Boolean) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*Boolean)
 	return ok, nil
+}
+func (p *Boolean) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type Void struct{ Primitive[Void] }
 
-func (p *Void) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Void) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Void) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *Void) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Void) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Void) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*Void)
 	return ok, nil
+}
+func (p *Void) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type TypeID struct{ Primitive[TypeID] }
 
-func (p *TypeID) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *TypeID) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *TypeID) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *TypeID) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *TypeID) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *TypeID) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*TypeID)
 	return ok, nil
+}
+func (p *TypeID) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 type Null struct{ Primitive[Null] }
 
-func (p *Null) ExtendsAsPointer(parent ast.Type) (bool, io.Error) { return p.Equals(parent) }
-func (p *Null) Extends(parent ast.Type) (bool, io.Error)          { return p.Equals(parent) }
-func (p *Null) Equals(other ast.Type) (bool, io.Error) {
-	_, ok := other.(*Integer)
+func (p *Null) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	return p.Equals(parser, parent)
+}
+func (p *Null) Extends(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
+	_, ok := parent.(*Pointer)
 	return ok, nil
+}
+func (p *Null) Equals(parser ast.SemanticParser, other ast.Type) (bool, io.Error) {
+	_, ok := other.(*Null)
+	return ok, nil
+}
+func (p *Null) Concretize([]ast.Type) ast.Type {
+	return p
 }
 
 func syntaxPrimitive(p ast.SyntaxParser) (ast.Type, io.Error) {
 	switch t := p.Peek(); t.Type {
 	case token.TOK_TYPEINT:
 		return &Integer{Primitive: Primitive[Integer]{Token: p.Next()}}, nil
+		return &Integer{Primitive: Primitive[Integer]{Token: p.Next()}}, nil
 	case token.TOK_TYPEFLT:
+		return &Float{Primitive: Primitive[Float]{Token: p.Next()}}, nil
 		return &Float{Primitive: Primitive[Float]{Token: p.Next()}}, nil
 	case token.TOK_TYPEWORD:
 		return &Word{Primitive: Primitive[Word]{Token: p.Next()}}, nil
+		return &Word{Primitive: Primitive[Word]{Token: p.Next()}}, nil
 	case token.TOK_TYPE:
+		return &TypeID{Primitive: Primitive[TypeID]{Token: p.Next()}}, nil
 		return &TypeID{Primitive: Primitive[TypeID]{Token: p.Next()}}, nil
 	case token.TOK_TYPESTR:
 		return &String{Primitive: Primitive[String]{Token: p.Next()}}, nil
+		return &String{Primitive: Primitive[String]{Token: p.Next()}}, nil
 	case token.TOK_TYPECHAR:
+		return &Character{Primitive: Primitive[Character]{Token: p.Next()}}, nil
 		return &Character{Primitive: Primitive[Character]{Token: p.Next()}}, nil
 	case token.TOK_TYPEBOOL:
 		return &Boolean{Primitive: Primitive[Boolean]{Token: p.Next()}}, nil
+		return &Boolean{Primitive: Primitive[Boolean]{Token: p.Next()}}, nil
 	case token.TOK_TYPEVOID:
+		return &Void{Primitive: Primitive[Void]{Token: p.Next()}}, nil
 		return &Void{Primitive: Primitive[Void]{Token: p.Next()}}, nil
 	default:
 		return nil, io.NewError("expected type", zap.String("token", t.String()))
