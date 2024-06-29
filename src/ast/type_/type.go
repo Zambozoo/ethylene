@@ -4,6 +4,7 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
+	"geth-cody/stringers"
 	"math"
 
 	"go.uber.org/zap"
@@ -41,7 +42,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		case token.TOK_INTEGER:
 			p.Next()
 			if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type array size is larger than max signed integer limit", zap.String("token", tok.String()))
+				return nil, io.NewError("type array size is larger than max signed integer limit", zap.Stringer("token", &tok))
 			}
 			endTok, err := p.Consume(token.TOK_RIGHTBRACKET)
 			if err != nil {
@@ -81,8 +82,8 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		declType, ok := t.(ast.DeclType)
 		if !ok {
 			return nil, io.NewError("invalid tailed type.",
-				zap.Any("type", t),
-				zap.Any("location", t.Location()),
+				zap.Stringer("type", t),
+				zap.Stringer("location", t.Location()),
 			)
 		}
 
@@ -90,7 +91,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 		if p.Match(token.TOK_INTEGER) {
 			tok := p.Prev()
 			if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type tail size is larger than max signed integer limit", zap.String("token", tok.String()))
+				return nil, io.NewError("type tail size is larger than max signed integer limit", zap.Stringer("token", &tok))
 			}
 			size = int64(tok.Integer)
 		}
@@ -139,7 +140,7 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 			if err != nil {
 				return nil, err
 			} else if tok.Integer > math.MaxInt {
-				return nil, io.NewError("type array size is larger than max signed integer limit", zap.String("token", tok.String()))
+				return nil, io.NewError("type array size is larger than max signed integer limit", zap.Stringer("token", &tok))
 			}
 			endTok, err := p.Consume(token.TOK_RIGHTBRACKET)
 			if err != nil {
@@ -155,8 +156,8 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 			p.Next()
 			if t.IsConstant() {
 				return nil, io.NewError("invalid double constant type",
-					zap.Any("type", t),
-					zap.Any("location", t.Location()),
+					zap.Stringer("type", t),
+					zap.Stringer("location", t.Location()),
 				)
 			}
 			t.SetConstant()
@@ -178,14 +179,14 @@ func MustExtend(p ast.SemanticParser, child ast.Type, parent ast.Type, parents .
 
 	var expectedField zapcore.Field
 	if len(parents) > 0 {
-		expectedField = zap.Any("expected one of", parents)
+		expectedField = zap.String("expected one of", stringers.Join(parents, ","))
 	} else {
-		expectedField = zap.Any("expected", parent)
+		expectedField = zap.Stringer("expected", parent)
 	}
 
 	return nil, io.NewError("type mismatch",
 		expectedField,
-		zap.Any("actual", child),
-		zap.Any("location", child.Location()),
+		zap.Stringer("actual", child),
+		zap.Stringer("location", child.Location()),
 	)
 }

@@ -28,13 +28,13 @@ func (l *Location) String() string {
 }
 
 type Locatable interface {
-	Location() Location
+	Location() *Location
 }
 
-func LocationBetween(start, end Locatable) Location {
+func LocationBetween(start, end Locatable) *Location {
 	startLocation := start.Location()
 	endLocation := end.Location()
-	return Location{
+	return &Location{
 		StartLine:   startLocation.StartLine,
 		StartColumn: startLocation.StartColumn,
 		EndLine:     endLocation.EndLine,

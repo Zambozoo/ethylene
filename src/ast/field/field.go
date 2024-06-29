@@ -4,7 +4,7 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
@@ -22,7 +22,7 @@ func (ms *Modifiers) HasModifier(m ast.Modifier) bool {
 }
 
 func (ms *Modifiers) String() string {
-	return strs.Strings(maps.Keys(*ms), " ")
+	return stringers.Join(maps.Keys(*ms), " ")
 }
 
 func Syntax(p ast.SyntaxParser) (ast.Field, io.Error) {
@@ -42,7 +42,7 @@ func Syntax(p ast.SyntaxParser) (ast.Field, io.Error) {
 	case token.TOK_CLASS, token.TOK_ABSTRACT, token.TOK_INTERFACE, token.TOK_STRUCT, token.TOK_ENUM:
 		f = &Decl{Modifiers: modifiers, StartToken: startToken}
 	default:
-		return nil, io.NewError("expected field", zap.String("token", t.String()))
+		return nil, io.NewError("expected field", zap.Stringer("token", &t))
 	}
 
 	if err := f.Syntax(p); err != nil {

@@ -1,36 +1,21 @@
 package type_
 
 import (
-	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 )
 
 // Union represents a type that could be any of the given types.
 type Union []ast.Type
 
-func (u Union) Location() token.Location {
+func (u Union) Location() *token.Location {
 	return token.LocationBetween(u[0], u[len(u)-1])
 }
 
 func (u Union) String() string {
-	return strs.Strings(u, "`")
-}
-
-func (u Union) Key(p ast.SemanticParser) (string, io.Error) {
-	var s string
-	var spacer string
-	for _, t := range u {
-		k, err := t.Key(p)
-		if err != nil {
-			return "", err
-		}
-		s += spacer + k
-		spacer = ","
-	}
-	return fmt.Sprintf("(%s)", s), nil
+	return stringers.Join(u, "`")
 }
 
 func (u Union) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {

@@ -18,8 +18,8 @@ func (l *Label) Token() *token.Token {
 func (s *Scope) AddLabel(tok *token.Token) io.Error {
 	if oldVar, ok := s.Variables[tok.Value]; ok {
 		return io.NewError("label already declared in this scope",
-			zap.Any("old variable", oldVar),
-			zap.Any("new variable", tok),
+			zap.Stringer("old variable", oldVar),
+			zap.Stringer("new variable", tok),
 		)
 	}
 
@@ -40,5 +40,5 @@ func (s *Scope) GetLabel(tok token.Token) (*Label, io.Error) {
 		}
 	}
 
-	return nil, io.NewError("label not found", zap.String("token", tok.String()))
+	return nil, io.NewError("label not found", zap.Stringer("token", &tok))
 }

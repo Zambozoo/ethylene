@@ -13,7 +13,7 @@ type Expr struct {
 	EndToken token.Token
 }
 
-func (e *Expr) Location() token.Location {
+func (e *Expr) Location() *token.Location {
 	return token.LocationBetween(e.Expr, &e.EndToken)
 }
 

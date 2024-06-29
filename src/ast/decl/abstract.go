@@ -19,11 +19,11 @@ type Abstract struct {
 	IsTailed bool
 
 	SuperClass ast.DeclType           // Optional
-	Implements data.Set[ast.DeclType] // Interfaces this decl implements
+	Parents_   data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
 func (a *Abstract) Parents() data.Set[ast.DeclType] {
-	return a.Implements
+	return a.Parents_
 }
 
 func (*Abstract) IsInterface() bool {
@@ -50,8 +50,8 @@ func newAbstract() *Abstract {
 
 func (a *Abstract) String() string {
 	var parentsString string
-	if len(a.Implements) > 0 {
-		parentsString = "<: [" + strings.Join(maps.Keys(a.Implements), ",") + "]"
+	if len(a.Parents_) > 0 {
+		parentsString = "<: [" + strings.Join(maps.Keys(a.Parents_), ",") + "]"
 	}
 	return fmt.Sprintf("abstract %s%s {\n%s\n%s\n%s\n%s}",
 		a.Name().Value,
@@ -83,7 +83,7 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		if a.Implements, err = p.ParseParentTypes(); err != nil {
+		if a.Parents_, err = p.ParseParentTypes(); err != nil {
 			return nil, err
 		}
 	}
@@ -99,8 +99,8 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 		} else if _, ok := f.(ast.DeclField); ok {
 			if _, ok := genericDecl.GenericParamIndex(f.Name().Value); ok {
 				return nil, io.NewError("inner decl name duplicates generic type",
-					zap.Any("decl", f.Name()),
-					zap.Any("location", f.Location()),
+					zap.Stringer("decl", f.Name()),
+					zap.Stringer("location", f.Location()),
 				)
 			}
 		}
@@ -119,10 +119,10 @@ func (a *Abstract) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 func (a *Abstract) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
 	return a.LinkParentsWithProvider(p,
 		func() (data.Set[ast.DeclType], io.Error) {
-			return a.Implements, nil
+			return a.Parents_, nil
 		},
 		func(parent ast.DeclType) io.Error {
-			a.Implements.Set(parent)
+			a.Parents_.Set(parent)
 			return nil
 		},
 		visitedDecls, cycleMap)
@@ -136,14 +136,14 @@ func (a *Abstract) LinkParentsWithProvider(
 	cycleMap map[string]struct{},
 ) (data.Set[ast.DeclType], io.Error) {
 	if _, exists := visitedDecls.Get(a); exists {
-		return a.Implements, nil
+		return a.Parents_, nil
 	}
 
 	l := a.Location()
 	if _, isCyclical := cycleMap[l.String()]; isCyclical {
 		return nil, io.NewError("cyclical inheritance",
-			zap.Any("abstract", a.Name()),
-			zap.Any("location", l),
+			zap.Stringer("abstract", a.Name()),
+			zap.Stringer("location", l),
 		)
 	}
 	cycleMap[l.String()] = struct{}{}
@@ -162,23 +162,23 @@ func (a *Abstract) LinkParentsWithProvider(
 		if parentDecl.IsAbstract() {
 			if a.SuperClass != nil {
 				return nil, io.NewError("abstracts cannot implement multiple concrete parents",
-					zap.Any("abstract", a.Name()),
-					zap.Any("location", a.Location()),
-					zap.Any("parent", parentDecl.Name()),
+					zap.Stringer("abstract", a.Name()),
+					zap.Stringer("location", a.Location()),
+					zap.Stringer("parent", parentDecl.Name()),
 				)
 			}
 			a.SuperClass = parent
 		} else if parentDecl.IsClass() {
 			return nil, io.NewError("abstracts cannot implement classes",
-				zap.Any("class", parentDecl.Name()),
-				zap.Any("abstract", a.Name()),
-				zap.Any("location", a.Location()),
+				zap.Stringer("class", parentDecl.Name()),
+				zap.Stringer("abstract", a.Name()),
+				zap.Stringer("location", a.Location()),
 			)
 		} else if !parentDecl.IsInterface() {
 			return nil, io.NewError("abstract cannot implement struct or enum parents",
-				zap.Any("class", a.Name()),
-				zap.Any("location", a.Location()),
-				zap.Any("parent", parentDecl.Name()),
+				zap.Stringer("class", a.Name()),
+				zap.Stringer("location", a.Location()),
+				zap.Stringer("parent", parentDecl.Name()),
 			)
 		}
 
@@ -202,7 +202,7 @@ func (a *Abstract) LinkParentsWithProvider(
 func (a *Abstract) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	return a.LinkFieldsWithProvider(p,
 		func() (data.Set[ast.DeclType], io.Error) {
-			return a.Implements, nil
+			return a.Parents_, nil
 		},
 		func() map[string]ast.Method {
 			return a.Methods_
@@ -255,7 +255,7 @@ func (a *Abstract) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Erro
 }
 
 func (a *Abstract) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
-	for _, p := range a.Implements {
+	for _, p := range a.Parents_ {
 		if equals, err := p.Equals(parser, parent); equals || err != nil {
 			return equals, err
 		}
@@ -278,11 +278,6 @@ func (a *Abstract) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error)
 	}
 
 	return false, nil
-}
-
-func (a *Abstract) Key(_ ast.SemanticParser) (string, io.Error) {
-	l := a.Location()
-	return fmt.Sprintf("%s:%s", l.String(), a.Name_.Value), nil
 }
 
 func (a *Abstract) Concretize(mapping []ast.Type) ast.Type {

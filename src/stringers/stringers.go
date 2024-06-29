@@ -1,10 +1,10 @@
-package strs
+package stringers
 
 import (
 	"fmt"
 )
 
-func Strings[T fmt.Stringer](stringers []T, spacer string) string {
+func Join[T fmt.Stringer](stringers []T, spacer string) string {
 	var result string
 	var sspacer string
 	for _, s := range stringers {

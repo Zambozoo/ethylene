@@ -16,7 +16,7 @@ type BoundedStmt struct {
 	EndToken   token.Token
 }
 
-func (s *BoundedStmt) Location() token.Location {
+func (s *BoundedStmt) Location() *token.Location {
 	return token.LocationBetween(&s.StartToken, &s.EndToken)
 }
 

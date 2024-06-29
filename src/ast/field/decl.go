@@ -21,7 +21,7 @@ func (d *Decl) Declaration() ast.Declaration {
 	return d.Declaration_
 }
 
-func (d *Decl) Location() token.Location {
+func (d *Decl) Location() *token.Location {
 	return token.LocationBetween(&d.StartToken, d.Declaration_)
 }
 func (d *Decl) String() string {

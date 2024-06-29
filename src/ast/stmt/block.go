@@ -6,7 +6,7 @@ import (
 	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 )
 
 // Block represents a block of statements enclosed in braces
@@ -16,7 +16,7 @@ type Block struct {
 }
 
 func (b *Block) String() string {
-	return fmt.Sprintf("{\n%s}", strs.Strings(b.Stmts, "\n"))
+	return fmt.Sprintf("{\n%s}", stringers.Join(b.Stmts, "\n"))
 }
 
 func (b *Block) Syntax(p ast.SyntaxParser) io.Error {

@@ -6,7 +6,7 @@ import (
 	"geth-cody/ast/type_"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 
 	"go.uber.org/zap"
 )
@@ -32,7 +32,7 @@ func (m *Method) Type() ast.Type {
 func (m *Method) Name() *token.Token {
 	return &m.Name_
 }
-func (m *Method) Location() token.Location {
+func (m *Method) Location() *token.Location {
 	var locatable token.Locatable = m.Stmt
 	if m.Stmt == nil {
 		locatable = &m.EndToken
@@ -44,7 +44,7 @@ func (m *Method) Location() token.Location {
 func (m *Method) String() string {
 	var stmtString string
 	if m.Stmt != nil {
-		stmtString = fmt.Sprintf(": (%s)\n%s", strs.Strings(m.Parameters, ","), m.Stmt.String())
+		stmtString = fmt.Sprintf(": (%s)\n%s", stringers.Join(m.Parameters, ","), m.Stmt.String())
 	}
 	return fmt.Sprintf("%s fun %s %s%s",
 		m.Modifiers.String(),
@@ -68,7 +68,7 @@ func (m *Method) Syntax(p ast.SyntaxParser) io.Error {
 	t.SetConstant()
 
 	if m.Type_, ok = t.(ast.FunType); !ok {
-		return io.NewError("expected a function type for method", zap.Any("location", m.StartToken.Location()))
+		return io.NewError("expected a function type for method", zap.Stringer("location", m.StartToken.Location()))
 	}
 
 	m.Name_, err = p.Consume(token.TOK_IDENTIFIER)
@@ -106,10 +106,10 @@ func (m *Method) Syntax(p ast.SyntaxParser) io.Error {
 
 	if m.Type_.Arity() != len(m.Parameters) {
 		return io.NewError("arity of method does not match number of parameters",
-			zap.Any("name", m.Name()),
-			zap.Any("expected", m.Type_.Arity()),
-			zap.Any("actual", len(m.Parameters)),
-			zap.Any("location", m.Location()),
+			zap.Stringer("name", m.Name()),
+			zap.Int("expected", m.Type_.Arity()),
+			zap.Int("actual", len(m.Parameters)),
+			zap.Stringer("location", m.Location()),
 		)
 	}
 	m.Stmt, err = p.ParseStmt()
@@ -121,6 +121,9 @@ type methodVariable struct {
 	type_ ast.Type
 }
 
+func (m *methodVariable) String() string {
+	return fmt.Sprintf("var %s %s", m.type_.String(), m.name)
+}
 func (m *methodVariable) Name() *token.Token {
 	return m.name
 }
@@ -145,8 +148,8 @@ func (m *Method) Semantic(p ast.SemanticParser) io.Error {
 
 		if t == nil {
 			io.NewError("method missing return a value",
-				zap.Any("name", m.Name()),
-				zap.Any("location", m.Location()),
+				zap.Stringer("name", m.Name()),
+				zap.Stringer("location", m.Location()),
 			).Log(io.Warnf)
 		} else if _, err := type_.MustExtend(p, t, m.Type_.ReturnType()); err != nil {
 			return err

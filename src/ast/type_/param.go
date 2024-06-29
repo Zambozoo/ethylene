@@ -1,7 +1,6 @@
 package type_
 
 import (
-	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/data"
 	"geth-cody/compile/lexer/token"
@@ -80,10 +79,4 @@ func (p *Param) IsConstant() bool {
 }
 func (p *Param) SetConstant() {
 	p.Constant = true
-}
-
-// Key returns a unique string representation of the type.
-func (p *Param) Key(_ ast.SemanticParser) (string, io.Error) {
-	l := p.Decl.Location()
-	return fmt.Sprintf("%s:%s", l.String(), p.Token.Value), nil
 }

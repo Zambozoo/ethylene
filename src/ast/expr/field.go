@@ -31,7 +31,7 @@ type TypeField struct {
 	FieldName  token.Token
 }
 
-func (t *TypeField) Location() token.Location {
+func (t *TypeField) Location() *token.Location {
 	return token.LocationBetween(&t.StartToken, &t.FieldName)
 }
 

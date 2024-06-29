@@ -1,6 +1,7 @@
 package path
 
 import (
+	"fmt"
 	"geth-cody/io"
 	filepath "path/filepath"
 
@@ -17,6 +18,14 @@ type Args struct {
 	InputFilePath   *File
 	MainProjectPath *File
 	OutputFilePath  string
+}
+
+func (a *Args) String() string {
+	return fmt.Sprintf("Args{InputFilePath:%q,MainProjectPath:%q,OutputFilePath%q}",
+		a.InputFilePath.String(),
+		a.MainProjectPath.String(),
+		a.OutputFilePath,
+	)
 }
 
 // NewArgs instantiates a new Args struct from the provided arguments.

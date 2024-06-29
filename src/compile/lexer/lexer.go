@@ -416,7 +416,7 @@ func (l *Lexer) Lex() ([]token.Token, io.Error) {
 		case token.TOK_EOF:
 			return tokens, err
 		case token.TOK_UNKOWN:
-			err = io.JoinError(err, io.NewError("malformed token", zap.String("token", t.String())))
+			err = io.JoinError(err, io.NewError("malformed token", zap.Stringer("token", &t)))
 		}
 	}
 }

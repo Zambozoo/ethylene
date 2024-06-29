@@ -20,7 +20,7 @@ func (i *Import) Path() path.Path {
 	return i.FilePath
 }
 
-func (i *Import) Location() token.Location {
+func (i *Import) Location() *token.Location {
 	return token.LocationBetween(&i.StartToken, &i.EndToken)
 }
 

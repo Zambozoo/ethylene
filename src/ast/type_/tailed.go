@@ -22,7 +22,7 @@ func (t *Tailed) Context() ast.TypeContext {
 	return t.Type.Context()
 }
 
-func (t *Tailed) Location() token.Location {
+func (t *Tailed) Location() *token.Location {
 	return token.LocationBetween(t.Type, &t.EndToken)
 }
 
@@ -32,15 +32,6 @@ func (t *Tailed) String() string {
 		tail = fmt.Sprintf("%d", t.Size)
 	}
 	return fmt.Sprintf("%s~%s", t.Type.String(), tail)
-}
-
-func (t *Tailed) Key(p ast.SemanticParser) (string, io.Error) {
-	k, err := t.Type.Key(p)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s~%d", k, t.Size), nil
 }
 
 func (t *Tailed) ExtendsAsPointer(p ast.SemanticParser, other ast.Type) (bool, io.Error) {

@@ -28,7 +28,7 @@ func (l *Lookup) Context() ast.TypeContext {
 	return l.Context_
 }
 
-func (l *Lookup) Location() token.Location {
+func (l *Lookup) Location() *token.Location {
 	return token.LocationBetween(&l.Tokens[0], &l.Tokens[len(l.Tokens)-1])
 }
 
@@ -39,15 +39,6 @@ func (l *Lookup) String() string {
 		spacer = "."
 	}
 	return tokensString
-}
-
-func (l *Lookup) Key(p ast.SemanticParser) (string, io.Error) {
-	decl, err := l.Declaration(p)
-	if err != nil {
-		return "", err
-	}
-
-	return decl.Key(p)
 }
 
 func (l *Lookup) Declaration(_ ast.SemanticParser) (ast.Declaration, io.Error) {

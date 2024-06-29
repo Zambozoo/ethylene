@@ -5,7 +5,7 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 )
 
 // FunctionType represents a function signature
@@ -16,33 +16,12 @@ type Function struct {
 	EndToken        token.Token
 }
 
-func (f *Function) Location() token.Location {
+func (f *Function) Location() *token.Location {
 	return token.LocationBetween(f.ReturnType_, &f.EndToken)
 }
 
 func (f *Function) String() string {
-	return fmt.Sprintf("%s(%s)", f.ReturnType_, strs.Strings(f.ParameterTypes_, ","))
-}
-
-func (f *Function) Key(p ast.SemanticParser) (string, io.Error) {
-	var s string
-	var spacer string
-	for _, t := range f.ParameterTypes_ {
-		k, err := t.Key(p)
-		if err != nil {
-			return "", err
-		}
-
-		s += spacer + k
-		spacer = ","
-	}
-
-	k, err := f.ReturnType_.Key(p)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s(%s)", k, s), nil
+	return fmt.Sprintf("%s(%s)", f.ReturnType_, stringers.Join(f.ParameterTypes_, ","))
 }
 
 func (f *Function) ReturnType() ast.Type {

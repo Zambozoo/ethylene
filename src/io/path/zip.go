@@ -44,7 +44,7 @@ func (z *Zip) Read() (string, io.Error) {
 		buf := new(strings.Builder)
 		if err != nil {
 			return "", io.NewError("couldn't open file in zip",
-				zap.Any("file path", z),
+				zap.Stringer("file path", z),
 				zap.Error(err),
 			)
 		}
@@ -52,7 +52,7 @@ func (z *Zip) Read() (string, io.Error) {
 		defer rc.Close()
 		if _, err = goio.Copy(buf, rc); err != nil {
 			return "", io.NewError("couldn't read file from zip",
-				zap.Any("file path", z),
+				zap.Stringer("file path", z),
 				zap.Error(err),
 			)
 		}
@@ -60,7 +60,7 @@ func (z *Zip) Read() (string, io.Error) {
 		return buf.String(), nil
 	}
 
-	return "", io.NewError("file not found in zip", zap.Any("file path", z))
+	return "", io.NewError("file not found in zip", zap.Stringer("file path", z))
 }
 
 // Stat returns an error if the file or directory does not exist.
@@ -80,7 +80,7 @@ func (z *Zip) Stat() io.Error {
 		}
 	}
 
-	return io.NewError("file not found in zip", zap.Any("file path", z))
+	return io.NewError("file not found in zip", zap.Stringer("file path", z))
 }
 
 // Dir returns the parent directory of the file or directory.

@@ -5,7 +5,7 @@ import (
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 )
 
 // GenericType represents a type with generic type parameters
@@ -25,21 +25,12 @@ func (g *Generic) Context() ast.TypeContext {
 	return g.Context_
 }
 
-func (g *Generic) Location() token.Location {
+func (g *Generic) Location() *token.Location {
 	return token.LocationBetween(g.Type, &g.EndToken)
 }
 
 func (g *Generic) String() string {
-	return fmt.Sprintf("%s[%s]", g.Type, strs.Strings(g.GenericTypes, ","))
-}
-
-func (g *Generic) Key(p ast.SemanticParser) (string, io.Error) {
-	decl, err := g.Declaration(p)
-	if err != nil {
-		return "", err
-	}
-
-	return decl.Concretize(g.Context_.TopScope().Generics()).Key(p)
+	return fmt.Sprintf("%s[%s]", g.Type, stringers.Join(g.GenericTypes, ","))
 }
 
 func (g *Generic) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
@@ -79,16 +70,7 @@ func (g *Generic) Declaration(p ast.SemanticParser) (ast.Declaration, io.Error) 
 		return nil, err
 	}
 
-	mapping := map[string]ast.Type{}
-	for _, t := range g.GenericTypes {
-		k, err := t.Key(p)
-		if err != nil {
-			return nil, err
-		}
-		mapping[k] = t
-	}
-
-	return p.NewGenericDecl(d, g.GenericTypes, mapping), nil
+	return p.WrapDeclWithGeneric(d, g.GenericTypes), nil
 }
 
 func (g *Generic) Syntax(p ast.SyntaxParser) io.Error {

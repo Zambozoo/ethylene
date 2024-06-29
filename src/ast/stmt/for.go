@@ -16,7 +16,7 @@ type For1 struct {
 	Else       ast.Statement
 }
 
-func (f *For1) Location() token.Location {
+func (f *For1) Location() *token.Location {
 	endLocatable := f.Then
 	if f.Else != nil {
 		endLocatable = f.Else
@@ -34,30 +34,6 @@ func (f *For1) String() string {
 		f.Then.String(),
 		elseString,
 	)
-}
-
-func (f *For0) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	p.Scope().Wrap()
-	defer p.Scope().Unwrap()
-	if err := p.Scope().AddLabel(&emptyLabel); err != nil {
-		return nil, err
-	}
-
-	return f.Stmt.Semantic(p)
-}
-
-// For1 represents a 'for{}' loop
-type For0 struct {
-	StartToken token.Token
-	Stmt       ast.Statement
-}
-
-func (f *For0) Location() token.Location {
-	return token.LocationBetween(&f.StartToken, f.Stmt)
-}
-
-func (f *For0) String() string {
-	return fmt.Sprintf("for\n%s", f.Stmt.String())
 }
 
 func (f *For1) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
@@ -88,6 +64,30 @@ func (f *For1) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	}
 
 	return returnType, nil
+}
+
+// For1 represents a 'for{}' loop
+type For0 struct {
+	StartToken token.Token
+	Stmt       ast.Statement
+}
+
+func (f *For0) Location() *token.Location {
+	return token.LocationBetween(&f.StartToken, f.Stmt)
+}
+
+func (f *For0) String() string {
+	return fmt.Sprintf("for\n%s", f.Stmt.String())
+}
+
+func (f *For0) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
+	p.Scope().Wrap()
+	defer p.Scope().Unwrap()
+	if err := p.Scope().AddLabel(&emptyLabel); err != nil {
+		return nil, err
+	}
+
+	return f.Stmt.Semantic(p)
 }
 
 func parseFor(p ast.SyntaxParser) (ast.Statement, io.Error) {

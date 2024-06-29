@@ -16,11 +16,11 @@ import (
 type Interface struct {
 	BaseDecl
 
-	Implements data.Set[ast.DeclType] // Interfaces this decl implements
+	Parents_ data.Set[ast.DeclType] // Interfaces this decl implements
 }
 
 func (i *Interface) Parents() data.Set[ast.DeclType] {
-	return i.Implements
+	return i.Parents_
 }
 
 func (*Interface) IsInterface() bool {
@@ -47,8 +47,8 @@ func newInterface() *Interface {
 
 func (i *Interface) String() string {
 	var parentsString string
-	if len(i.Implements) > 0 {
-		parentsString = "<: [" + strings.Join(maps.Keys(i.Implements), ",") + "]"
+	if len(i.Parents_) > 0 {
+		parentsString = "<: [" + strings.Join(maps.Keys(i.Parents_), ",") + "]"
 	}
 	return fmt.Sprintf("interface %s%s {\n%s\n%s\n%s\n%s}",
 		i.Name().Value,
@@ -79,7 +79,7 @@ func (i *Interface) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	}
 
 	if p.Match(token.TOK_SUBTYPE) {
-		if i.Implements, err = p.ParseParentTypes(); err != nil {
+		if i.Parents_, err = p.ParseParentTypes(); err != nil {
 			return nil, err
 		}
 	}
@@ -96,15 +96,15 @@ func (i *Interface) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 			if genericDecl != nil {
 				if _, ok := genericDecl.GenericParamIndex(f.Name().Value); ok {
 					return nil, io.NewError("inner decl name duplicates generic type",
-						zap.Any("decl", f.Name()),
-						zap.Any("location", f.Location()),
+						zap.Stringer("decl", f.Name()),
+						zap.Stringer("location", f.Location()),
 					)
 				}
 			}
 		} else if !f.HasModifier(ast.MOD_STATIC) && !f.HasModifier(ast.MOD_VIRTUAL) {
 			return nil, io.NewError("only static and virtual fields are allowed in interfaces",
-				zap.Any("field", f.Name()),
-				zap.Any("location", f.Location()),
+				zap.Stringer("field", f.Name()),
+				zap.Stringer("location", f.Location()),
 			)
 		}
 		if err := i.AddField(f); err != nil {
@@ -122,10 +122,10 @@ func (i *Interface) Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 func (i *Interface) LinkParents(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration], cycleMap map[string]struct{}) (data.Set[ast.DeclType], io.Error) {
 	return i.LinkParentsWithProvider(p,
 		func() (data.Set[ast.DeclType], io.Error) {
-			return i.Implements, nil
+			return i.Parents_, nil
 		},
 		func(parent ast.DeclType) io.Error {
-			i.Implements.Set(parent)
+			i.Parents_.Set(parent)
 			return nil
 		},
 		visitedDecls, cycleMap)
@@ -139,14 +139,14 @@ func (i *Interface) LinkParentsWithProvider(
 	cycleMap map[string]struct{},
 ) (data.Set[ast.DeclType], io.Error) {
 	if _, exists := visitedDecls.Get(i); exists {
-		return i.Implements, nil
+		return i.Parents_, nil
 	}
 
 	l := i.Location()
 	if _, isCyclical := cycleMap[l.String()]; isCyclical {
 		return nil, io.NewError("cyclical inheritance",
-			zap.Any("interface", i.Name()),
-			zap.Any("location", l),
+			zap.Stringer("interface", i.Name()),
+			zap.Stringer("location", l),
 		)
 	}
 	cycleMap[l.String()] = struct{}{}
@@ -163,9 +163,9 @@ func (i *Interface) LinkParentsWithProvider(
 
 		if !parentDecl.IsInterface() {
 			return nil, io.NewError("interface can only implement interface parents",
-				zap.Any("interface", i.Name()),
-				zap.Any("location", i.Location()),
-				zap.Any("parent", parentDecl.Name()),
+				zap.Stringer("interface", i.Name()),
+				zap.Stringer("location", i.Location()),
+				zap.Stringer("parent", parentDecl.Name()),
 			)
 		}
 
@@ -188,7 +188,7 @@ func (i *Interface) LinkParentsWithProvider(
 func (i *Interface) LinkFields(p ast.SemanticParser, visitedDecls *data.AsyncSet[ast.Declaration]) io.Error {
 	return i.LinkFieldsWithProvider(p,
 		func() (data.Set[ast.DeclType], io.Error) {
-			return i.Implements, nil
+			return i.Parents_, nil
 		},
 		func() map[string]ast.Method {
 			return i.Methods_
@@ -233,7 +233,7 @@ func (i *Interface) Extends(p ast.SemanticParser, parent ast.Type) (bool, io.Err
 }
 
 func (i *Interface) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {
-	for _, p := range i.Implements {
+	for _, p := range i.Parents_ {
 		if equals, err := p.Equals(parser, parent); equals || err != nil {
 			return equals, err
 		}
@@ -256,11 +256,6 @@ func (i *Interface) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error
 	}
 
 	return false, nil
-}
-
-func (i *Interface) Key(p ast.SemanticParser) (string, io.Error) {
-	l := i.Location()
-	return fmt.Sprintf("%s:%s", l.String(), i.Name_.Value), nil
 }
 
 func (i *Interface) Concretize(mapping []ast.Type) ast.Type {

@@ -1,7 +1,6 @@
 package expr
 
 import (
-	"fmt"
 	"geth-cody/ast"
 	"geth-cody/compile/lexer/token"
 	"geth-cody/io"
@@ -12,7 +11,7 @@ type Identifier struct {
 }
 
 func (i *Identifier) String() string {
-	return fmt.Sprintf("%s", i.Value)
+	return i.Value
 }
 
 func (i *Identifier) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {

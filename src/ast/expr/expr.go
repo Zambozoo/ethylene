@@ -14,7 +14,7 @@ type Binary struct {
 	Right ast.Expression
 }
 
-func (b *Binary) Location() token.Location {
+func (b *Binary) Location() *token.Location {
 	return token.LocationBetween(b.Left, b.Right)
 }
 
@@ -45,13 +45,13 @@ type Unary struct {
 
 type PrefixedUnary Unary
 
-func (s *PrefixedUnary) Location() token.Location {
+func (s *PrefixedUnary) Location() *token.Location {
 	return token.LocationBetween(&s.Token, s.Expr)
 }
 
 type SuffixedUnary Unary
 
-func (s *SuffixedUnary) Location() token.Location {
+func (s *SuffixedUnary) Location() *token.Location {
 	return token.LocationBetween(s.Expr, &s.Token)
 }
 
@@ -62,13 +62,13 @@ type tokenExpr struct {
 
 type SuffixedToken tokenExpr
 
-func (s *SuffixedToken) Location() token.Location {
+func (s *SuffixedToken) Location() *token.Location {
 	return token.LocationBetween(s.Expr, &s.Token)
 }
 
 type PrefixedToken tokenExpr
 
-func (p *PrefixedToken) Location() token.Location {
+func (p *PrefixedToken) Location() *token.Location {
 	return token.LocationBetween(&p.Token, p.Expr)
 }
 
@@ -91,7 +91,7 @@ func syntaxUnaryPost(p ast.SyntaxParser) (ast.Expression, io.Error) {
 		switch t := p.Peek(); t.Type {
 		case token.TOK_INC:
 			if !assignable(expr) {
-				return nil, io.NewError("invalid target for increment expresion", zap.Any("location", expr.Location()))
+				return nil, io.NewError("invalid target for increment expresion", zap.Stringer("location", expr.Location()))
 			}
 			expr = &IncrementSuffix{
 				SuffixedUnary: SuffixedUnary{
@@ -101,7 +101,7 @@ func syntaxUnaryPost(p ast.SyntaxParser) (ast.Expression, io.Error) {
 			}
 		case token.TOK_DEC:
 			if !assignable(expr) {
-				return nil, io.NewError("invalid target for decrement expresion", zap.Any("location", expr.Location()))
+				return nil, io.NewError("invalid target for decrement expresion", zap.Stringer("location", expr.Location()))
 			}
 			expr = &DecrementSuffix{
 				SuffixedUnary: SuffixedUnary{
@@ -234,7 +234,7 @@ func syntaxUnaryPre(p ast.SyntaxParser) (ast.Expression, io.Error) {
 		}
 
 		if !assignable(expr.Expr) {
-			return nil, io.NewError("invalid target for increment expresion", zap.Any("location", expr.Location()))
+			return nil, io.NewError("invalid target for increment expresion", zap.Stringer("location", expr.Location()))
 		}
 
 		return expr, nil
@@ -252,7 +252,7 @@ func syntaxUnaryPre(p ast.SyntaxParser) (ast.Expression, io.Error) {
 			},
 		}
 		if !assignable(expr.Expr) {
-			return nil, io.NewError("invalid target for decrement expresion", zap.Any("location", expr.Location()))
+			return nil, io.NewError("invalid target for decrement expresion", zap.Stringer("location", expr.Location()))
 		}
 
 		return expr, nil
@@ -296,7 +296,7 @@ func syntaxUnaryPre(p ast.SyntaxParser) (ast.Expression, io.Error) {
 			},
 		}
 		if !assignable(expr.Expr) {
-			return nil, io.NewError("invalid target for reference expresion", zap.Any("location", expr.Location()))
+			return nil, io.NewError("invalid target for reference expresion", zap.Stringer("location", expr.Location()))
 		}
 
 		return expr, nil
@@ -363,6 +363,6 @@ func syntaxPrimary(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	case token.TOK_SUPER:
 		return &Super{Token: p.Next()}, nil
 	default:
-		return nil, io.NewError("unexpected token", zap.String("token", t.String()))
+		return nil, io.NewError("unexpected token", zap.Stringer("token", &t))
 	}
 }

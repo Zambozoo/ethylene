@@ -3,7 +3,7 @@ package generics
 import (
 	"fmt"
 	"geth-cody/ast"
-	"geth-cody/strs"
+	"geth-cody/stringers"
 )
 
 type genericMember struct {
@@ -12,7 +12,7 @@ type genericMember struct {
 }
 
 func (m *genericMember) String() string {
-	return fmt.Sprintf("[%s]:%s", strs.Strings(m.mapping, ","), m.Member.String())
+	return fmt.Sprintf("[%s]:%s", stringers.Join(m.mapping, ","), m.Member.String())
 }
 
 func (g *genericMember) Type() ast.Type {

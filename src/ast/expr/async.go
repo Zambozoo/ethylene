@@ -16,7 +16,7 @@ type Async struct {
 	CallExpr   *Call
 }
 
-func (a *Async) Location() token.Location {
+func (a *Async) Location() *token.Location {
 	return token.LocationBetween(&a.StartToken, a.CallExpr)
 }
 
@@ -35,7 +35,7 @@ func (a *Async) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 	if err != nil {
 		return nil, err
 	} else if callExpr, ok := expr.(*Call); !ok {
-		return nil, io.NewError("async argument must be a function call", zap.Any("location", a.Location()))
+		return nil, io.NewError("async argument must be a function call", zap.Stringer("location", a.Location()))
 	} else {
 		a.CallExpr = callExpr
 	}

@@ -14,20 +14,12 @@ type Pointer struct {
 	EndToken token.Token
 }
 
-func (p *Pointer) Location() token.Location {
+func (p *Pointer) Location() *token.Location {
 	return token.LocationBetween(p.Type, &p.EndToken)
 }
 
 func (p *Pointer) String() string {
 	return fmt.Sprintf("%s*", p.Type.String())
-}
-
-func (p *Pointer) Key(parser ast.SemanticParser) (string, io.Error) {
-	k, err := p.Type.Key(parser)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s*", k), nil
 }
 
 func (p *Pointer) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (bool, io.Error) {

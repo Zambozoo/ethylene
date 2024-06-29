@@ -67,13 +67,13 @@ func (d *BaseDecl) AddField(f ast.Field) io.Error {
 	if decl, ok := f.(ast.DeclField); ok {
 		if name == d.Name_.Value {
 			return io.NewError("inner decl name duplicates outer decl",
-				zap.Any("decl", name),
-				zap.Any("location", decl.Location()),
+				zap.String("decl", name),
+				zap.Stringer("location", decl.Location()),
 			)
 		} else if _, exists := d.Declarations_[name]; exists {
 			return io.NewError("duplicate decl name",
-				zap.Any("decl", name),
-				zap.Any("location", decl.Location()),
+				zap.String("decl", name),
+				zap.Stringer("location", decl.Location()),
 			)
 		}
 		d.Declarations_[decl.Name().Value] = decl
@@ -86,8 +86,8 @@ func (d *BaseDecl) AddField(f ast.Field) io.Error {
 	_, staticMemberExists := d.StaticMembers_[name]
 	if methodExists || staticMethodExists || memberExists || staticMemberExists {
 		return io.NewError("duplicate field name",
-			zap.Any("member", name),
-			zap.Any("location", f.Location()),
+			zap.String("member", name),
+			zap.Stringer("location", f.Location()),
 		)
 	}
 
@@ -108,7 +108,7 @@ func (d *BaseDecl) AddField(f ast.Field) io.Error {
 	return nil
 }
 
-func (d *BaseDecl) Location() token.Location {
+func (d *BaseDecl) Location() *token.Location {
 	return token.LocationBetween(&d.StartToken, &d.EndToken)
 }
 
@@ -161,7 +161,7 @@ func Syntax(p ast.SyntaxParser) (ast.Declaration, io.Error) {
 	case token.TOK_ENUM:
 		declaration = newEnum()
 	default:
-		return nil, io.NewError("expected declaration", zap.String("token", t.String()))
+		return nil, io.NewError("expected declaration", zap.Stringer("token", &t))
 	}
 
 	p.WrapScope(declaration)
@@ -223,9 +223,9 @@ func (child *BaseDecl) ExtendsParent(p ast.SemanticParser, methodProviderFunc ge
 			}
 		} else if parentMethod.HasModifier(ast.MOD_VIRTUAL) && child.IsClass {
 			return io.NewError("child missing method",
-				zap.Any("method", name),
-				zap.Any("parent", parent.Name()),
-				zap.Any("location", child.Location()),
+				zap.String("method", name),
+				zap.Stringer("parent", parent.Name()),
+				zap.Stringer("location", child.Location()),
 			)
 		} else {
 			child.Methods_[name] = parentMethod
