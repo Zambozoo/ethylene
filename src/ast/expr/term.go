@@ -18,7 +18,7 @@ func (a *Add) String() string {
 }
 
 func (a *Add) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return a.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
+	return a.Binary.MustBothExtendOne(p, type_.NewInteger(), type_.NewFloat())
 }
 
 // Substract represents expressions of the form
@@ -31,7 +31,7 @@ func (s *Subtract) String() string {
 }
 
 func (s *Subtract) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return s.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
+	return s.Binary.MustBothExtendOne(p, type_.NewInteger(), type_.NewFloat())
 }
 
 func syntaxTerm(p ast.SyntaxParser) (ast.Expression, io.Error) {

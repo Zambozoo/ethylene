@@ -152,19 +152,31 @@ func (d *Decl) ExtendsAsPointer(parser ast.SemanticParser, parent ast.Type) (boo
 }
 
 func (d *Decl) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) {
-	if otherDecl, ok := other.(*Decl); ok {
-		return d == otherDecl, nil
-	} else if otherDeclType, ok := other.(ast.DeclType); ok {
-		otherDeclaration, err := otherDeclType.Declaration(p)
+	otherDecl, ok := other.(*Decl)
+	if !ok {
+		otherDeclType, ok := other.(*type_.Generic)
+		if !ok {
+			return false, nil
+		}
+
+		otherD, err := otherDeclType.Declaration(p)
 		if err != nil {
 			return false, err
 		}
-		if otherDecl, ok := otherDeclaration.(*Decl); ok {
-			return d == otherDecl, nil
+		otherDecl = otherD.(*Decl)
+	}
+
+	for i, t := range d.SymbolSlice {
+		otherT := otherDecl.SymbolSlice[i]
+		eq, err := t.Equals(p, otherT)
+		if err != nil || !eq {
+			return false, err
 		}
 	}
 
-	return false, nil
+	root := d.rootDeclaration()
+	otherRoot := otherDecl.rootDeclaration()
+	return root == otherRoot, nil
 }
 
 func (d *Decl) Concretize(mapping []ast.Type) ast.Type {
@@ -262,4 +274,15 @@ func (d *Decl) Super() (ast.DeclType, bool) {
 
 func (d *Decl) IsTailed() bool {
 	return d.Declaration.IsTailed()
+}
+
+func (d *Decl) rootDeclaration() ast.Declaration {
+	decl := d.Declaration
+	for {
+		g, ok := decl.(*Decl)
+		if ok {
+			return decl
+		}
+		decl = g.Declaration
+	}
 }

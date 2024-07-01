@@ -19,5 +19,5 @@ func (h *Hash) String() string {
 }
 
 func (h *Hash) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Integer{}, nil
+	return type_.NewInteger(), nil
 }

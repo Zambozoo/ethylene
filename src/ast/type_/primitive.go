@@ -9,6 +9,34 @@ import (
 	"go.uber.org/zap"
 )
 
+func NewInteger() *Integer {
+	return &Integer{Primitive: Primitive[Integer]{Token: token.Token{Value: "int"}}}
+}
+func NewFloat() *Float {
+	return &Float{Primitive: Primitive[Float]{Token: token.Token{Value: "float"}}}
+}
+func NewWord() *Word {
+	return &Word{Primitive: Primitive[Word]{Token: token.Token{Value: "word"}}}
+}
+func NewBoolean() *Boolean {
+	return &Boolean{Primitive: Primitive[Boolean]{Token: token.Token{Value: "bool"}}}
+}
+func NewCharacter() *Character {
+	return &Character{Primitive: Primitive[Character]{Token: token.Token{Value: "char"}}}
+}
+func NewString() *String {
+	return &String{Primitive: Primitive[String]{Token: token.Token{Value: "str"}}}
+}
+func NewVoid() *Void {
+	return &Void{Primitive: Primitive[Void]{Token: token.Token{Value: "void"}}}
+}
+func NewTypeID() *TypeID {
+	return &TypeID{Primitive: Primitive[TypeID]{Token: token.Token{Value: "type"}}}
+}
+func NewNull() *Null {
+	return &Null{Primitive: Primitive[Null]{Token: token.Token{Value: "null"}}}
+}
+
 type Primitive[T any] struct {
 	Constant bool
 	token.Token
@@ -22,7 +50,7 @@ func (p *Primitive[T]) SetConstant() {
 }
 
 func (p *Primitive[T]) String() string {
-	return p.Token.Value
+	return p.Token.String()
 }
 
 func (p *Primitive[T]) Location() *token.Location {

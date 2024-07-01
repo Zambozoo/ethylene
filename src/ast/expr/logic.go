@@ -45,7 +45,7 @@ func (a *And) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (a *And) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return a.Binary.MustBothExtendOne(p, &type_.Boolean{})
+	return a.Binary.MustBothExtendOne(p, type_.NewBoolean())
 }
 
 // Or represents expressions of the form
@@ -84,5 +84,5 @@ func (o *Or) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (o *Or) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return o.Binary.MustBothExtendOne(p, &type_.Boolean{})
+	return o.Binary.MustBothExtendOne(p, type_.NewBoolean())
 }

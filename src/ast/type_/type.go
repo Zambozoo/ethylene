@@ -67,12 +67,12 @@ func Syntax(p ast.SyntaxParser) (ast.Type, io.Error) {
 				EndToken: tok,
 			}
 		default:
-			declType, ok := t.(ast.DeclType)
+			l, ok := t.(*Lookup)
 			if !ok {
 				return t, nil
 			}
 
-			g := &Generic{Type: declType}
+			g := &Generic{Type: l}
 			g.Syntax(p)
 			t = g
 		}

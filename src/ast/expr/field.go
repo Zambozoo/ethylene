@@ -113,7 +113,7 @@ func (t *TypeField) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 			return nil, err
 		}
 
-		return &type_.TypeID{}, nil
+		return type_.NewTypeID(), nil
 	}
 
 	dt, ok := t.Type.(ast.DeclType)

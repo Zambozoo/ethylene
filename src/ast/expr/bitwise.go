@@ -45,7 +45,7 @@ func (b *BitwiseXor) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (b *BitwiseXor) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return b.Binary.MustBothExtendOne(p, &type_.Boolean{}, &type_.Word{})
+	return b.Binary.MustBothExtendOne(p, type_.NewBoolean(), &type_.Word{})
 }
 
 // BitwiseAnd represents expressions of the form
@@ -84,7 +84,7 @@ func (b *BitwiseAnd) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (b *BitwiseAnd) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return b.Binary.MustBothExtendOne(p, &type_.Boolean{}, &type_.Word{})
+	return b.Binary.MustBothExtendOne(p, type_.NewBoolean(), &type_.Word{})
 }
 
 // BitwiseOr represents expressions of the form
@@ -124,5 +124,5 @@ func (b *BitwiseOr) Syntax(p ast.SyntaxParser) (ast.Expression, io.Error) {
 }
 
 func (b *BitwiseOr) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return b.Binary.MustBothExtendOne(p, &type_.Boolean{}, &type_.Word{})
+	return b.Binary.MustBothExtendOne(p, type_.NewBoolean(), &type_.Word{})
 }

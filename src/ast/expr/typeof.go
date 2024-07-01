@@ -32,5 +32,5 @@ func (to *TypeOf) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, io.NewError("typeof expression cannot be called on null type", zap.Stringer("location", to.Location()))
 	}
 
-	return &type_.TypeID{}, nil
+	return type_.NewTypeID(), nil
 }
