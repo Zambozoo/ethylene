@@ -179,6 +179,32 @@ func syntaxCompare(p ast.SyntaxParser) (ast.Expression, io.Error) {
 					Right: r,
 				},
 			}
+		case token.TOK_SUBTYPE:
+			p.Next()
+			r, err := syntaxShift(p)
+			if err != nil {
+				return nil, err
+			}
+
+			expr = &SuperType{
+				Binary: Binary{
+					Left:  expr,
+					Right: r,
+				},
+			}
+		case token.TOK_SUPERTYPE:
+			p.Next()
+			r, err := syntaxShift(p)
+			if err != nil {
+				return nil, err
+			}
+
+			expr = &SubType{
+				Binary: Binary{
+					Left:  expr,
+					Right: r,
+				},
+			}
 		case token.TOK_SPACESHIP:
 			p.Next()
 			r, err := syntaxShift(p)
