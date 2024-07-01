@@ -34,7 +34,7 @@ func (e *Equal) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // BangEqual represents expressions of the form
@@ -63,7 +63,7 @@ func (b *BangEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 func syntaxEqual(p ast.SyntaxParser) (ast.Expression, io.Error) {

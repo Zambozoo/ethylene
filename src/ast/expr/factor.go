@@ -18,7 +18,7 @@ func (m *Multiply) String() string {
 }
 
 func (m *Multiply) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return m.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
+	return m.Binary.MustBothExtendOne(p, type_.NewInteger(), type_.NewFloat())
 }
 
 // Divide represents expressions of the form
@@ -31,7 +31,7 @@ func (d *Divide) String() string {
 }
 
 func (d *Divide) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return d.Binary.MustBothExtendOne(p, &type_.Integer{}, &type_.Float{})
+	return d.Binary.MustBothExtendOne(p, type_.NewInteger(), type_.NewFloat())
 }
 
 // Modulo represents expressions of the form
@@ -44,7 +44,7 @@ func (m *Modulo) String() string {
 }
 
 func (m *Modulo) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return m.Binary.MustBothExtendOne(p, &type_.Integer{})
+	return m.Binary.MustBothExtendOne(p, type_.NewInteger())
 }
 
 func syntaxFactor(p ast.SyntaxParser) (ast.Expression, io.Error) {

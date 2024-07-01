@@ -28,7 +28,7 @@ func (r *RightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	right, err := r.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(p, right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(p, right, type_.NewInteger()); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func (l *LeftShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 	right, err := l.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(p, right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(p, right, type_.NewInteger()); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +82,7 @@ func (u *UnsignedRightShift) Semantic(p ast.SemanticParser) (ast.Type, io.Error)
 	right, err := u.Right.Semantic(p)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(p, right, &type_.Integer{}); err != nil {
+	} else if _, err := type_.MustExtend(p, right, type_.NewInteger()); err != nil {
 		return nil, err
 	}
 

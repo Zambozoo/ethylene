@@ -5,6 +5,8 @@ import (
 	"geth-cody/compile/lexer/token"
 	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
+
+	"go.uber.org/zap"
 )
 
 // Lookup represents a declaration lookup
@@ -43,7 +45,17 @@ func (l *Lookup) String() string {
 }
 
 func (l *Lookup) Declaration(_ ast.SemanticParser) (ast.Declaration, io.Error) {
-	return l.Context_.Declaration(l.Tokens)
+	d, err := l.Context_.Declaration(l.Tokens)
+	if err != nil {
+		return nil, err
+	} else if len(d.Generics()) != 0 {
+		return nil, io.NewError("expected generic declaration for lookup type",
+			zap.Stringer("type", l),
+			zap.Stringer("location", l.Location()),
+		)
+	}
+
+	return d, nil
 }
 
 func (l *Lookup) Concretize(mapping []ast.Type) ast.Type {

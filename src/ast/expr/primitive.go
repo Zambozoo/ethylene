@@ -15,7 +15,7 @@ func (i *Integer) String() string {
 	return fmt.Sprintf("%d", i.Integer)
 }
 func (i *Integer) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Integer{}, nil
+	return type_.NewInteger(), nil
 }
 
 // Float represents  valid floating point literals
@@ -25,7 +25,7 @@ func (f *Float) String() string {
 	return fmt.Sprintf("%f", f.Float)
 }
 func (f *Float) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Float{}, nil
+	return type_.NewFloat(), nil
 }
 
 // Character represents valid character literals
@@ -35,7 +35,7 @@ func (c *Character) String() string {
 	return fmt.Sprintf("%c", c.Rune)
 }
 func (c *Character) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Character{}, nil
+	return type_.NewCharacter(), nil
 }
 
 // String represents valid string literals
@@ -45,7 +45,7 @@ func (s *String) String() string {
 	return s.Value
 }
 func (s *String) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.String{}, nil
+	return type_.NewString(), nil
 }
 
 // True represents the `true` boolean
@@ -55,7 +55,7 @@ func (t *True) String() string {
 	return "true"
 }
 func (t *True) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // False represents the `false` boolean
@@ -65,7 +65,7 @@ func (f *False) String() string {
 	return "false"
 }
 func (f *False) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // Null represents the `null` reference
@@ -75,5 +75,5 @@ func (n *Null) String() string {
 	return "null"
 }
 func (n *Null) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
-	return &type_.Null{}, nil
+	return type_.NewNull(), nil
 }

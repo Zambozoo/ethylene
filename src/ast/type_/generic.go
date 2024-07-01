@@ -7,13 +7,15 @@ import (
 	"geth-cody/compile/syntax/typeid"
 	"geth-cody/io"
 	"geth-cody/stringers"
+
+	"go.uber.org/zap"
 )
 
 // GenericType represents a type with generic type parameters
 type Generic struct {
 	Constant     bool
 	Context_     ast.TypeContext
-	Type         ast.DeclType
+	Type         *Lookup
 	GenericTypes []ast.Type
 	EndToken     token.Token
 }
@@ -31,7 +33,7 @@ func (g *Generic) Location() *token.Location {
 }
 
 func (g *Generic) String() string {
-	return fmt.Sprintf("%s[%s]", g.Type, stringers.Join(g.GenericTypes, ","))
+	return fmt.Sprintf("%s%s", g.Type, stringers.Join(g.GenericTypes, ","))
 }
 
 func (g *Generic) ExtendsAsPointer(p ast.SemanticParser, parent ast.Type) (bool, io.Error) {
@@ -51,24 +53,33 @@ func (g *Generic) Equals(p ast.SemanticParser, other ast.Type) (bool, io.Error) 
 	gOther, ok := other.(*Generic)
 	if !ok {
 		return false, nil
-	} else if ok, err := g.Type.Equals(p, gOther.Type); err != nil || !ok {
+	}
+
+	d, err := g.Declaration(p)
+	if err != nil {
 		return false, err
 	}
 
-	for i, childGenericArg := range g.GenericTypes {
-		parentGenericArg := gOther.GenericTypes[i]
-		if ok, err := childGenericArg.Equals(p, parentGenericArg); err != nil || !ok {
-			return false, err
-		}
+	otherD, err := gOther.Declaration(p)
+	if err != nil {
+		return false, err
 	}
 
-	return true, nil
+	return d.Equals(p, otherD)
 }
 
 func (g *Generic) Declaration(p ast.SemanticParser) (ast.Declaration, io.Error) {
-	d, err := g.Type.Declaration(p)
+	d, err := g.Type.Context_.Declaration(g.Type.Tokens)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(d.Generics()) != len(g.GenericTypes) {
+		return nil, io.NewError("number of generic arguments in type differs from the number of generic parameters in declaration",
+			zap.Int("expected", len(d.Generics())),
+			zap.Int("actual", len(g.GenericTypes)),
+			zap.Stringer("location", g.Location()),
+		)
 	}
 
 	return p.WrapDeclWithGeneric(d, g.GenericTypes), nil

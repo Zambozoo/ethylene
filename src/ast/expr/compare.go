@@ -34,7 +34,7 @@ func (l *LessThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // LessThanOrEqual represents expressions of the form
@@ -61,7 +61,7 @@ func (l *LessThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // GreaterThan represents expressions of the form
@@ -88,7 +88,7 @@ func (g *GreaterThan) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // GreaterThanOrEqual represents expressions of the form
@@ -115,7 +115,7 @@ func (g *GreaterThanOrEqual) Semantic(p ast.SemanticParser) (ast.Type, io.Error)
 		return nil, err
 	}
 
-	return &type_.Boolean{}, nil
+	return type_.NewBoolean(), nil
 }
 
 // Spaceship represents expressions of the form
@@ -142,7 +142,7 @@ func (s *Spaceship) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	return &type_.Integer{}, nil
+	return type_.NewInteger(), nil
 }
 
 func syntaxCompare(p ast.SyntaxParser) (ast.Expression, io.Error) {

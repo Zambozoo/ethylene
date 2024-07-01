@@ -38,7 +38,7 @@ func (p *Panic) Semantic(parser ast.SemanticParser) (ast.Type, io.Error) {
 	t, err := p.Expr.Semantic(parser)
 	if err != nil {
 		return nil, err
-	} else if _, err := type_.MustExtend(parser, t, &type_.String{}); err != nil {
+	} else if _, err := type_.MustExtend(parser, t, type_.NewString()); err != nil {
 		return nil, err
 	}
 

@@ -22,11 +22,11 @@ func (s *SubType) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := s.MustBothExtendOne(p, left, right, &type_.TypeID{}); err != nil {
+	if _, err := s.MustBothExtendOne(p, left, right, type_.NewTypeID()); err != nil {
 		return nil, err
 	}
 
-	return &type_.TypeID{}, nil
+	return type_.NewTypeID(), nil
 }
 func (s *SubType) String() string {
 	return fmt.Sprintf("%s <: %s", s.Left.String(), s.Right.String())
@@ -47,11 +47,11 @@ func (s *SuperType) Semantic(p ast.SemanticParser) (ast.Type, io.Error) {
 		return nil, err
 	}
 
-	if _, err := s.MustBothExtendOne(p, left, right, &type_.TypeID{}); err != nil {
+	if _, err := s.MustBothExtendOne(p, left, right, type_.NewTypeID()); err != nil {
 		return nil, err
 	}
 
-	return &type_.TypeID{}, nil
+	return type_.NewTypeID(), nil
 }
 func (s *SuperType) String() string {
 	return fmt.Sprintf("%s :> %s", s.Left.String(), s.Right.String())
